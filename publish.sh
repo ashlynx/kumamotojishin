@@ -16,6 +16,18 @@ cd "$(dirname "$0")"
 
 MSG="${1:-サイトを更新}"
 
+# site/ に本体以外のHTMLが紛れていないか確認する。
+# ダウンロードしたファイルが混ざると、そのまま公開されて
+# 「古い内容の別URL」が生き続けてしまうため、ここで止める。
+STRAY=$(find site -maxdepth 1 -name "*.html" ! -name "index.html" 2>/dev/null || true)
+if [ -n "$STRAY" ]; then
+  echo "site/ に index.html 以外のHTMLがあります。このまま公開すると、古い内容のページが"
+  echo "別のURLで見られる状態になります。移動または削除してから再実行してください。"
+  echo
+  echo "$STRAY" | sed 's/^/  /'
+  exit 1
+fi
+
 if [ -f .git/index.lock ]; then
   echo "古いロックファイルを削除します"
   rm -f .git/index.lock
