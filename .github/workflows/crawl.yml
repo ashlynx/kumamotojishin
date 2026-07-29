@@ -31,7 +31,7 @@ concurrency:
 jobs:
   crawl:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
@@ -55,6 +55,7 @@ jobs:
         run: pip install --quiet pdfplumber
 
       - name: Crawl
+        timeout-minutes: 8
         run: python3 crawl.py --inject site/index.html --verbose
 
       - name: Save crawler state
@@ -68,11 +69,12 @@ jobs:
 
       # data.json を R2 に配置。サイト側は data.kumamotojishin.jp/data.json を読みます。
       - name: Upload data.json to R2
+        timeout-minutes: 4
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          npx --yes wrangler@latest r2 object put \
+          npx --yes wrangler@4.115.0 r2 object put \
             kumamotojishin-data/data.json \
             --file out/data.json \
             --content-type "application/json; charset=utf-8" \
@@ -86,9 +88,18 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          npx --yes wrangler@latest pages deploy site \
+          npx --yes wrangler@4.115.0 pages deploy site \
             --project-name kumamotojishin \
             --commit-dirty=true
+
+      # 失敗に気づけないと、更新が止まったまま放置される。
+      # GitHubからのメール通知に加えて、サマリの先頭にも明示する。
+      - name: Mark failure
+        if: failure()
+        run: |
+          echo "## 巡回に失敗しました" >> $GITHUB_STEP_SUMMARY
+          echo "サイトの表示は前回のデータのまま続きます（壊れてはいません）が、" >> $GITHUB_STEP_SUMMARY
+          echo "更新が止まっています。ログを確認してください。" >> $GITHUB_STEP_SUMMARY
 
       - name: Report
         if: always()

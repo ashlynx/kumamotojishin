@@ -51,6 +51,9 @@ UA = f"KumamotoQuakeInfoBot/1.0 (+{CONTACT})"
 
 REQUEST_INTERVAL = 3.0      # 各リクエストの間隔（秒）
 TIMEOUT = 20
+PDF_TIMEOUT = 30            # 断水PDFのみ大きいので長め（それでも上限は設ける）
+TIME_BUDGET = 300           # 巡回全体の上限（秒）。超えたら残りを諦めて、取れた分だけ出力する。
+                            # 1件の応答待ちが積み上がって全体が落ちるのを防ぐための安全装置。
 MAX_ITEMS_PER_SOURCE = 30
 KEEP_UPDATES = 200          # data.json に残す更新件数の上限
 KEEP_PER_SOURCE = 10        # 各ソースから最低限確保する件数（多弁なソースに埋もれさせない）
@@ -590,7 +593,7 @@ def parse_mlit_water(html, src, state_entry, verbose=False):
 
 def fetch_bytes(url):
     req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "*/*"})
-    with urllib.request.urlopen(req, timeout=60) as res:
+    with urllib.request.urlopen(req, timeout=PDF_TIMEOUT) as res:
         return res.read()
 
 
@@ -707,11 +710,28 @@ def crawl(verbose=False):
             prev = {}
     prev_updates = {u["url"]: u for u in prev.get("updates", []) if u.get("url")}
 
+    started = time.time()
+    skipped = []
+
     for i, src in enumerate(SOURCES):
-        if i:
-            time.sleep(REQUEST_INTERVAL)
         sid = src["id"]
         entry = state.get(sid, {})
+
+        # 予算を使い切ったら、残りは前回値を持ち越して打ち切る。
+        # 全部を諦めるより、取れたところまで出して更新を止めないほうがよい。
+        if time.time() - started > TIME_BUDGET:
+            skipped.append(src["label"])
+            updates.extend(entry.get("items", []))
+            if src["group"] == "quake" and entry.get("quakes"):
+                quakes = entry["quakes"]
+            if src["group"] == "stat" and entry.get("stat"):
+                stats[sid] = entry["stat"]
+            sources_status.append({"id": sid, "label": src["label"],
+                                   "status": "時間切れ（前回値）", "checked_at": now.isoformat()})
+            continue
+
+        if i:
+            time.sleep(REQUEST_INTERVAL)
         if verbose:
             print(f"[{sid}] {src['url']}")
         try:
@@ -868,6 +888,11 @@ def crawl(verbose=False):
             picked.append(u)
     picked.sort(key=recency, reverse=True)
 
+    if skipped:
+        errors.append({"id": "_budget", "label": "時間切れ",
+                       "error": f"{TIME_BUDGET}秒を超えたため未取得: " + "、".join(skipped),
+                       "at": now.isoformat()})
+
     data = {
         "generated_at": now.isoformat(),
         "quakes": quakes,
@@ -919,6 +944,10 @@ def main():
           f"／ ソース {ok}/{len(data['sources'])} 成功"
           f"／ 更新 {len(data['updates'])}件 ／ 地震 {len(data['quakes'])}件"
           f"／ {time.time()-t0:.1f}秒")
+    budget_ng = [s for s in data["sources"] if s["status"] == "時間切れ（前回値）"]
+    if budget_ng:
+        print(f"  時間切れで未取得（前回値を表示）: " +
+              "、".join(s["label"] for s in budget_ng), file=sys.stderr)
     for e in data["errors"]:
         print(f"  失敗: {e['label']} — {e['error']}", file=sys.stderr)
 
