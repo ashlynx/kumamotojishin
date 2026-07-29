@@ -46,7 +46,7 @@ import xml.etree.ElementTree as ET
 
 # 連絡先を必ず自分のものに書き換えてください。
 # 迷惑をかけた際に相手から連絡が来る余地を残すのが礼儀であり、遮断の回避にもなります。
-CONTACT = "https://example.org/kumamoto-info (contact@example.org)"
+CONTACT = "https://kumamotojishin.jp/ (info@kumamotojishin.jp)"
 UA = f"KumamotoQuakeInfoBot/1.0 (+{CONTACT})"
 
 REQUEST_INTERVAL = 3.0      # 各リクエストの間隔（秒）
