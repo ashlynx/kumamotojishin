@@ -230,6 +230,16 @@ SOURCES = [
     },
 
     {
+        "id": "kyuden_power",
+        "label": "九州電力送配電 停電情報",
+        "kind": "kyuden_power",
+        "url": "https://www.kyuden.co.jp/td_teiden/xml/00.xml",
+        "group": "stat",
+        "note": "停電情報ページが内部で読んでいるXML。県別の停電戸数と復旧見込みが入っている。"
+                "熊本県の地方別内訳は c43.xml 側にあるので、必要なときだけ追加で取得する。"
+                "公式APIとして案内されているものではないため、形式変更に備えて失敗しても止まらないようにする。",
+    },
+    {
         "id": "mlit_water",
         "label": "国土交通省 被害状況（断水）",
         "kind": "mlit_water",
@@ -542,6 +552,67 @@ def parse_kinkyu_html(html, src):
     return uniq[:MAX_ITEMS_PER_SOURCE]
 
 
+KYUDEN_REGION_URL = "https://www.kyuden.co.jp/td_teiden/xml/c43.xml"
+
+
+def parse_kyuden_power(xml_text, src, verbose=False):
+    """九州電力送配電の停電情報XMLから熊本県の停電戸数を取り出す。
+
+      <DATA><PREF_NAME>熊本県</PREF_NAME><BLACKOUT_COUNT>約22,870戸</BLACKOUT_COUNT>
+            <RESTORATION>確認中</RESTORATION><PC_COMMENT>…</PC_COMMENT></DATA>
+
+    戸数は「約22,870戸」「0戸」のような文字列で入っているので数値に直す。
+    復旧見込みは県内で新たな停電が起きると「確認中」に戻る仕様なので、そのまま出す。
+    """
+    def to_int(t):
+        m = re.search(r"([\d,]+)", t or "")
+        return int(m.group(1).replace(",", "")) if m else None
+
+    root = ET.fromstring(xml_text)
+    out = {}
+
+    rd = root.findtext("./HEADER/RELEASE_DATE") or ""
+    m = re.fullmatch(r"(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})", rd.strip())
+    if m:
+        y, mo, d, h, mi, sec = (int(x) for x in m.groups())
+        out["as_of"] = dt.datetime(y, mo, d, h, mi, sec, tzinfo=JST).isoformat()
+
+    for data in root.findall("./DATA"):
+        if (data.findtext("PREF_NAME") or "").strip() != "熊本県":
+            continue
+        out["current"] = to_int(data.findtext("BLACKOUT_COUNT"))
+        r = (data.findtext("RESTORATION") or "").strip()
+        if r:
+            out["restoration"] = r
+        c = (data.findtext("PC_COMMENT") or "").strip()
+        if c:
+            out["comment"] = re.sub(r"\s+", " ", c)
+        break
+
+    if out.get("current") is None:
+        raise ValueError("熊本県の停電戸数が見つかりません")
+
+    # 地方別の内訳。取れなくても県の合計は出せるので、失敗しても握りつぶす。
+    if out["current"] > 0:
+        try:
+            time.sleep(1.0)
+            sub = ET.fromstring(decode(fetch_bytes(KYUDEN_REGION_URL)))
+            regions = []
+            for r in sub.findall(".//REGION"):
+                n = to_int(r.findtext("BLACKOUT_COUNT"))
+                nm = (r.findtext("REGION_NAME") or "").strip()
+                if nm and n:
+                    regions.append({"name": nm, "now": n})
+            if regions:
+                out["regions"] = sorted(regions, key=lambda x: -x["now"])
+        except Exception as e:
+            if verbose:
+                print(f"    地方別内訳は取得できず（{type(e).__name__}）")
+
+    out["source_url"] = "https://www.kyuden.co.jp/td_teiden/kyushu.html"
+    return out
+
+
 def parse_mlit_water(html, src, state_entry, verbose=False):
     """国土交通省の被害状況PDFから断水戸数を取り出す。
 
@@ -765,6 +836,18 @@ def crawl(verbose=False):
                                        "status": f"{len(quakes)}件", "checked_at": now.isoformat()})
                 if verbose:
                     print(f"    地震 {len(quakes)}件")
+                continue
+            elif kind == "kyuden_power":
+                stat = parse_kyuden_power(body_text, src, verbose)
+                stat["fetched_at"] = now.isoformat()
+                stats[sid] = stat
+                new_entry["stat"] = stat
+                state[sid] = new_entry
+                label = f"{stat['current']:,}戸"
+                sources_status.append({"id": sid, "label": src["label"],
+                                       "status": label, "checked_at": now.isoformat()})
+                if verbose:
+                    print(f"    停電 {label}")
                 continue
             elif kind == "mlit_water":
                 stat = parse_mlit_water(body_text, src, entry, verbose)
