@@ -1,0 +1,105 @@
+name: crawl
+
+# 10分おきに一次情報サイトを巡回し、結果の data.json だけを Cloudflare R2 に置く。
+#
+# なぜ Pages を再デプロイしないのか:
+#   Pages 無料プランのビルドは月500回まで。10分おきに再デプロイすると月4,320回で足りません。
+#   静的HTMLは変更したときだけデプロイし、10分ごとに変わるデータは R2 から配信します。
+#   R2 は書き込み(Class A)が月100万回まで無料、エグレスも無料なので、この使い方なら $0 です。
+#
+# なぜ Cloudflare Workers の Cron ではないのか:
+#   Workers 無料プランは1実行あたり CPU 10ms。16サイト分のXML/JSONパースは確実に超えます
+#   （Cloudflare 自身のドキュメントに「大きなペイロードのパースは 10-20ms」と記載）。
+#   Workers でやるなら有料 $5/月。GitHub Actions はパブリックリポジトリなら無料です。
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:          # 手動実行
+  push:
+    branches: [main]
+    paths: ["crawl.py", ".github/workflows/crawl.yml"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: crawl
+  cancel-in-progress: false   # 巡回の途中で止めない
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # ETag / Last-Modified を実行間で持ち回る。
+      # これがないと毎回フル取得になり、気象庁の帯域制限（1日10GBでIP遮断）に近づきます。
+      - name: Restore crawler state
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            state.json
+            out
+          key: crawl-state-${{ github.run_id }}
+          restore-keys: crawl-state-
+
+      - name: Crawl
+        run: python3 crawl.py --inject site/index.html --verbose
+
+      - name: Save crawler state
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            state.json
+            out
+          key: crawl-state-${{ github.run_id }}
+
+      # data.json を R2 に配置。サイト側は data.kumamotojishin.jp/data.json を読みます。
+      - name: Upload data.json to R2
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx --yes wrangler@latest r2 object put \
+            kumamotojishin-data/data.json \
+            --file out/data.json \
+            --content-type "application/json; charset=utf-8" \
+            --cache-control "public, max-age=60, s-maxage=120" \
+            --remote
+
+      # 埋め込み済みHTMLの更新は、Pagesのビルド枠を使い切らないよう手動/push時のみ。
+      - name: Deploy site
+        if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx --yes wrangler@latest pages deploy site \
+            --project-name kumamotojishin \
+            --commit-dirty=true
+
+      - name: Report
+        if: always()
+        run: |
+          echo "### 巡回結果" >> $GITHUB_STEP_SUMMARY
+          if [ -f out/data.json ]; then
+            python3 - <<'PY' >> $GITHUB_STEP_SUMMARY
+          import json
+          d = json.load(open("out/data.json"))
+          ng = [s for s in d["sources"] if s["status"] == "取得失敗"]
+          print(f"- 生成時刻: {d['generated_at']}")
+          print(f"- ソース: {len(d['sources'])}件中 {len(d['sources'])-len(ng)}件成功")
+          print(f"- 更新: {len(d['updates'])}件 ／ 地震: {len(d['quakes'])}件")
+          for s in ng:
+              print(f"  - 失敗: {s['label']}")
+          PY
+          else
+            echo "- data.json が生成されませんでした" >> $GITHUB_STEP_SUMMARY
+          fi

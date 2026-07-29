@@ -1,0 +1,8 @@
+{
+  // Cloudflare Pages（静的サイト）の設定。
+  //   npx wrangler pages deploy site --project-name kumamotojishin
+  // で site/ 以下がそのまま配信されます。
+  "name": "kumamotojishin",
+  "compatibility_date": "2026-07-29",
+  "pages_build_output_dir": "site"
+}

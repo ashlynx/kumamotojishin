@@ -1,0 +1,18 @@
+# 巡回の生成物。GitHub Actions のキャッシュで持ち回るのでコミット不要
+out/
+state.json
+crawl.log
+
+# OS / エディタ
+.DS_Store
+.vscode/
+__pycache__/
+*.pyc
+
+# Cloudflare
+.wrangler/
+
+# サイトに置く巡回結果（deploy.sh が out/ からコピーする）
+site/data.json
+_to_delete/
+old/
