@@ -50,6 +50,10 @@ jobs:
           key: crawl-state-${{ github.run_id }}
           restore-keys: crawl-state-
 
+      # 断水戸数の抽出だけPDF解析が必要。他のソースは標準ライブラリのみで動きます。
+      - name: Install PDF parser
+        run: pip install --quiet pdfplumber
+
       - name: Crawl
         run: python3 crawl.py --inject site/index.html --verbose
 

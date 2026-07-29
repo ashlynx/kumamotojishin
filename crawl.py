@@ -226,6 +226,16 @@ SOURCES = [
         "note": "pubDate がRFC822に準拠していない（月名がJuly、TZが+1700など）ため日付は緩くパースする。",
     },
 
+    {
+        "id": "mlit_water",
+        "label": "国土交通省 被害状況（断水）",
+        "kind": "mlit_water",
+        "url": "https://www.mlit.go.jp/saigai/saigai_260728.html",
+        "group": "stat",
+        "note": "断水戸数はPDFでしか公表されないため、最新報のPDFを取得して数値を抜き出す。"
+                "pdfplumber が入っていない環境では前回値を保持してスキップする。",
+    },
+
     # --- 報道（一次情報ではないので区別して扱う） ---------------------------
     {
         "id": "nhk_shakai",
@@ -529,6 +539,120 @@ def parse_kinkyu_html(html, src):
     return uniq[:MAX_ITEMS_PER_SOURCE]
 
 
+def parse_mlit_water(html, src, state_entry, verbose=False):
+    """国土交通省の被害状況PDFから断水戸数を取り出す。
+
+    断水戸数は国交省がPDFでしか公表しておらず、報が更新されるたびにPDFのURLが変わる。
+    そこで一覧ページのリンク文字列から最新の報を選び、そのPDFだけを取得して数値を読む。
+
+      <a href="/common/002014179.pdf">令和８年熊本地震による被害状況等について（第5報）2026年7月29日 14:00時点</a>
+
+    PDFの解析には pdfplumber が必要。入っていない環境では何もせず、
+    呼び出し側が前回値を保持する（サイトの表示が空になるのを防ぐ）。
+    """
+    try:
+        import pdfplumber  # noqa: F401
+    except ImportError:
+        if verbose:
+            print("    pdfplumber 未導入のためスキップ（前回値を保持）")
+        return None
+
+    reports = []
+    for m in re.finditer(
+        r'<a[^>]+href="(/common/(\d+)\.pdf)"[^>]*>(.{0,160}?)</a>', html, re.S
+    ):
+        label = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", m.group(3))).strip()
+        rm = re.search(r"被害状況等について\s*（\s*第\s*(\d+)\s*報\s*）", label)
+        if rm:
+            reports.append((int(rm.group(1)), "https://www.mlit.go.jp" + m.group(1), label))
+    if not reports:
+        raise ValueError("被害状況の報PDFが一覧に見つかりません")
+
+    no, url, label = max(reports, key=lambda x: x[0])
+
+    # 同じ報を何度も落とさない（気象庁と同様、無駄な再取得を避ける）
+    if state_entry.get("water_pdf_url") == url and state_entry.get("stat"):
+        if verbose:
+            print(f"    第{no}報は取得済み")
+        return state_entry["stat"]
+
+    pdf_bytes = fetch_bytes(url)
+    stat = extract_water_from_pdf(pdf_bytes)
+    if not stat.get("current") and not stat.get("peak"):
+        raise ValueError(f"第{no}報のPDFから断水戸数を抽出できませんでした")
+
+    stat["report_no"] = no
+    stat["source_url"] = url
+    stat["source_page"] = src["url"]
+    stat["source_label"] = label
+    return stat
+
+
+def fetch_bytes(url):
+    req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "*/*"})
+    with urllib.request.urlopen(req, timeout=60) as res:
+        return res.read()
+
+
+def extract_water_from_pdf(pdf_bytes):
+    """PDFの「■水道」セクションから断水戸数を読む。
+
+    表の行は空白が列区切りなので、空白の潰し方を要約文と表とで分けている。
+    要約文では「約 84,000 戸」のように数字が分断されるため数字間の空白だけ詰める。
+    """
+    import io
+    import pdfplumber
+
+    txt = ""
+    with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
+        for page in pdf.pages:
+            txt += (page.extract_text() or "") + "\n"
+
+    rows = [re.sub(r"[ \t　]+", " ", l.strip()) for l in txt.split("\n")]
+    joined = re.sub(r"(?<=[0-9])\s+(?=[0-9,])", "", " ".join(rows))
+
+    out = {}
+    m = re.search(r"■\s*水道\s*（\s*(\d{1,2})/(\d{1,2})\s*(\d{1,2}):(\d{2})\s*時点\s*）", joined)
+    if m:
+        out["as_of"] = f"{int(m.group(1))}月{int(m.group(2))}日 {m.group(3)}:{m.group(4)}"
+    m = re.search(r"(\d+)\s*県\s*（\s*(\d+)\s*自治体\s*）\s*において\s*約?\s*([\d,]+)\s*戸が断水中", joined)
+    if m:
+        out["current"] = int(m.group(3).replace(",", ""))
+        out["current_pref"], out["current_muni"] = int(m.group(1)), int(m.group(2))
+    m = re.search(r"最大断水戸数\s*約?\s*([\d,]+)\s*戸", joined)
+    if m:
+        out["peak"] = int(m.group(1).replace(",", ""))
+    m = re.search(r"(\d+)\s*県\s*（\s*(\d+)\s*自治体\s*）\s*において断水", joined)
+    if m:
+        out["peak_pref"], out["peak_muni"] = int(m.group(1)), int(m.group(2))
+
+    start = next((i for i in range(len(rows)) if re.match(r"■\s*水道", rows[i])), None)
+    if start is None:
+        return out
+    end = next((i for i in range(start + 1, len(rows)) if rows[i].startswith("■")), len(rows))
+    # 表の見出し行を探す。「○…（最大断水戸数」という要約文にも同じ語が出るので箇条書きは除く。
+    t0 = next((i for i in range(start, end)
+               if "断水戸数" in rows[i] and not rows[i].startswith("○")), start)
+    # 同じ水道セクション内に給水車の派遣台数の表があり、形が同じで列の意味が違うため手前で切る。
+    t1 = next((i for i in range(t0 + 1, end) if rows[i].startswith("○")), end)
+
+    muni, in_kumamoto = [], False
+    for l in rows[t0:t1]:
+        if re.fullmatch(r"【.{2,6}県】", l):
+            in_kumamoto = ("熊本県" in l)
+            continue
+        if not in_kumamoto:
+            continue
+        mm = re.match(r"^([^\s0-9]{1,7}[市町村])\s+約?([\d,]+)\s+約?([\d,]+)(?:\s|$)", l)
+        if mm:
+            muni.append({"name": mm.group(1),
+                         "max": int(mm.group(2).replace(",", "")),
+                         "now": int(mm.group(3).replace(",", ""))})
+    if muni:
+        out["municipalities"] = sorted(muni, key=lambda x: -x["now"])
+    return out
+
+
 SCALE = {"1": "1", "2": "2", "3": "3", "4": "4",
          "5-": "5弱", "5+": "5強", "6-": "6弱", "6+": "6強", "7": "7"}
 
@@ -573,6 +697,7 @@ def crawl(verbose=False):
     now = dt.datetime.now(JST)
 
     updates, quakes, errors, sources_status = [], [], [], []
+    stats = {}
     prev = {}
     if os.path.exists(DATA_PATH):
         try:
@@ -600,6 +725,8 @@ def crawl(verbose=False):
                 updates.extend(entry.get("items", []))
                 if src["group"] == "quake" and entry.get("quakes"):
                     quakes = entry["quakes"]
+                if src["group"] == "stat" and entry.get("stat"):
+                    stats[sid] = entry["stat"]
                 continue
 
             body_text = decode(raw)
@@ -618,6 +745,27 @@ def crawl(verbose=False):
                                        "status": f"{len(quakes)}件", "checked_at": now.isoformat()})
                 if verbose:
                     print(f"    地震 {len(quakes)}件")
+                continue
+            elif kind == "mlit_water":
+                stat = parse_mlit_water(body_text, src, entry, verbose)
+                if stat:
+                    stat["fetched_at"] = now.isoformat()
+                    stats[sid] = stat
+                    new_entry["stat"] = stat
+                    new_entry["water_pdf_url"] = stat.get("source_url")
+                    label = (f"第{stat.get('report_no')}報／"
+                             f"{stat.get('current', 0):,}戸")
+                elif entry.get("stat"):
+                    stats[sid] = entry["stat"]
+                    new_entry["stat"] = entry["stat"]
+                    label = "前回値を保持"
+                else:
+                    label = "取得できず"
+                state[sid] = new_entry
+                sources_status.append({"id": sid, "label": src["label"],
+                                       "status": label, "checked_at": now.isoformat()})
+                if verbose:
+                    print(f"    {label}")
                 continue
             elif kind == "misato_json":
                 items = parse_misato_json(body_text, src)
@@ -670,6 +818,8 @@ def crawl(verbose=False):
             updates.extend(entry.get("items", []))
             if src["group"] == "quake" and entry.get("quakes"):
                 quakes = entry["quakes"]
+            if src["group"] == "stat" and entry.get("stat"):
+                stats[sid] = entry["stat"]
             if verbose:
                 print(f"    失敗 {msg}")
 
@@ -721,6 +871,7 @@ def crawl(verbose=False):
     data = {
         "generated_at": now.isoformat(),
         "quakes": quakes,
+        "stats": stats,
         "updates": picked[:KEEP_UPDATES],
         "sources": sources_status,
         "errors": errors,
