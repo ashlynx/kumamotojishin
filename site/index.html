@@ -185,6 +185,8 @@
     background:#fff;border-radius:8px;cursor:pointer;color:var(--ink)}
   .qhbar button[aria-pressed="true"]{background:var(--accent);color:#fff;border-color:var(--accent)}
   .qhtime{font-size:.8rem;color:var(--ink-2);margin-top:6px;font-variant-numeric:tabular-nums}
+  .qhrel{display:inline-block;margin-left:6px;padding:2px 8px;border-radius:999px;background:#1b2430;color:#fff;
+    font-weight:700;font-variant-numeric:tabular-nums}
   .map-lg.qhlg{margin-top:10px;align-items:center;row-gap:8px}
   .map-lg.qhlg b{border-radius:50%;border:1px solid rgba(24,32,42,.45);flex:none}
   .map-lg.qhlg span{display:inline-flex;align-items:center;gap:5px}
@@ -2334,6 +2336,7 @@ const mPts = new Map();
 let mPinchD = 0, mPinchZ = 0;
 
 elMap.addEventListener("pointerdown", e => {
+  hyFollow = false;
   mPts.set(e.pointerId, {x:e.clientX, y:e.clientY});
   mDragged = false;
   // 指が地図の外に出ても追従させる。使えない環境でも操作自体は止めない
@@ -2859,6 +2862,9 @@ const scaleLbl = v => SCALE_LBL[v] || "不明";
 
 let HY = [];            // [{t:Date, lat, lon, dep, mag, sc}]
 let hyCur = 1;          // 0〜1。1 なら「現在」（全部表示）
+let hySeen = new Map();  // 再生中に「いま起きた」ものを覚えて波紋を出す（添字→出た時刻）
+const RIPPLE_MS = 1100;  // 波紋が広がりきるまでの実時間
+let hyFollow = true;     // 再生中、いま起きた地震が画面から出そうなら地図をそっと寄せる
 let hyPlay = false, hyRaf = 0, hyLast = 0, hySel = -1;
 
 function hyLoad(){
@@ -2891,8 +2897,8 @@ function hyClusters(now){
     if(h.t.getTime() > now + 1) return;
     const k = h.lat + "," + h.lon;
     let c = m.get(k);
-    if(!c){ c = {lat:h.lat, lon:h.lon, n:0, maxM:-1, maxS:-1, last:null, lastIdx:-1}; m.set(k, c); }
-    c.n++;
+    if(!c){ c = {lat:h.lat, lon:h.lon, n:0, maxM:-1, maxS:-1, last:null, lastIdx:-1, idxs:[]}; m.set(k, c); }
+    c.n++; c.idxs.push(idx);
     if(h.mag > c.maxM) c.maxM = h.mag;
     if(h.sc  > c.maxS) c.maxS = h.sc;
     c.last = h; c.lastIdx = idx;
@@ -2903,14 +2909,45 @@ function hyClusters(now){
 function mRenderHypo(v){
   const svg = $("#mapHypo");
   if(!svg) return;
-  const now = hyAt();
+  const now = hyAt(), perf = performance.now();
   const cl = [];
   hyClusters(now).forEach(c => {
     const p = mToScreen(c.lat, c.lon, v);
     const r = Math.max(hyR(c.maxM), c.n > 1 ? 11 : 0);
-    if(p.x < -r-8 || p.y < -r-8 || p.x > v.w + r + 8 || p.y > v.h + r + 8) return;
+    if(p.x < -60 || p.y < -60 || p.x > v.w + 60 || p.y > v.h + 60) return;
     cl.push({c, p, r});
   });
+
+  // いま起きたものを覚える（再生中だけ。全部表示のときに一斉に波紋が出ないようにする）
+  if(hyPlay){
+    HY.forEach((h, i) => {
+      if(h.t.getTime() <= now + 1 && !hySeen.has(i)) hySeen.set(i, perf);
+    });
+  }
+
+  /* 波紋。規模が大きいほど大きく広がる。 */
+  let waves = "";
+  const bump = new Map();
+  if(hyPlay){
+    cl.forEach(o => {
+      o.c.idxs.forEach(i => {
+        const st = hySeen.get(i);
+        if(st === undefined || st < 0) return;
+        const pr = (perf - st) / RIPPLE_MS;
+        if(pr < 0 || pr >= 1) return;
+        const h = HY[i];
+        const e = 1 - Math.pow(1 - pr, 2);                 // だんだん減速して広がる
+        const rMax = hyR(h.mag) * 2.8 + 16;
+        const rr = o.r + (rMax - o.r) * e;
+        waves += `<circle cx="${o.p.x.toFixed(1)}" cy="${o.p.y.toFixed(1)}" r="${rr.toFixed(1)}"
+          fill="none" stroke="${scaleCol(h.sc)}" stroke-opacity="${((1-pr)*0.75).toFixed(2)}"
+          stroke-width="${(1 + 3.2*(1-pr)).toFixed(2)}" pointer-events="none"/>`;
+        bump.set(o.c, Math.max(bump.get(o.c) || 0, 1 - pr));
+      });
+    });
+    if(hySeen.size > 600) hySeen.forEach((st, i) => { if(st > 0 && perf - st > RIPPLE_MS) hySeen.set(i, -1); });
+  }
+
   cl.sort((a, b) => b.r - a.r);      // 大きい円が小さい円を隠さないように
 
   let out = "";
@@ -2918,10 +2955,12 @@ function mRenderHypo(v){
     const c = o.c, strong = c.maxS >= 45;
     const sel = c.lastIdx === hySel;
     const edge = sel ? "#151c22" : (SCALE_EDGE[c.maxS] || "rgba(24,32,42,.55)");
-    const dark = c.maxS >= 45;       // 濃い色の上は白文字
-    out += `<circle cx="${o.p.x.toFixed(1)}" cy="${o.p.y.toFixed(1)}" r="${o.r.toFixed(1)}"
-      fill="${scaleCol(c.maxS)}" fill-opacity="${strong ? 0.86 : 0.7}"
-      stroke="${edge}" stroke-width="${sel ? 3 : (strong ? 2 : 1.2)}"
+    const dark = c.maxS >= 45;
+    const bp = bump.get(c) || 0;                       // 起きた瞬間だけ少しふくらむ
+    const r = o.r * (1 + 0.22 * bp);
+    out += `<circle cx="${o.p.x.toFixed(1)}" cy="${o.p.y.toFixed(1)}" r="${r.toFixed(1)}"
+      fill="${scaleCol(c.maxS)}" fill-opacity="${((strong ? 0.86 : 0.7) + 0.14*bp).toFixed(2)}"
+      stroke="${edge}" stroke-width="${(sel ? 3 : (strong ? 2 : 1.2) + 1.6*bp).toFixed(2)}"
       data-i="${c.lastIdx}"><title>${c.n}回 ／ 最大 震度${scaleLbl(c.maxS)} M${c.maxM>=0?c.maxM:"—"}</title></circle>`;
     if(o.r >= 8){
       out += `<text x="${o.p.x.toFixed(1)}" y="${(o.p.y + o.r*0.34).toFixed(1)}" text-anchor="middle"
@@ -2929,7 +2968,32 @@ function mRenderHypo(v){
         fill="${dark ? "#fff" : "#1b2430"}" pointer-events="none">${c.n}</text>`;
     }
   });
-  svg.innerHTML = out;
+  svg.innerHTML = waves + out;
+}
+
+/* いま起きた地震が画面の端に来たら、中心を少しずつそちらに寄せる。
+   拡大率は変えない（変えると円の大きさの比較ができなくなる）。
+   利用者が自分で地図を動かしたら追従はやめる。 */
+function hyFollowNow(){
+  if(!hyFollow || !HY.length) return false;
+  const now = hyAt();
+  let last = null;
+  for(let i = HY.length - 1; i >= 0; i--){ if(HY[i].t.getTime() <= now + 1){ last = HY[i]; break; } }
+  if(!last) return false;
+  const v = mView();
+  if(!v.w || !v.h) return false;
+  const p = mToScreen(last.lat, last.lon, v);
+  if(p.x > v.w*0.18 && p.x < v.w*0.82 && p.y > v.h*0.18 && p.y < v.h*0.82) return false;
+  mCenter = {lat: mCenter.lat + (last.lat - mCenter.lat)*0.14,
+             lon: mCenter.lon + (last.lon - mCenter.lon)*0.14};
+  return true;
+}
+
+/* 再生中は地図タイルを触らず、震源の層だけ描き直す（そのほうがなめらか） */
+function hyTick(){
+  const v = mView();
+  if(!v.w || !v.h) return;
+  mRenderHypo(v);
 }
 
 function hySelect(i){
@@ -2954,10 +3018,14 @@ function hyStats(){
      <div><div class="n">${last && last.mag>=0 ? "M"+last.mag.toFixed(1) : "—"}</div><div class="l">いちばん新しい規模</div></div>
      <div><div class="n">${mags.length ? "M"+Math.max(...mags).toFixed(1) : "—"}</div><div class="l">最大の規模</div></div>
      <div><div class="n">${scs.length ? scaleLbl(Math.max(...scs)) : "—"}</div><div class="l">最大震度</div></div>`;
+  const rel = () => {
+    const d = now - QUAKE_MAIN.getTime(), a = Math.abs(d), p = n => String(n).padStart(2,"0");
+    return (d < 0 ? "−" : "＋") + Math.floor(a/3600000) + ":" + p(Math.floor(a%3600000/60000)) + ":" + p(Math.floor(a%60000/1000));
+  };
   $("#qhTime").innerHTML = HY.length
     ? (hyCur >= 1
         ? `<b>現在まで全部を表示しています</b>（${fmtDT(HY[0].t.toISOString())} 〜 ${fmtDT(HY[HY.length-1].t.toISOString())}）`
-        : `<b>${fmtDT(new Date(now).toISOString())} まで</b>を表示しています`)
+        : `<b>${fmtDT(new Date(now).toISOString())} まで</b>を表示しています　<span class="qhrel">本震から ${rel()}</span>`)
     : "震源のデータをまだ取得していません。";
 }
 
@@ -3017,9 +3085,16 @@ function hyStop(){
   const b = $("#qhPlay");
   if(b){ b.textContent = "▶ 再生"; b.setAttribute("aria-pressed", "false"); }
 }
+function hySeed(){
+  hySeen.clear();
+  const now = hyAt();
+  HY.forEach((h, i) => { if(h.t.getTime() <= now + 1) hySeen.set(i, -1); });
+}
 function hyStart(){
   if(!HY.length) return;
   if(hyCur >= 1) hyCur = 0;
+  hyFollow = true;
+  hySeed();
   hyPlay = true; hyLast = 0;
   const b = $("#qhPlay");
   b.textContent = "❙❙ 一時停止"; b.setAttribute("aria-pressed", "true");
@@ -3032,7 +3107,8 @@ function hyStart(){
     }
     hyLast = ts;
     $("#qhCur").value = Math.round(hyCur * 1000);
-    hyRender();
+    hyStats();
+    hyFollowNow() ? mRender() : hyTick();
     if(hyCur >= 1){ hyStop(); return; }
     hyRaf = requestAnimationFrame(step);
   };
@@ -3043,9 +3119,9 @@ function hyBind(){
   const cur = $("#qhCur");
   if(!cur || cur.dataset.bound) return;
   cur.dataset.bound = "1";
-  cur.oninput = () => { hyStop(); hyCur = +cur.value / 1000; hyRender(); };
+  cur.oninput = () => { hyStop(); hyCur = +cur.value / 1000; hySeed(); hyRender(); };
   $("#qhPlay").onclick = () => hyPlay ? hyStop() : hyStart();
-  $("#qhNow").onclick  = () => { hyStop(); hyCur = 1; cur.value = 1000; hyRender(); };
+  $("#qhNow").onclick  = () => { hyStop(); hyCur = 1; cur.value = 1000; hySeen.clear(); hyRender(); };
   $("#mapHypo").addEventListener("click", e => {
     const c = e.target.closest("circle");
     if(c && !mDragged) hySelect(+c.dataset.i);
