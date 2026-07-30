@@ -2396,7 +2396,7 @@ elMap.addEventListener("dblclick", e => {
 
 $("#mapIn").onclick  = () => { mZoomAt(mZoom + 1, elMap.clientWidth/2, elMap.clientHeight/2); mRender(); };
 $("#mapOut").onclick = () => { mZoomAt(mZoom - 1, elMap.clientWidth/2, elMap.clientHeight/2); mRender(); };
-$("#mapFit").onclick = () => { mFit(mapMode === "hypo" ? HY : null); mRender(); };
+$("#mapFit").onclick = () => { if(mapMode === "hypo") hyFit(); else mFit(); mRender(); };
 
 /* ---- 絞り込み ---- */
 function mChips(){
@@ -2584,7 +2584,7 @@ function mapMount(where){
   }
   if(where === "quake"){
     hyBind(); hyLegend();
-    if(!hyFitted && HY.length){ mFit(HY); hyFitted = true; }
+    if(!hyFitted && HY.length){ hyFit(); hyFitted = true; }
     hyStats();
   }
   mRender();
@@ -2668,7 +2668,7 @@ if(!C){
   renderQuakes();
   renderQuakeTrend();
   if(mapMode === "hypo"){
-    if(!hyFitted && HY.length){ mFit(HY); hyFitted = true; }
+    if(!hyFitted && HY.length){ hyFit(); hyFitted = true; }
     hyLegend(); hyStats(); mRender();
   }
   renderChips();
@@ -2943,6 +2943,26 @@ function hyHours(){
     if(x.sc >= 30) r[1]++;
   });
   return h;
+}
+
+/* 最初に見せる範囲。全部の震源を入れようとすると、遠くの1〜2個に引っぱられて
+   広域になりすぎ、肝心の余震域が小さくなる。上下5%を外した範囲に余白を足して合わせる。 */
+function hyFitPts(){
+  if(HY.length < 8) return HY;
+  const q = (arr, r) => arr[Math.min(arr.length-1, Math.floor(arr.length*r))];
+  const la = HY.map(h=>h.lat).sort((a,b)=>a-b);
+  const lo = HY.map(h=>h.lon).sort((a,b)=>a-b);
+  let la1 = q(la,0.15), la2 = q(la,0.85), lo1 = q(lo,0.15), lo2 = q(lo,0.85);
+  const my = Math.max(0.02, (la2-la1)*0.15), mx = Math.max(0.02, (lo2-lo1)*0.15);
+  la1 -= my; la2 += my; lo1 -= mx; lo2 += mx;
+  return [{lat:la1,lon:lo1},{lat:la2,lon:lo2}];
+}
+function hyFit(){
+  mFit(hyFitPts());
+  mZoom = Math.max(10, Math.min(12.5, mZoom));   // 寄りすぎ・引きすぎを止める
+  const md = a => a[Math.floor(a.length/2)];
+  if(HY.length >= 8) mCenter = {lat: md(HY.map(h=>h.lat).sort((a,b)=>a-b)),
+                                lon: md(HY.map(h=>h.lon).sort((a,b)=>a-b))};
 }
 
 function hyRender(){ hyStats(); mRender(); }
