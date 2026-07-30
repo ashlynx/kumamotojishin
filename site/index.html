@@ -178,6 +178,73 @@
   .prev .more{margin-top:8px;font-size:.75rem;color:var(--info);font-weight:700}
   .prev .warn{font-size:.75rem;color:var(--urgent);font-weight:700;margin-bottom:5px}
 
+  /* 緊急導線（最上部） */
+  .sos{background:#fff;border:2px solid var(--urgent);border-radius:12px;margin:16px 0 4px;overflow:hidden;box-shadow:var(--shadow)}
+  .sos-h{background:var(--urgent);color:#fff;font-weight:800;font-size:.97rem;padding:10px 14px;line-height:1.5}
+  .sos-b{padding:12px 14px 14px}
+  .sos-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+  .sos-btn{flex:1 1 150px;min-width:0;display:block;text-align:center;text-decoration:none;
+    background:var(--urgent);color:#fff;border-radius:10px;padding:11px 12px;font-size:1.18rem;font-weight:800;line-height:1.3}
+  .sos-btn small{display:block;font-size:.7rem;font-weight:600;opacity:.92;margin-top:2px;letter-spacing:.02em}
+  .sos-ol{counter-reset:t;padding-left:0;margin:6px 0 0}
+  .sos-ol li{list-style:none;counter-increment:t;position:relative;padding-left:28px;margin-bottom:6px;font-size:.85rem;color:var(--ink-2)}
+  .sos-ol li::before{content:counter(t);position:absolute;left:0;top:3px;width:20px;height:20px;border-radius:50%;
+    background:var(--urgent-soft);color:var(--urgent);font-size:.73rem;font-weight:800;display:grid;place-items:center}
+  .sos-p{font-size:.82rem;color:var(--ink-2);margin:10px 0 0;line-height:1.7}
+
+  /* 地図 */
+  .map-wrap{position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#e8eaec;box-shadow:var(--shadow)}
+  .map{position:relative;height:min(58vh,440px);min-height:280px;touch-action:pan-y;cursor:grab;overflow:hidden}
+  .map.drag{cursor:grabbing}
+  .map .lyr{position:absolute;left:0;top:0;width:100%;height:100%}
+  .map img.mt{position:absolute;left:0;top:0;transform-origin:0 0;user-select:none;-webkit-user-drag:none;pointer-events:none}
+  .map .pn{position:absolute;left:0;top:0;transform-origin:0 0;pointer-events:none}
+  .mpin{position:absolute;transform:translate(-50%,-100%);border:0;background:none;padding:0;pointer-events:auto;
+    width:30px;height:38px;line-height:1;display:grid;place-items:start center}
+  .mpin i{display:grid;place-items:center;width:27px;height:27px;border-radius:50% 50% 50% 6px;transform:rotate(-45deg);
+    font-size:.82rem;font-style:normal;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35)}
+  .mpin i span{transform:rotate(45deg)}
+  .mpin.k-water i{background:#1a4f8a;color:#fff}
+  .mpin.k-shelter i{background:#1f6d3a;color:#fff}
+  .mpin.k-office i{background:#6d7484;color:#fff}
+  .mpin[aria-pressed="true"] i{outline:3px solid var(--urgent);outline-offset:1px}
+  .mpin.approx i{border-style:dashed;border-color:#fff}
+  .mk-me{position:absolute;transform:translate(-50%,-50%);width:16px;height:16px;border-radius:50%;
+    background:#1a73e8;border:3px solid #fff;box-shadow:0 0 0 2px rgba(26,115,232,.35),0 1px 4px rgba(0,0,0,.3);pointer-events:none}
+  .map-ui{position:absolute;right:9px;bottom:26px;display:flex;flex-direction:column;gap:6px;z-index:5}
+  .map-ui button{width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.96);
+    font-size:1.1rem;font-weight:800;color:var(--ink-2);box-shadow:0 1px 4px rgba(0,0,0,.18);display:grid;place-items:center}
+  .map-ui button:disabled{opacity:.45}
+  .map-hint{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:6;pointer-events:none;
+    background:rgba(21,23,28,.82);color:#fff;font-size:.82rem;font-weight:700;padding:9px 15px;border-radius:999px;
+    opacity:0;transition:opacity .18s}
+  .map-hint.on{opacity:1}
+  .map-attr{font-size:.66rem;color:var(--ink-3);background:rgba(255,255,255,.9);padding:3px 8px;text-align:right}
+  .map-attr a{color:var(--ink-3)}
+  .map-lg{display:flex;gap:12px;flex-wrap:wrap;font-size:.75rem;color:var(--ink-3);margin:8px 0 0}
+  .map-lg span{display:inline-flex;align-items:center;gap:5px}
+  .map-lg b{width:11px;height:11px;border-radius:3px;display:inline-block}
+  .row{display:flex;flex-wrap:wrap;gap:6px}
+  /* 絞り込みのボタンは折り返さず横スクロールにする。
+     縦に3段積むと、スマホで地図が画面の外へ押し出されてしまうため。 */
+  .chiprow{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;
+    padding:8px 0 2px;scrollbar-width:none}
+  .chiprow::-webkit-scrollbar{display:none}
+  .chiprow .chip{white-space:nowrap;flex-shrink:0}
+  .pop{border:1px solid var(--line);border-left:4px solid var(--info);background:var(--surface);border-radius:0 10px 10px 0;
+    padding:12px 14px;margin:10px 0 0;box-shadow:var(--shadow)}
+  .pop .pn2{font-weight:800;font-size:1rem;line-height:1.5}
+  .pop .pa{font-size:.8rem;color:var(--ink-3);margin-top:2px}
+  .pop .px{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}
+  .loc-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);
+    border-radius:10px;padding:9px 12px;margin:0 0 12px;font-size:.8rem;color:var(--ink-2)}
+  .loc-bar button{border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:8px;
+    padding:7px 13px;font-size:.81rem;font-weight:700}
+  .loc-bar button.sub{background:var(--surface);color:var(--ink-2);border-color:var(--line);font-weight:600}
+  .loc-bar button:disabled{opacity:.55}
+  .dist{flex-shrink:0;font-size:.76rem;font-weight:800;color:var(--accent);background:var(--accent-soft);
+    border-radius:6px;padding:2px 7px;white-space:nowrap}
+
   /* 折りたたみの小さな内訳 */
   details.mini{margin-top:6px}
   details.mini>summary{display:inline-block;cursor:pointer;list-style:none;font-size:.76rem;color:var(--info);
@@ -230,6 +297,7 @@
 <nav class="tabs"><div class="tabs-in" role="tablist">
   <button role="tab" data-tab="home" aria-selected="true">ホーム</button>
   <button role="tab" data-tab="live" aria-selected="false">最新情報</button>
+  <button role="tab" data-tab="map" aria-selected="false">地図</button>
   <button role="tab" data-tab="city" aria-selected="false">市町村別</button>
   <button role="tab" data-tab="life" aria-selected="false">ライフライン</button>
   <button role="tab" data-tab="guide" aria-selected="false">手続き・支援制度</button>
@@ -241,9 +309,26 @@
 
 <!-- ========== HOME ========== -->
 <section id="p-home">
-  <div class="notice red" style="margin-top:16px">
-    <b>命に関わる緊急時は 119（消防・救急）／110（警察）へ。</b>
-    倒壊・閉じ込め・けがの通報は直接お願いします。<br>
+  <div class="sos">
+    <div class="sos-h">人が閉じ込められている・命の危険があるとき</div>
+    <div class="sos-b">
+      <div class="sos-row">
+        <a class="sos-btn" href="tel:119">119 に電話<small>消防・救急／救助・けが・火災・ガス</small></a>
+        <a class="sos-btn" href="tel:110">110 に電話<small>警察／事件・行方不明・道路の危険</small></a>
+      </div>
+      <b style="font-size:.9rem">電話がつながったら、この4つを伝えてください。</b>
+      <ol class="sos-ol">
+        <li><b>場所</b>――市町村・町名・番地まで。分からなければ近くの目印（学校名・店の名前・交差点名・電柱の表示）を言えば伝わります</li>
+        <li><b>誰が何人</b>――閉じ込められている人数、けがの有無、声や返事があるか</li>
+        <li><b>何が起きているか</b>――倒壊・埋まっている・出火・ガスの臭い・水があがってきている</li>
+        <li><b>あなたの名前と携帯番号</b>――折り返しの電話がかかってきます。切ったあとも手元に置いてください</li>
+      </ol>
+      <p class="sos-p"><b>つながらなくても、切ってかけ直してください。</b>災害時は回線が混み合います。どうしてもつながらないときは、近くの消防署・警察署・市町村の災害対策本部に直接行く、または声を出して周囲の人に助けを求めてください。<b>SNSに書くことは、消防への通報の代わりにはなりません。</b></p>
+      <p class="sos-p">耳や言葉が不自由な方は <b>NET119</b>（お住まいの消防本部への事前登録が必要）、警察へは <b>110番アプリシステム</b>（警察庁・事前登録が必要）が使えます。</p>
+    </div>
+  </div>
+
+  <div class="notice red" style="margin-top:10px">
     <b>気象庁は「1週間程度は最大震度7程度の地震に注意」</b>と呼びかけています。倒れかけた建物や塀には近づかないでください。
   </div>
 
@@ -266,6 +351,12 @@
       <h3>最新情報</h3>
       <p>気象庁の地震情報と、各自治体・官公庁の発表を定期巡回して集めています。いま何が更新されたか。</p>
       <div class="prev" id="prev-live"></div>
+    </button>
+    <button class="home-card" data-go="map">
+      <div class="k">ちず</div>
+      <h3>給水所・避難所の地図</h3>
+      <p>公式に発表された給水所・避難所・役所を地図に置いています。現在地から近い順にも並べられます。</p>
+      <div class="prev" id="prev-map"></div>
     </button>
     <button class="home-card" data-go="city">
       <div class="k">じぶんの まち</div>
@@ -334,11 +425,63 @@
 
   <h2 class="sec">自治体・官公庁の更新</h2>
   <div class="row" id="feedChips" style="margin-bottom:10px"></div>
+  <div class="row" id="feedKw" style="margin-bottom:8px"></div>
   <p class="stamp" id="feedCount" style="margin:0 0 8px"></p>
   <div id="feedList"></div>
 
   <div class="notice info">
     <b>報道（NHK）は一次情報ではありません。</b>速報性は高い一方、避難所や給水の可否といった判断は、必ず自治体の発表で確認してください。このページでは発信元がひと目で分かるよう、すべての項目に出どころを表示しています。
+  </div>
+</section>
+
+<!-- ========== MAP ========== -->
+<section id="p-map" class="hidden">
+  <h2 class="sec">給水所・避難所の地図</h2>
+  <p class="lead">公式に発表された給水所・避難所・役所です。ピンを押すと住所と電話が出ます。</p>
+
+  <div class="notice info" style="margin-top:0">
+    <b>開設状況と給水の時間は毎日変わります。</b>出かける前に公式ページか電話で確認してください。
+  </div>
+
+  <div class="map-wrap">
+    <div class="map" id="map">
+      <div class="lyr" id="mapTiles"></div>
+      <div class="lyr pn" id="mapPins"></div>
+      <div class="map-hint" id="mapHint">指2本で動かせます（拡大は＋−）</div>
+    </div>
+    <div class="map-ui">
+      <button type="button" id="mapIn" aria-label="拡大">＋</button>
+      <button type="button" id="mapOut" aria-label="縮小">−</button>
+      <button type="button" id="mapFit" aria-label="全体を表示">⤢</button>
+    </div>
+    <div class="map-attr">出典：<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">国土地理院 地理院タイル（淡色地図）</a></div>
+  </div>
+  <div class="map-lg">
+    <span><b style="background:#1a4f8a"></b>給水所</span>
+    <span><b style="background:#1f6d3a"></b>避難所</span>
+    <span><b style="background:#6d7484"></b>役所・役場</span>
+    <span>点線のふちどり＝町名までの<b style="width:auto;height:auto;background:none;font-weight:800">概略位置</b></span>
+  </div>
+  <div id="mapPop"></div>
+
+  <div class="chiprow" id="mapKinds"></div>
+  <div class="chiprow" id="mapCities"></div>
+
+  <div class="loc-bar" style="margin-top:10px">
+    <span id="mapLocMsg">現在地を使うと、近い順に並べ替えられます。</span>
+    <button type="button" id="mapLocBtn" style="margin-left:auto">📍 現在地から近い順</button>
+  </div>
+
+  <h2 class="sec" style="margin-top:14px">一覧</h2>
+  <p class="stamp" id="mapListNote" style="margin:0 0 8px"></p>
+  <div id="mapList"></div>
+
+  <h2 class="sec">地図に載せられていない市町村</h2>
+  <div class="card" id="mapMissing"></div>
+
+  <div class="notice">
+    <b>公式発表に住所がない施設は、地図に置いていません。</b>
+    施設名だけが発表されている場合、こちらで場所を推測して置くと、間違った所へ向かわせてしまいます。施設名での検索リンクだけを出しています。
   </div>
 </section>
 
@@ -348,6 +491,10 @@
   <p class="lead">お住まいの市町村を開いてください。各項目は公式ページへのリンクです。避難所・給水所は「地図」ボタンでGoogleマップが開きます。</p>
   <div class="notice info">
     避難所の開設状況と給水の時間は<b>毎日変わります</b>。ここに載せている施設名は7月29日時点で公式に発表されていたものです。出かける前に必ず公式ページか電話で確認してください。
+  </div>
+  <div class="loc-bar">
+    <span id="cityLocMsg">現在地を使うと、近い市町村から順に並べ替えます。</span>
+    <button type="button" id="cityLocBtn" style="margin-left:auto">📍 近い順に並べる</button>
   </div>
   <div class="jump" id="cityJump"></div>
   <div id="cityList"></div>
@@ -554,6 +701,7 @@
       <p>数値や場所の転記は最小限にとどめ、原則としてすべて<b>公式ページへのリンク</b>としています。各項目に発信元と取得時刻を表示しています。</p>
       <p class="note">地震情報は気象庁から直接取得しています。震度・マグニチュード・震央地名は発表内容をそのまま表示し、加工していません。<br>
         出典：<a href="https://www.jma.go.jp/bosai/quake/" target="_blank" rel="noopener">気象庁ホームページ</a></p>
+      <p class="note">地図の背景は<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">国土地理院の地理院タイル（淡色地図）</a>を使用しています。ピンの位置は公式発表の住所を国土地理院の住所検索で座標に変換したもので、住所に番地の登録がない地域では<b>町名（大字）までの概略位置</b>になります。正確な場所は住所とGoogleマップでご確認ください。</p>
     </div>
 
     <div class="about-card">
@@ -567,6 +715,7 @@
       <h3>プライバシー</h3>
       <p><b>アクセス解析・広告・Cookieは使用していません。</b>訪問者の情報を収集・保存していません。</p>
       <p>配信基盤（Cloudflare）が通信の安定と攻撃防御のために標準的なアクセスログを保持しますが、運営者はこれを個人の特定には利用しません。</p>
+      <p><b>現在地は、この端末の中だけで使っています。</b>「近い順」ボタンを押したときだけブラウザに位置情報を尋ね、距離の計算に使ったあと破棄します。運営者にも第三者にも送信していませんし、保存もしていません。ボタンを押さなければ一切取得しません。</p>
       <p class="note">問い合わせメールでいただいた内容は、返信と修正対応にのみ使用します。</p>
     </div>
 
@@ -597,13 +746,47 @@
    下の2つのマーカーの間が最新データで置き換わる。手で編集しないこと。
    ========================================================= */
 /*__CRAWLED_DATA_START__*/
-window.__CRAWLED__ = {"generated_at": "2026-07-30T12:57:09.693406+09:00", "quakes": [{"at": "2026-07-30T12:44:00+09:00", "place": "熊本県天草・芦北地方", "mag": "3.2", "maxi": "2", "depth": "10km", "title": "震源・震度情報", "eid": "20260730124423"}, {"at": "2026-07-30T12:40:00+09:00", "place": "熊本県熊本地方", "mag": "2.5", "maxi": "2", "depth": "", "title": "震源・震度情報", "eid": "20260730124006"}, {"at": "2026-07-30T12:01:00+09:00", "place": "熊本県熊本地方", "mag": "2.6", "maxi": "1", "depth": "10km", "title": "震源・震度情報", "eid": "20260730120124"}, {"at": "2026-07-30T11:43:00+09:00", "place": "熊本県熊本地方", "mag": "3.7", "maxi": "2", "depth": "10km", "title": "震源・震度情報", "eid": "20260730114307"}, {"at": "2026-07-30T11:18:00+09:00", "place": "熊本県熊本地方", "mag": "2.6", "maxi": "1", "depth": "10km", "title": "震源・震度情報", "eid": "20260730111849"}, {"at": "2026-07-30T11:13:00+09:00", "place": "熊本県天草・芦北地方", "mag": "3.3", "maxi": "2", "depth": "", "title": "震源・震度情報", "eid": "20260730111311"}, {"at": "2026-07-30T10:34:00+09:00", "place": "熊本県熊本地方", "mag": "2.6", "maxi": "1", "depth": "10km", "title": "震源・震度情報", "eid": "20260730103456"}, {"at": "2026-07-30T10:03:00+09:00", "place": "熊本県熊本地方", "mag": "2.5", "maxi": "1", "depth": "10km", "title": "震源・震度情報", "eid": "20260730100337"}, {"at": "2026-07-30T09:56:00+09:00", "place": "熊本県天草・芦北地方", "mag": "4.2", "maxi": "3", "depth": "10km", "title": "震源・震度情報", "eid": "20260730095617"}, {"at": "2026-07-30T09:30:00+09:00", "place": "熊本県熊本地方", "mag": "2.4", "maxi": "1", "depth": "10km", "title": "震源・震度情報", "eid": "20260730093015"}, {"at": "2026-07-30T09:14:00+09:00", "place": "熊本県熊本地方", "mag": "2.6", "maxi": "1", "depth": "10km", "title": "震源・震度情報", "eid": "20260730091402"}, {"at": "2026-07-30T09:05:00+09:00", "place": "熊本県熊本地方", "mag": "3.8", "maxi": "2", "depth": "10km", "title": "震源・震度情報", "eid": "20260730090520"}, {"at": "2026-07-30T08:47:00+09:00", "place": "熊本県熊本地方", "mag": "2.2", "maxi": "1", "depth": "", "title": "震源・震度情報", "eid": "20260730084702"}, {"at": "2026-07-30T08:30:00+09:00", "place": "熊本県熊本地方", "mag": "2.8", "maxi": "2", "depth": "10km", "title": "震源・震度情報", "eid": "20260730083053"}, {"at": "2026-07-30T08:06:00+09:00", "place": "熊本県熊本地方", "mag": "2.4", "maxi": "1", "depth": "10km", "title": "震源・震度情報", "eid": "20260730080620"}, {"at": "2026-07-30T07:51:00+09:00", "place": "熊本県天草・芦北地方", "mag": "2.5", "maxi": "1", "depth": "10km", "title": "震源・震度情報", "eid": "20260730075143"}, {"at": "2026-07-30T06:59:00+09:00", "place": "熊本県熊本地方", "mag": "2.6", "maxi": "2", "depth": "10km", "title": "震源・震度情報", "eid": "20260730065923"}, {"at": "2026-07-30T06:50:00+09:00", "place": "熊本県熊本地方", "mag": "2.3", "maxi": "1", "depth": "", "title": "震源・震度情報", "eid": "20260730065036"}, {"at": "2026-07-30T06:25:00+09:00", "place": "熊本県熊本地方", "mag": "3.0", "maxi": "1", "depth": "10km", "title": "震源・震度情報", "eid": "20260730062528"}, {"at": "2026-07-30T06:19:00+09:00", "place": "トカラ列島近海", "mag": "2.0", "maxi": "1", "depth": "", "title": "震源・震度情報", "eid": "20260730061928"}, {"at": "2026-07-30T06:10:00+09:00", "place": "熊本県熊本地方", "mag": "3.0", "maxi": "2", "depth": "10km", "title": "震源・震度情報", "eid": "20260730061055"}, {"at": "2026-07-30T06:08:00+09:00", "place": "熊本県熊本地方", "mag": "2.8", "maxi": "1", "depth": "10km", "title": "震源・震度情報", "eid": "20260730060828"}, {"at": "2026-07-30T06:05:00+09:00", "place": "熊本県熊本地方", "mag": "2.3", "maxi": "2", "depth": "", "title": "震源・震度情報", "eid": "20260730060505"}, {"at": "2026-07-30T05:55:00+09:00", "place": "熊本県熊本地方", "mag": "2.0", "maxi": "1", "depth": "", "title": "震源・震度情報", "eid": "20260730055524"}, {"at": "2026-07-30T05:37:00+09:00", "place": "熊本県熊本地方", "mag": "2.6", "maxi": "1", "depth": "10km", "title": "震源・震度情報", "eid": "20260730053728"}, {"at": "2026-07-30T05:34:00+09:00", "place": "熊本県熊本地方", "mag": "2.2", "maxi": "1", "depth": "10km", "title": "震源・震度情報", "eid": "20260730053406"}, {"at": "2026-07-30T05:32:00+09:00", "place": "熊本県熊本地方", "mag": "2.3", "maxi": "1", "depth": "10km", "title": "震源・震度情報", "eid": "20260730053211"}, {"at": "2026-07-30T05:27:00+09:00", "place": "熊本県熊本地方", "mag": "2.5", "maxi": "1", "depth": "10km", "title": "震源・震度情報", "eid": "20260730052728"}, {"at": "2026-07-30T05:16:00+09:00", "place": "熊本県熊本地方", "mag": "4.6", "maxi": "4", "depth": "10km", "title": "震源・震度情報", "eid": "20260730051638"}, {"at": "2026-07-30T05:07:00+09:00", "place": "熊本県熊本地方", "mag": "2.7", "maxi": "1", "depth": "10km", "title": "震源・震度情報", "eid": "20260730050709"}, {"at": "2026-07-30T04:28:00+09:00", "place": "熊本県熊本地方", "mag": "2.3", "maxi": "1", "depth": "", "title": "震源・震度情報", "eid": "20260730042800"}, {"at": "2026-07-30T04:02:00+09:00", "place": "熊本県熊本地方", "mag": "3.4", "maxi": "3", "depth": "10km", "title": "震源・震度情報", "eid": "20260730040222"}, {"at": "2026-07-30T03:59:00+09:00", "place": "熊本県熊本地方", "mag": "3.3", "maxi": "3", "depth": "10km", "title": "震源・震度情報", "eid": "20260730035909"}, {"at": "2026-07-30T03:35:00+09:00", "place": "熊本県天草・芦北地方", "mag": "3.5", "maxi": "2", "depth": "10km", "title": "震源・震度情報", "eid": "20260730033552"}, {"at": "2026-07-30T03:29:00+09:00", "place": "熊本県天草・芦北地方", "mag": "2.5", "maxi": "1", "depth": "10km", "title": "震源・震度情報", "eid": "20260730032904"}, {"at": "2026-07-30T02:54:00+09:00", "place": "熊本県熊本地方", "mag": "1.8", "maxi": "1", "depth": "10km", "title": "震源・震度情報", "eid": "20260730025450"}, {"at": "2026-07-30T01:57:00+09:00", "place": "熊本県熊本地方", "mag": "2.4", "maxi": "1", "depth": "10km", "title": "震源・震度情報", "eid": "20260730015704"}, {"at": "2026-07-30T01:31:00+09:00", "place": "熊本県熊本地方", "mag": "3.3", "maxi": "1", "depth": "", "title": "震源・震度情報", "eid": "20260730013109"}, {"at": "2026-07-30T01:31:00+09:00", "place": "大分県西部", "mag": "2.9", "maxi": "1", "depth": "10km", "title": "震源・震度情報", "eid": "20260730013101"}, {"at": "2026-07-29T23:53:00+09:00", "place": "熊本県熊本地方", "mag": "2.8", "maxi": "2", "depth": "", "title": "震源・震度情報", "eid": "20260729235310"}], "stats": {"kyuden_power": {"as_of": "2026-07-30T12:57:12+09:00", "current": 19450, "restoration": "確認中", "comment": "地震の影響に伴い、停電が発生し、大変ご迷惑をおかけしております。 設備被害状況の確認後、順次復旧作業を行っております。", "regions": [{"name": "熊本地方", "now": 19450}], "source_url": "https://www.kyuden.co.jp/td_teiden/kyushu.html", "fetched_at": "2026-07-30T12:57:09.693406+09:00"}, "mlit_water": {"as_of": "7月30日 09:30", "current": 95200, "current_pref": 1, "current_muni": 11, "peak": 108100, "peak_pref": 5, "peak_muni": 24, "municipalities": [{"name": "八代市", "max": 25269, "now": 25269}, {"name": "宇城市", "max": 18000, "now": 18000}, {"name": "人吉市", "max": 15000, "now": 15000}, {"name": "宇土市", "max": 12200, "now": 12200}, {"name": "熊本市", "max": 20970, "now": 8700}, {"name": "上天草市", "max": 7670, "now": 7670}, {"name": "氷川町", "max": 3231, "now": 3231}, {"name": "御船町", "max": 2600, "now": 2600}, {"name": "天草市", "max": 1100, "now": 1100}, {"name": "芦北町", "max": 1000, "now": 1000}, {"name": "甲佐町", "max": 500, "now": 400}, {"name": "合志市", "max": 0, "now": 0}], "report_no": 7, "source_url": "https://www.mlit.go.jp/common/002014352.pdf", "source_page": "https://www.mlit.go.jp/saigai/saigai_260728.html", "source_label": "令和８年熊本地震による被害状況等について（第7報）2026年7月30日 10:30時点", "fetched_at": "2026-07-30T12:57:09.693406+09:00"}}, "updates": [{"title": "熊本地震 関連調査中含め死者28人に 木原官房長官", "url": "http://www3.nhk.or.jp/news/html/20260730/k10015190421000.html", "published": "2026-07-30T12:26:00+09:00", "desc": "木原官房長官は臨時閣議のあとの記者会見で、今回の地震で30日午前6時半時点で、災害との関連を調査している人も含めて、死亡した人が28人にのぼっていると明らかにしました。", "source_id": "nhk_shakai", "source": "NHKニュース（社会）", "group": "news", "area": "", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "令和8年熊本地震による施設の閉館・イベント中止情報", "url": "https://www.city.kumamoto.jp/kiji00344187/index.html", "published": "2026-07-30T12:24:05+09:00", "desc": "", "source_id": "kumamoto_city", "source": "熊本市", "group": "city", "area": "熊本市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "【開設中の避難所について】", "url": "https://www.town.hikawa.kumamoto.jp/kinkyu.html#kid15", "published": "2026-07-30T12:24:00+09:00", "desc": "本日、7月30日（木曜日）現在開設中の避難所は以下のとおりです。 【開設場所】 ・竜北西部小学校 ・竜北東小学校 ・氷川中学校", "source_id": "hikawa_kinkyu", "source": "氷川町 緊急情報", "group": "city", "area": "氷川町", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "熊本県内 約7万4800戸が断水 30日の給水所設置状況は", "url": "http://www3.nhk.or.jp/news/html/20260730/k10015190511000.html", "published": "2026-07-30T12:24:00+09:00", "desc": "熊本県が発表した30日午前7時半現在の断水の状況です。あわせておよそ7万4800戸が断水しています。", "source_id": "nhk_shakai", "source": "NHKニュース（社会）", "group": "news", "area": "", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "令和8年熊本地震　関連情報", "url": "https://www.city.yatsushiro.lg.jp/kiji00326750/index.html", "published": "2026-07-30T12:15:40+09:00", "desc": "", "source_id": "yatsushiro", "source": "八代市", "group": "city", "area": "八代市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "熊本 地震被害の「り災証明書」 申請の受け付け始まる", "url": "http://www3.nhk.or.jp/news/html/20260730/k10015190311000.html", "published": "2026-07-30T12:15:00+09:00", "desc": "熊本県内の自治体では、被災した人たちが公的な支援を受けるために必要な「り災証明書」の申請の受け付けが始まっています。「り災証明書」は住宅の被害の度合いを自治体が証明する書類で、被災者生活再建支援金や仮設住宅への入居といったさまざまな支援を受ける際に必要になります。受け付けの状況についてNHKは、30日午前時点で震度6弱", "source_id": "nhk_shakai", "source": "NHKニュース（社会）", "group": "news", "area": "", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "きょうも危険な暑さ 熊本で猛暑日予想 東北や新潟は激しい雨も", "url": "http://www3.nhk.or.jp/news/html/20260730/k10015190281000.html", "published": "2026-07-30T12:11:00+09:00", "desc": "30日も広い範囲で気温が上がっていて東日本と西日本では38度を超える危険な暑さとなるところがあり、熊本県の地震の被災地でも猛暑日となる見込みです。熱中症対策を徹底してください。一方、低気圧などの影響で東北や新潟県では断続的に激しい雨が降り、レベル4の危険警報が発表されている地域もあり、土砂災害に厳重な警戒が必要です。", "source_id": "nhk_shakai", "source": "NHKニュース（社会）", "group": "news", "area": "", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "令和８年熊本地震に伴う被災証明書（住家以外）の発行について", "url": "https://www.town.mashiki.lg.jp/kiji0038065/index.html", "published": "2026-07-30T12:07:07+09:00", "desc": "", "source_id": "mashiki", "source": "益城町", "group": "city", "area": "益城町", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "九州新幹線の運転見合わせ 高速道路の通行止め区間【30日】", "url": "http://www3.nhk.or.jp/news/html/20260730/k10015190231000.html", "published": "2026-07-30T12:07:00+09:00", "desc": "地震の影響で九州新幹線は一部区間の運転見合わせが続いています。また九州の高速道路では熊本県内を中心に通行止めが続いています。交通機関への影響をまとめました。", "source_id": "nhk_shakai", "source": "NHKニュース（社会）", "group": "news", "area": "", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "山崎製パン 熊本 宇城市の工場は稼働停止 再開の時期未定", "url": "http://www3.nhk.or.jp/news/html/20260730/k10015190621000.html", "published": "2026-07-30T12:03:00+09:00", "desc": "今回の地震の影響で、熊本県など九州にある大手メーカーの工場では操業に影響が出ています。", "source_id": "nhk_shakai", "source": "NHKニュース（社会）", "group": "news", "area": "", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "令和８年熊本地震に伴う罹災証明書の発行について", "url": "https://www.town.mashiki.lg.jp/kiji0038063/index.html", "published": "2026-07-30T12:02:14+09:00", "desc": "", "source_id": "mashiki", "source": "益城町", "group": "city", "area": "益城町", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "日本製紙 八代工場 8人死亡 2人けが 1人安否不明 熊本県", "url": "http://www3.nhk.or.jp/news/html/20260730/k10015190441000.html", "published": "2026-07-30T12:02:00+09:00", "desc": "地震で煙突が倒壊するなどした熊本県八代市にある日本製紙の八代工場では、30日朝までに新たに3人が救助されましたが死亡が確認され、亡くなったのは8人となりました。今も1人の安否がわかっておらず救助活動が続いています。", "source_id": "nhk_shakai", "source": "NHKニュース（社会）", "group": "news", "area": "", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "【給水所情報】", "url": "https://www.city.yatsushiro.lg.jp/kiji00326773/index.html", "published": "2026-07-30T12:01:06+09:00", "desc": "", "source_id": "yatsushiro", "source": "八代市", "group": "city", "area": "八代市", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "鏡文化センターの休館及び旧八代市厚生会館に係る市民対話の延期について", "url": "https://www.city.yatsushiro.lg.jp/kiji00326769/index.html", "published": "2026-07-30T11:59:06+09:00", "desc": "", "source_id": "yatsushiro", "source": "八代市", "group": "city", "area": "八代市", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "災害時における井戸水の提供について", "url": "https://www.city.kumamoto.jp/kiji00315906/index.html", "published": "2026-07-30T11:58:11+09:00", "desc": "", "source_id": "kumamoto_city", "source": "熊本市", "group": "city", "area": "熊本市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "熊本県で震度7 同程度の地震に注意 きょうも熱中症対策を", "url": "http://www3.nhk.or.jp/news/html/20260730/k10015190291000.html", "published": "2026-07-30T11:53:00+09:00", "desc": "28日、最大震度7の揺れを観測し、大きな被害が出ている熊本県では29日夜も震度5弱の揺れを観測するなど地震活動が活発な状態が続いています。気象庁は1週間ほどは最大震度7程度の地震に注意するよう呼びかけています。熊本県では30日も気温が上がり猛烈な暑さが予想されていて、復旧作業などの際は熱中症を防ぐためにできるかぎりの対", "source_id": "nhk_shakai", "source": "NHKニュース（社会）", "group": "news", "area": "", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "米国務省 “地震の影響受けた方々にお見舞い 日本政府と連絡”", "url": "http://www3.nhk.or.jp/news/html/20260730/k10015190601000.html", "published": "2026-07-30T11:49:00+09:00", "desc": "熊本県で発生した大地震について、アメリカ国務省の報道担当者は、29日、NHKの取材に対し、「アメリカ政府は状況を注視している。地震の影響を受けた方々にお見舞いを申し上げる」とコメントしました。", "source_id": "nhk_shakai", "source": "NHKニュース（社会）", "group": "news", "area": "", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "水道の復旧状況について", "url": "https://www.city.uto.lg.jp/article/view/1014/16317.html", "published": "2026-07-30T11:35:00+09:00", "desc": "現在、復旧に向けた取り組みとして、試験的に通水を行っております。一時的に水が出ることがありますが、途中で断水する場合があります。お住...", "source_id": "uto", "source": "宇土市", "group": "city", "area": "宇土市", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "通行規制情報（7月30日午前11時00分時点）", "url": "https://www.town.mashiki.lg.jp/kinkyu.html#kid54", "published": "2026-07-30T11:31:00+09:00", "desc": "7月30日午前11時00分時点の道路通行規制の情報をお知らせします。 ・福原袴野線（内寺付近 落⽯の恐れがあるため通⾏⽌め） ・町道第一土地区画整理20号線（宅地擁壁倒壊のため通行止め） ・町道前畑下北田線（家屋倒壊による通行止め） また、以下の道路通行規制は解除されました。 ・木山橋南側 ・宮園橋 ・五楽橋 ・町道馬", "source_id": "mashiki_kinkyu", "source": "益城町 緊急情報", "group": "city", "area": "益城町", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "「認知症啓発講演会」中止のお知らせ", "url": "https://www.city.yatsushiro.lg.jp/kiji00325202/index.html", "published": "2026-07-30T11:24:01+09:00", "desc": "", "source_id": "yatsushiro", "source": "八代市", "group": "city", "area": "八代市", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "給水車による給水のお知らせ（7/30 11:00更新）", "url": "https://www.city.uto.lg.jp/article/view/1308/16322.html", "published": "2026-07-30T11:05:00+09:00", "desc": "本日午前9時から給水車による給水を行います。場所は以下の5か所です。※走潟地区体育館において、給水車による給水を開始しました給水場所（５...", "source_id": "uto", "source": "宇土市", "group": "city", "area": "宇土市", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "り災証明書受付終了（7月30日受付分）のお知らせ", "url": "https://www.city.uto.lg.jp/article/view/1307/16350.html", "published": "2026-07-30T10:58:00+09:00", "desc": "本日から、り災証明書の受付を開始しましたが、多くの皆さまから申請をいただき、長時間お待たせしている状況です。つきましては、本日（7月30...", "source_id": "uto", "source": "宇土市", "group": "city", "area": "宇土市", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "令和8年熊本地震に伴う市政だより配布の遅延について", "url": "https://www.city.kumamoto.jp/kiji00372126/index.html", "published": "2026-07-30T10:52:47+09:00", "desc": "", "source_id": "kumamoto_city", "source": "熊本市", "group": "city", "area": "熊本市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "住家の「り災証明書」の発行について", "url": "https://www.city.kumamoto.jp/kiji0032451/index.html", "published": "2026-07-30T10:42:46+09:00", "desc": "", "source_id": "kumamoto_city", "source": "熊本市", "group": "city", "area": "熊本市", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "令和8年7月地震により被害を受けたときの罹災証明について", "url": "https://www.town.kumamoto-misato.lg.jp/town_news/3352.html", "published": "2026-07-30T10:40:00+09:00", "desc": "", "source_id": "misato", "source": "美里町", "group": "city", "area": "美里町", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "令和８年熊本地震に伴う八代市公共交通（バス・乗合タクシー）の運休について", "url": "https://www.city.yatsushiro.lg.jp/kiji00326748/index.html", "published": "2026-07-30T10:29:15+09:00", "desc": "", "source_id": "yatsushiro", "source": "八代市", "group": "city", "area": "八代市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "令和8年度 宇土市少年の主張大会中止のお知らせ", "url": "https://www.city.uto.lg.jp/article/view/1061/16349.html", "published": "2026-07-30T10:16:00+09:00", "desc": "本日7月30日、午後1時30分から開催を予定しておりました「令和8年度 宇土市少年の主張大会」は、令和8年熊本地震による被害のため中止いたします...", "source_id": "uto", "source": "宇土市", "group": "city", "area": "宇土市", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "※中止のご連絡※【まちなか情報】第53回本町土曜夜市が開催されます！（7月25日、8月1日、8月8日）", "url": "https://www.city.yatsushiro.lg.jp/kiji00326615/index.html", "published": "2026-07-30T10:13:42+09:00", "desc": "", "source_id": "yatsushiro", "source": "八代市", "group": "city", "area": "八代市", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "【地震情報】熊本県 鹿児島県で震度3 津波の心配なし", "url": "http://www3.nhk.or.jp/news/html/20260730/k10015190451000.html", "published": "2026-07-30T10:01:00+09:00", "desc": "３０日午前９時５６分ごろ地震がありました。この地震による津波の心配はありません。震源地は熊本県天草・芦北地方で震源の深さは１０キロ、地震の規模を示すマグニチュードは４．２と推定されます。各市町村の震度は以下のとおりです。▼震度３が、熊本県八代市、熊本県水俣市、熊本県上天草市、熊本県芦北町、熊本県津奈木町、熊本県球磨村、", "source_id": "nhk_shakai", "source": "NHKニュース（社会）", "group": "news", "area": "", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "り災証明書の交付を受けた場合、証明書の交付手数料を無料にすることができます。", "url": "https://www.city.uto.lg.jp/article/view/1307/16348.html", "published": "2026-07-30T09:59:00+09:00", "desc": "り災証明書（以下「り災証明書」という。）の交付を受けた場合で保険金等の請求など市長が認める場合には、手数料を免除（無料）することがで...", "source_id": "uto", "source": "宇土市", "group": "city", "area": "宇土市", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "給水車による応急給水について", "url": "https://www.town.hikawa.kumamoto.jp/kinkyu.html#kid13", "published": "2026-07-30T09:55:00+09:00", "desc": "本日、7月30日（木曜日）の給水車による給水については以下のとおりです。 時間：7：00～19：00 場所：氷川町役場、宮原振興局 ※1回あたり5ℓまで 水を入れる容器をお持ちの方はご持参ください。 情報が更新されましたら、随時お知らせします。", "source_id": "hikawa_kinkyu", "source": "氷川町 緊急情報", "group": "city", "area": "氷川町", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "地震被害に伴う災害ごみの収集等について", "url": "https://www.city.kumamoto.jp/kiji00372079/index.html", "published": "2026-07-30T09:54:29+09:00", "desc": "", "source_id": "kumamoto_city", "source": "熊本市", "group": "city", "area": "熊本市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "【令和8年熊本地震】被災者支援制度 （冊子）をご利用ください（第1版）", "url": "https://www.city.kumamoto.jp/kiji00372110/index.html", "published": "2026-07-30T09:37:07+09:00", "desc": "", "source_id": "kumamoto_city", "source": "熊本市", "group": "city", "area": "熊本市", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "令和８年熊本地震に伴う企業様からの物資提供のお願い", "url": "https://www.city.yatsushiro.lg.jp/kiji00326767/index.html", "published": "2026-07-30T09:26:32+09:00", "desc": "", "source_id": "yatsushiro", "source": "八代市", "group": "city", "area": "八代市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "災害時の医療（令和8年熊本地震　診療可能医療機関一覧掲載）", "url": "https://www.city.kumamoto.jp/kiji00345259/index.html", "published": "2026-07-30T09:18:11+09:00", "desc": "", "source_id": "kumamoto_city", "source": "熊本市", "group": "city", "area": "熊本市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "給水車による給水を行っています", "url": "https://www.town.mashiki.lg.jp/kiji0038070/index.html", "published": "2026-07-30T09:12:43+09:00", "desc": "", "source_id": "mashiki", "source": "益城町", "group": "city", "area": "益城町", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "令和8年熊本地震に係る災害対策本部会議", "url": "https://www.pref.kumamoto.jp/soshiki/222/274487.html", "published": "2026-07-30T09:00:00+09:00", "desc": "", "source_id": "pref_kumamoto_new", "source": "熊本県 新着情報", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "令和８年熊本地震に伴う一部の県税窓口の休止について", "url": "https://www.pref.kumamoto.jp/soshiki/16/274568.html", "published": "2026-07-30T09:00:00+09:00", "desc": "", "source_id": "pref_kumamoto_new", "source": "熊本県 新着情報", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "避難所について（7/30 9:00更新）", "url": "https://www.city.uto.lg.jp/article/view/1014/16304.html", "published": "2026-07-30T08:52:00+09:00", "desc": "令和8年熊本地震が発生したことに伴い、避難所を開設しています。開設している避難所は、以下のとおりです。【避難所開設】宇土地区　　福祉セ...", "source_id": "uto", "source": "宇土市", "group": "city", "area": "宇土市", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "被災者支援に関する総合相談窓口の設置について", "url": "https://www.city.yatsushiro.lg.jp/kiji00326749/index.html", "published": "2026-07-30T08:33:17+09:00", "desc": "", "source_id": "yatsushiro", "source": "八代市", "group": "city", "area": "八代市", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "【開催中止】第1回ニューファーマー研修会について", "url": "https://www.pref.kumamoto.jp/site/kenhoku/274902.html", "published": "2026-07-30T08:30:00+09:00", "desc": "新規就農者　若手農業者　農業　菊池　研修会", "source_id": "pref_kumamoto_new", "source": "熊本県 新着情報", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "図書館の休館について", "url": "https://www.city.uto.lg.jp/article/view/1014/16346.html", "published": "2026-07-30T08:24:00+09:00", "desc": "令和8年熊本地震の影響により、宇土市立図書館は、当面の間休館します。", "source_id": "uto", "source": "宇土市", "group": "city", "area": "宇土市", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "地震に伴うイチゴ苗の転倒・損傷等への技術対策について", "url": "https://www.pref.kumamoto.jp/soshiki/74/274894.html", "published": "2026-07-30T08:00:00+09:00", "desc": "", "source_id": "pref_kumamoto_new", "source": "熊本県 新着情報", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "令和８年熊本地震発生に伴う町児童福祉施設等の対応について（お知らせ）", "url": "https://www.town.mashiki.lg.jp/kiji0038062/index.html", "published": "2026-07-30T07:52:34+09:00", "desc": "", "source_id": "mashiki", "source": "益城町", "group": "city", "area": "益城町", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "【地震速報】熊本県熊本地方で震度4  津波の心配なし (5:16)", "url": "http://www3.nhk.or.jp/news/html/20260730/k10015190251000.html", "published": "2026-07-30T06:01:00+09:00", "desc": "30日午前5時16分ごろ、熊本県の熊本地方を震源とする地震があり、震度4の揺れを観測しました。この地震による津波の心配はありません。", "source_id": "nhk_shakai", "source": "NHKニュース（社会）", "group": "news", "area": "", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "地震情報", "url": "https://www.town.mashiki.lg.jp/kinkyu.html#kid68", "published": "2026-07-30T05:18:00+09:00", "desc": "震度4の地震が発生しました。 「地震情報」 地震ID:20260730051638 2026年07月30日05時18分 気象庁 発表 震度速報 ３０日０５時１６分ころ、地震による強い揺れを感じました。震度３以上が 観測された地域をお知らせします。 震度 地域 4 熊本県熊本 3 熊本県天草・芦北 宮崎県北部平野部 今後", "source_id": "mashiki_kinkyu", "source": "益城町 緊急情報", "group": "city", "area": "益城町", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "【被害情報】熊本 氷川町 複数の建物が倒壊 5人が心肺停止", "url": "http://www3.nhk.or.jp/news/html/20260730/k10015190301000.html", "published": "2026-07-30T05:16:00+09:00", "desc": "熊本県によりますと、29日午後7時の時点で、今回の地震による死者が12人、心肺停止の状態が6人で、けが人は64人にのぼっています。また、安否不明となっている人が少なくとも4人いるということです。震度7の揺れを観測した熊本県氷川町では、NHKの現地取材で複数の建物が倒壊するなどの被害が確認されていますが、町は調査中だとし", "source_id": "nhk_shakai", "source": "NHKニュース（社会）", "group": "news", "area": "", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "熊本地震 熱中症対策やガソリン供給など重点的に取り組む 政府", "url": "http://www3.nhk.or.jp/news/html/20260730/k10015190321000.html", "published": "2026-07-30T05:13:00+09:00", "desc": "今回の地震が厳しい暑さの中での災害となったことから、政府は、避難所での熱中症対策や被災地へのガソリン供給などを進めることで、被災者の生活支援に重点的に取り組む方針です。", "source_id": "nhk_shakai", "source": "NHKニュース（社会）", "group": "news", "area": "", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "【地震情報】熊本県益城町で震度3 津波の心配なし", "url": "http://www3.nhk.or.jp/news/html/20260730/k10015190341000.html", "published": "2026-07-30T04:18:00+09:00", "desc": "３０日午前３時５９分ごろ地震がありました。この地震による津波の心配はありません。震源地は熊本県熊本地方で震源の深さは１０キロ、地震の規模を示すマグニチュードは３．３と推定されます。各市町村の震度は以下のとおりです。▼震度３が、熊本県益城町。", "source_id": "nhk_shakai", "source": "NHKニュース（社会）", "group": "news", "area": "", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "令和８年熊本地震による農地・農業用施設被害に関するお知らせ", "url": "https://www.town.mashiki.lg.jp/kiji0038057/index.html", "published": "2026-07-30T00:41:36+09:00", "desc": "", "source_id": "mashiki", "source": "益城町", "group": "city", "area": "益城町", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "政府の地震調査委員会 “日奈久断層帯 約30キロずれ動いたか”", "url": "http://www3.nhk.or.jp/news/html/20260730/k10015190241000.html", "published": "2026-07-30T00:39:00+09:00", "desc": "熊本県で最大震度7の揺れを観測した大地震を受け、政府の地震調査委員会は臨時の会合を開き、「日奈久断層帯」の一部がずれ動いたとする評価をまとめました。地震活動は依然活発で、活断層帯にはまだ破壊されていない区間があるとして、強い揺れへの備えを続けるよう呼びかけています。", "source_id": "nhk_shakai", "source": "NHKニュース（社会）", "group": "news", "area": "", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "【ライブ】地震活動活発に 熊本県内各地の様子", "url": "http://www3.nhk.or.jp/news/html/20260728/k10015188251000.html", "published": "2026-07-30T00:25:00+09:00", "desc": "7月28日に熊本県熊本地方でマグニチュード7.1の大地震が発生して熊本県の宇城市と氷川町で震度7の揺れを観測し、大きな被害が出ています。29日午後10時19分ごろにも震度5弱の揺れを観測する地震が発生するなど地震活動が活発な状態が続いていて、気象庁は今後、1週間ほどは最大震度7程度の地震に注意するよう呼びかけています。", "source_id": "nhk_shakai", "source": "NHKニュース（社会）", "group": "news", "area": "", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "【熊本被害情報】12人死亡 6人心肺停止 少なくとも4人安否不明", "url": "http://www3.nhk.or.jp/news/html/20260729/k10015189221000.html", "published": "2026-07-30T00:18:00+09:00", "desc": "熊本県によりますと、29日午後7時の時点で、今回の地震による死者が12人、心肺停止の状態が6人で、けが人は64人にのぼっています。また、安否不明となっている人が少なくとも4人いるということです。", "source_id": "nhk_shakai", "source": "NHKニュース（社会）", "group": "news", "area": "", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "【令和8年熊本地震】八代児童相談所の執務場所を変更しています", "url": "https://www.pref.kumamoto.jp/soshiki/37/274923.html", "published": "2026-07-30T00:00:00+09:00", "desc": "", "source_id": "pref_kumamoto_new", "source": "熊本県 新着情報", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "令和8年熊本地震関連通知", "url": "https://www.pref.kumamoto.jp/soshiki/45/274891.html", "published": "2026-07-30T00:00:00+09:00", "desc": "薬事関係通知", "source_id": "pref_kumamoto_new", "source": "熊本県 新着情報", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "ふるさとくまもと応援寄附金（ふるさと納税）を通じた令和8年熊本地震に係る復興支援のお願いについて", "url": "https://www.pref.kumamoto.jp/soshiki/16/274644.html", "published": "2026-07-30T00:00:00+09:00", "desc": "", "source_id": "pref_kumamoto_new", "source": "熊本県 新着情報", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "令和8年熊本地震（7月28日発生）に関する情報（7月30日 7時00分更新）", "url": "https://www.city.uki.kumamoto.jp/index.php", "published": "2026-07-30T00:00:00+09:00", "desc": "", "source_id": "uki", "source": "宇城市", "group": "city", "area": "宇城市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "九州にある大手メーカーの工場 操業に影響", "url": "http://www3.nhk.or.jp/news/html/20260729/k10015189681000.html", "published": "2026-07-29T23:56:00+09:00", "desc": "今回の地震の影響で、熊本県など九州にある大手メーカーの工場では操業に影響が出ています。", "source_id": "nhk_shakai", "source": "NHKニュース（社会）", "group": "news", "area": "", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "【29日】熊本で震度7 同程度地震に1週間ほど注意 熱中症対策を", "url": "http://www3.nhk.or.jp/news/html/20260729/k10015189251000.html", "published": "2026-07-29T23:24:00+09:00", "desc": "28日、熊本県熊本地方でマグニチュード7.1の大地震が発生して熊本県の宇城市と氷川町で震度7の揺れを観測し、大きな被害が出ています。29日午後10時19分ごろにも震度5弱の揺れを観測する地震が発生するなど地震活動が活発な状態が続いていて、気象庁は今後、1週間ほどは最大震度7程度の地震に注意するよう呼びかけています。熊本", "source_id": "nhk_shakai", "source": "NHKニュース（社会）", "group": "news", "area": "", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "緊急地震速報 推定震度5弱", "url": "https://www.town.mashiki.lg.jp/kinkyu.html#kid64", "published": "2026-07-29T22:19:00+09:00", "desc": "大地震です。 「緊急地震速報（警報）」 地震ID:20260729221939 2026年07月29日22時19分 気象庁 発表 緊急地震速報（警報）（第1報） 29日22時19分36秒頃 熊本県天草・芦北地方マグニチュード4.5程度以上の地震発生 ＜主要動の到達予測＞ 地域 震度 長周期地震動階級 到達予測 熊本県熊", "source_id": "mashiki_kinkyu", "source": "益城町 緊急情報", "group": "city", "area": "益城町", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "上下水道に関するお知らせ（令和8年熊本地震）", "url": "https://www.kumamoto-waterworks.jp/", "published": "2026-07-29T21:02:07+09:00", "desc": "", "source_id": "kumamoto_city", "source": "熊本市", "group": "city", "area": "熊本市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "町役場の開庁状況と、その他行政施設の休館について", "url": "https://www.town.mashiki.lg.jp/kiji0038058/index.html", "published": "2026-07-29T19:21:32+09:00", "desc": "", "source_id": "mashiki", "source": "益城町", "group": "city", "area": "益城町", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "令和8年度（2026年度）災害に係る市町村分の地方財政措置等について", "url": "https://www.pref.kumamoto.jp/soshiki/12/274839.html", "published": "2026-07-29T19:15:00+09:00", "desc": "", "source_id": "pref_kumamoto_new", "source": "熊本県 新着情報", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "現在、一部の信号が停電により滅灯（機能停止）しています", "url": "https://www.town.mashiki.lg.jp/kiji0038060/index.html", "published": "2026-07-29T19:01:55+09:00", "desc": "", "source_id": "mashiki", "source": "益城町", "group": "city", "area": "益城町", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "令和8年熊本地震に関する情報", "url": "https://www.pref.kumamoto.jp/soshiki/1/274517.html", "published": "2026-07-29T19:00:00+09:00", "desc": "", "source_id": "pref_kumamoto_urgent", "source": "熊本県 緊急・重要なお知らせ", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "地震発生に伴う公設公営の育成クラブの運営について（7月29日時点）", "url": "https://www.city.kumamoto.jp/kiji00372096/index.html", "published": "2026-07-29T17:59:54+09:00", "desc": "", "source_id": "kumamoto_city", "source": "熊本市", "group": "city", "area": "熊本市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "令和8年熊本地震で発生した災害ごみの市のごみ処理施設への持込みについて", "url": "https://www.city.kumamoto.jp/kiji00372078/index.html", "published": "2026-07-29T17:41:44+09:00", "desc": "", "source_id": "kumamoto_city", "source": "熊本市", "group": "city", "area": "熊本市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "【図書館】令和８年熊本地震被災による休館について", "url": "https://www.city.yatsushiro.lg.jp/kiji00326772/index.html", "published": "2026-07-29T17:36:58+09:00", "desc": "", "source_id": "yatsushiro", "source": "八代市", "group": "city", "area": "八代市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "避難所開設情報", "url": "https://www.city.yatsushiro.lg.jp/kiji00326737/index.html", "published": "2026-07-29T17:19:07+09:00", "desc": "", "source_id": "yatsushiro", "source": "八代市", "group": "city", "area": "八代市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "令和8年熊本地震に伴う「第39回やつしろ全国花火競技大会」の有料観覧席・駐車場販売の休止及び大会開催に関するお知らせ", "url": "https://www.city.yatsushiro.lg.jp/kiji00326759/index.html", "published": "2026-07-29T17:07:15+09:00", "desc": "", "source_id": "yatsushiro", "source": "八代市", "group": "city", "area": "八代市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "令和8年熊本地震に伴う広報うと8月号配布の遅延について", "url": "https://www.city.uto.lg.jp/article/view/1310/16343.html", "published": "2026-07-29T17:05:00+09:00", "desc": "7月28日に発行した広報うと8月号は、7月29日より順次配布を予定しておりましたが、令和8年熊本地震の影響により、配布に遅れが生じる可能性があり...", "source_id": "uto", "source": "宇土市", "group": "city", "area": "宇土市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "【7月31日まで臨時休館】地震に伴う熊本県プロフェッショナル人材戦略拠点の臨時休館延長のお知らせ", "url": "https://www.pref.kumamoto.jp/soshiki/65/274500.html", "published": "2026-07-29T17:00:00+09:00", "desc": "", "source_id": "pref_kumamoto_new", "source": "熊本県 新着情報", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "令和8年熊本地震", "url": "https://www.city.uto.lg.jp/article/view/1309/16342.html", "published": "2026-07-29T16:53:00+09:00", "desc": "令和8年7月28日16時27分ごろに発生した地震に関する最新の対応状況を随時お知らせします。市のサーバーが被災しており、ホームページやメールでの...", "source_id": "uto", "source": "宇土市", "group": "city", "area": "宇土市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "【宇城地域振興局】令和8年熊本地震に伴う一部窓口休止のお知らせ", "url": "https://www.pref.kumamoto.jp/soshiki/162/274792.html", "published": "2026-07-29T16:30:00+09:00", "desc": "", "source_id": "pref_kumamoto_new", "source": "熊本県 新着情報", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "令和8年熊本地震による事業所の災害ごみ処分費の減免について", "url": "https://www.city.kumamoto.jp/kiji00372073/index.html", "published": "2026-07-29T16:30:00+09:00", "desc": "", "source_id": "kumamoto_city", "source": "熊本市", "group": "city", "area": "熊本市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "令和8年熊本地震で被害を受けた事業所の家電4品目（テレビ・エアコン・冷蔵庫・洗濯機）の処分について", "url": "https://www.city.kumamoto.jp/kiji00372114/index.html", "published": "2026-07-29T16:30:00+09:00", "desc": "", "source_id": "kumamoto_city", "source": "熊本市", "group": "city", "area": "熊本市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "【臨時休館】八代市公民館、赤星公園の臨時休館のお知らせ", "url": "https://www.city.yatsushiro.lg.jp/kiji00326770/index.html", "published": "2026-07-29T16:29:03+09:00", "desc": "", "source_id": "yatsushiro", "source": "八代市", "group": "city", "area": "八代市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "令和８年熊本地震に係るペットの相談窓口について", "url": "https://www.city.yatsushiro.lg.jp/kiji00326764/index.html", "published": "2026-07-29T16:20:42+09:00", "desc": "", "source_id": "yatsushiro", "source": "八代市", "group": "city", "area": "八代市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "地震発生後の食品営業施設における衛生管理について", "url": "https://www.city.kumamoto.jp/kiji00372124/index.html", "published": "2026-07-29T16:16:07+09:00", "desc": "", "source_id": "kumamoto_city", "source": "熊本市", "group": "city", "area": "熊本市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "災害時における飲用井戸水等の水質検査について", "url": "https://www.city.kumamoto.jp/kiji00365823/index.html", "published": "2026-07-29T16:00:31+09:00", "desc": "", "source_id": "kumamoto_city", "source": "熊本市", "group": "city", "area": "熊本市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "令和８年熊本地震における障がいのある方への支援について", "url": "https://www.pref.kumamoto.jp/soshiki/39/274727.html", "published": "2026-07-29T16:00:00+09:00", "desc": "", "source_id": "pref_kumamoto_new", "source": "熊本県 新着情報", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "【臨時休館中】地震の影響に伴う臨時休館のお知らせ", "url": "https://www.pref.kumamoto.jp/site/museum/274468.html", "published": "2026-07-29T16:00:00+09:00", "desc": "熊本県立美術館　臨時休館　地震", "source_id": "pref_kumamoto_new", "source": "熊本県 新着情報", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "「令和8年熊本地震」に伴う市町村税の減免措置等について", "url": "https://www.pref.kumamoto.jp/soshiki/12/274637.html", "published": "2026-07-29T16:00:00+09:00", "desc": "", "source_id": "pref_kumamoto_new", "source": "熊本県 新着情報", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "観光施設の臨時休館（利用停止）および今後の利用再開について", "url": "https://www.city.yatsushiro.lg.jp/kiji00326768/index.html", "published": "2026-07-29T16:00:00+09:00", "desc": "", "source_id": "yatsushiro", "source": "八代市", "group": "city", "area": "八代市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "体育施設の臨時休館（利用停止）および今後の利用再開について", "url": "https://www.city.yatsushiro.lg.jp/kiji00326760/index.html", "published": "2026-07-29T15:35:17+09:00", "desc": "", "source_id": "yatsushiro", "source": "八代市", "group": "city", "area": "八代市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "給水を行っています", "url": "https://www.town.mashiki.lg.jp/kinkyu.html#kid62", "published": "2026-07-29T15:25:00+09:00", "desc": "令和8年熊本地震に伴い、給水車による給水を以下の場所、時間にて行っています。 【給水場所】 ・地域共生センターカタル（木山592） ・保健福祉センターはぴねす（惣領1470） ・町公民館福田分館（福原1970） 【時間】 8時00分～20時00分 ※各自、容器を持参くださいますようお願いします。 ※給水車への補充のため", "source_id": "mashiki_kinkyu", "source": "益城町 緊急情報", "group": "city", "area": "益城町", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "避難所の開設情報（7月29日14時現在）", "url": "https://www.town.mashiki.lg.jp/kinkyu.html#kid51", "published": "2026-07-29T14:38:00+09:00", "desc": "地震発生に伴い、以下の避難所を開設しています。 避難所：・町総合体育館（キズナアリーナ益城） ・町公民館飯野分館 ※ペット同伴の受け入れは行っていません。 また、以下の避難所には避難者がいらっしゃらなかったため閉鎖しました。 ・町公民館福田分館 ・〃 津森分館", "source_id": "mashiki_kinkyu", "source": "益城町 緊急情報", "group": "city", "area": "益城町", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "商工政策課所管施設（勤労者向け施設）の臨時休館（利用停止）および今後の利用再開について", "url": "https://www.city.yatsushiro.lg.jp/kiji00326757/index.html", "published": "2026-07-29T14:30:03+09:00", "desc": "", "source_id": "yatsushiro", "source": "八代市", "group": "city", "area": "八代市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "地震に伴う八代市立博物館の臨時休館について", "url": "https://www.city.yatsushiro.lg.jp/kiji00326755/index.html", "published": "2026-07-29T14:00:00+09:00", "desc": "", "source_id": "yatsushiro", "source": "八代市", "group": "city", "area": "八代市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "令和8年熊本地震に係るペットに関する相談窓口を設置しています", "url": "https://www.pref.kumamoto.jp/soshiki/30/274590.html", "published": "2026-07-29T13:00:00+09:00", "desc": "", "source_id": "pref_kumamoto_new", "source": "熊本県 新着情報", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "令和8年熊本地震に伴う「第59回八代くま川祭り」の開催中止について", "url": "https://www.city.yatsushiro.lg.jp/kiji00326756/index.html", "published": "2026-07-29T13:00:00+09:00", "desc": "", "source_id": "yatsushiro", "source": "八代市", "group": "city", "area": "八代市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "個人の方からの義援物資について（令和8年熊本地震）", "url": "https://www.city.kumamoto.jp/kiji00372129/index.html", "published": "2026-07-29T12:58:17+09:00", "desc": "", "source_id": "kumamoto_city", "source": "熊本市", "group": "city", "area": "熊本市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "【重要】家に入る前にはまず安全確認を！", "url": "https://www.town.hikawa.kumamoto.jp/kinkyu.html#kid14", "published": "2026-07-29T12:53:00+09:00", "desc": "余震が続いています。 安全が確認でき、片づけを始める際には、罹災証明や保険申請に必要な「被害写真」の撮影を必ず行ってください。 ・建物の全景（4方向）や、安全な場所から室内の被害・家財を撮影してください。 ・撮影は必ず安全最優先で行ってください。 なお、罹災証明書などの手続き関係につきましては、 詳細が決まり次第お知ら", "source_id": "hikawa_kinkyu", "source": "氷川町 緊急情報", "group": "city", "area": "氷川町", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "小中高生集まれ！「みんなの教室」中止のお知らせ", "url": "https://www.city.kumamoto.jp/kiji00365378/index.html", "published": "2026-07-29T12:15:01+09:00", "desc": "", "source_id": "kumamoto_city", "source": "熊本市", "group": "city", "area": "熊本市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "令和8年熊本地震に係る義援金の受付について", "url": "https://www.pref.kumamoto.jp/soshiki/27/274572.html", "published": "2026-07-29T12:00:00+09:00", "desc": "", "source_id": "pref_kumamoto_new", "source": "熊本県 新着情報", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "令和8年熊本地震に係る感染症予防対策について", "url": "https://www.pref.kumamoto.jp/soshiki/30/274612.html", "published": "2026-07-29T12:00:00+09:00", "desc": "", "source_id": "pref_kumamoto_new", "source": "熊本県 新着情報", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "地震に伴う農業用ボイラーやタンクからの油流出防止対策について", "url": "https://www.pref.kumamoto.jp/soshiki/74/274636.html", "published": "2026-07-29T12:00:00+09:00", "desc": "", "source_id": "pref_kumamoto_new", "source": "熊本県 新着情報", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "令和8年熊本地震に伴う「八代市西松江城老人憩いの家」臨時休館のお知らせ", "url": "https://www.city.yatsushiro.lg.jp/kiji00322606/index.html", "published": "2026-07-29T11:26:51+09:00", "desc": "", "source_id": "yatsushiro", "source": "八代市", "group": "city", "area": "八代市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "医療機関等を受診される避難者の皆様へ", "url": "https://www.pref.kumamoto.jp/soshiki/43/274584.html", "published": "2026-07-29T10:30:00+09:00", "desc": "", "source_id": "pref_kumamoto_new", "source": "熊本県 新着情報", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "【7月29日臨時休館】地震の影響に伴う環境センター臨時休館のお知らせ", "url": "https://www.pref.kumamoto.jp/soshiki/50/274599.html", "published": "2026-07-29T10:00:00+09:00", "desc": "", "source_id": "pref_kumamoto_new", "source": "熊本県 新着情報", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "2026年7月28日の大（おお）きな地震（じしん）について", "url": "https://www.pref.kumamoto.jp/soshiki/39/243329.html", "published": "2026-07-29T10:00:00+09:00", "desc": "", "source_id": "pref_kumamoto_new", "source": "熊本県 新着情報", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "【氷川町役場からのお知らせ】", "url": "https://www.town.hikawa.kumamoto.jp/kinkyu.html#kid12", "published": "2026-07-29T09:26:00+09:00", "desc": "現在、地震の影響により、 氷川町内全域で断水および停電が発生しています。 関係機関において復旧作業が進められていますが、 現時点では復旧のめどはたっていません。 新しい情報が入り次第、随時お知らせします。 今後の情報にご注意いただくとともに、 安全を最優先に行動してください。", "source_id": "hikawa_kinkyu", "source": "氷川町 緊急情報", "group": "city", "area": "氷川町", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "一部の地域で、水道水に「にごり」が発生しています", "url": "https://www.town.mashiki.lg.jp/kinkyu.html#kid61", "published": "2026-07-29T07:29:00+09:00", "desc": "益城町水道センターからお知らせします。 現在、一部の地域で、水道水に「にごり」が発生しています。 「にごり」が発生している地域におかれましては、飲用水として使用されませんようにお願いします。", "source_id": "mashiki_kinkyu", "source": "益城町 緊急情報", "group": "city", "area": "益城町", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "現在、一部の信号が停電により滅灯（機能停止）しています", "url": "https://www.town.mashiki.lg.jp/kinkyu.html#kid60", "published": "2026-07-29T07:06:00+09:00", "desc": "下記の交差点の４点周期式信号が停電により滅灯しています。 ・県道熊本高森線の広崎公園前交差点 ・古閑高速道路高架橋下交差点 ・馬水第２南北線交差点 また、全ての押しボタン式信号が停電により滅灯しています。 現在、九州電力において復旧作業を行っています。 復旧するまでは、十分に注意を払って通行してください。", "source_id": "mashiki_kinkyu", "source": "益城町 緊急情報", "group": "city", "area": "益城町", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "地震被害に伴う災害ごみの収集について", "url": "https://www.town.mashiki.lg.jp/kinkyu.html#kid58", "published": "2026-07-29T02:58:00+09:00", "desc": "地震被害に伴う災害ごみの収集等について、災害ごみの受け入れ場所を現在検討中です。 決定次第、改めてお知らせします。 現時点で益城クリーンセンターでの受け入れは行っていませんので、同施設への持ち込みをしないようにお願いします。", "source_id": "mashiki_kinkyu", "source": "益城町 緊急情報", "group": "city", "area": "益城町", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "7月29日の町役場の開庁、その他行政施設の休館について", "url": "https://www.town.mashiki.lg.jp/kinkyu.html#kid57", "published": "2026-07-29T02:46:00+09:00", "desc": "7月29日は、町役場は通常通り開庁します。 以下の施設については休館します。営業開始時期については、ホームページで改めてお知らせします。 【休館施設】 ・キズナパーク益城（町総合運動公園）と併設施設 ・交流情報センターミナテラス及び図書館 ・保健福祉センターはぴねす及び児童館 ・地域共生センターカタル ・復興まちづくり", "source_id": "mashiki_kinkyu", "source": "益城町 緊急情報", "group": "city", "area": "益城町", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "令和８年熊本地震に係る災害救助法の適用について（PDF形式：190KB）", "url": "https://www.bousai.go.jp/pdf/260728.pdf", "published": "2026-07-28T20:00:00+09:00", "desc": "令和８年熊本地震に係る災害救助法の適用について（PDF形式：190KB）", "source_id": "cao_bousai", "source": "内閣府 防災情報のページ 新着", "group": "gov", "area": "", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "​令和8年(2026年)7月28日【知事コメント】大地震に関する知事コメント", "url": "https://www.pref.kumamoto.jp/site/chiji/274483.html", "published": "2026-07-28T18:30:00+09:00", "desc": "", "source_id": "pref_kumamoto_urgent", "source": "熊本県 緊急・重要なお知らせ", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "避難所の開設情報", "url": "https://www.town.mashiki.lg.jp/kinkyu.html#kid45", "published": "2026-07-28T17:51:00+09:00", "desc": "町総合体育館（キズナアリーナ）に避難所を開設しました。 ※現時点ではペット同伴の受け入れは行っていません。 地域共生センターカタルを避難所として開設したと、防災無線等でアナウンスしましたが、施設の被害状況を受けて、避難所としての開設を取りやめています。 その他の避難所の開設については、おってお知らせします。", "source_id": "mashiki_kinkyu", "source": "益城町 緊急情報", "group": "city", "area": "益城町", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "令和８年熊本地震による被害及び 消防機関等の対応状況（第19報・R8.7.30）", "url": "https://www.fdma.go.jp/disaster/info/#070089", "published": "2026-07-28T16:52:00+09:00", "desc": "", "source_id": "fdma_disaster", "source": "総務省消防庁 災害情報", "group": "gov", "area": "", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "令和8年熊本地震に係る災害救助法の適用について", "url": "https://www.pref.kumamoto.jp/soshiki/27/274494.html", "published": "2026-07-28T00:00:00+09:00", "desc": "", "source_id": "pref_kumamoto_urgent", "source": "熊本県 緊急・重要なお知らせ", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "熊本地震10年シンポジウム「地震・火山とともに生きる～恵みの山、益城４座」", "url": "https://www.town.mashiki.lg.jp/kiji0038036/index.html", "published": "2026-07-21T08:49:16+09:00", "desc": "", "source_id": "mashiki", "source": "益城町", "group": "city", "area": "益城町", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "最新の防災情報は「防災情報くまもと」でご確認ください", "url": "https://portal.bousai.pref.kumamoto.jp/?p=top", "published": "2026-07-06T00:00:00+09:00", "desc": "", "source_id": "pref_kumamoto_urgent", "source": "熊本県 緊急・重要なお知らせ", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T00:32:44.001401+09:00"}], "sources": [{"id": "jma_quake_list", "label": "気象庁 地震情報", "status": "40件", "checked_at": "2026-07-30T12:57:09.693406+09:00"}, {"id": "jma_eqvol_feed", "label": "気象庁 防災情報XML（地震火山・高頻度）", "status": "更新あり／30件", "checked_at": "2026-07-30T12:57:09.693406+09:00"}, {"id": "pref_kumamoto_urgent", "label": "熊本県 緊急・重要なお知らせ", "status": "変更なし／4件", "checked_at": "2026-07-30T12:57:09.693406+09:00"}, {"id": "pref_kumamoto_new", "label": "熊本県 新着情報", "status": "更新あり／21件", "checked_at": "2026-07-30T12:57:09.693406+09:00"}, {"id": "kumamoto_city", "label": "熊本市", "status": "更新あり／16件", "checked_at": "2026-07-30T12:57:09.693406+09:00"}, {"id": "yatsushiro", "label": "八代市", "status": "更新あり／20件", "checked_at": "2026-07-30T12:57:09.693406+09:00"}, {"id": "uto", "label": "宇土市", "status": "更新あり／9件", "checked_at": "2026-07-30T12:57:09.693406+09:00"}, {"id": "hikawa", "label": "氷川町", "status": "変更なし", "checked_at": "2026-07-30T12:57:09.693406+09:00"}, {"id": "mashiki", "label": "益城町", "status": "更新あり／8件", "checked_at": "2026-07-30T12:57:09.693406+09:00"}, {"id": "misato", "label": "美里町", "status": "更新あり／1件", "checked_at": "2026-07-30T12:57:09.693406+09:00"}, {"id": "hikawa_kinkyu", "label": "氷川町 緊急情報", "status": "更新あり／4件", "checked_at": "2026-07-30T12:57:09.693406+09:00"}, {"id": "mashiki_kinkyu", "label": "益城町 緊急情報", "status": "更新あり／14件", "checked_at": "2026-07-30T12:57:09.693406+09:00"}, {"id": "uki", "label": "宇城市", "status": "更新あり／1件", "checked_at": "2026-07-30T12:57:09.693406+09:00"}, {"id": "fdma_disaster", "label": "総務省消防庁 災害情報", "status": "更新あり／1件", "checked_at": "2026-07-30T12:57:09.693406+09:00"}, {"id": "cao_bousai", "label": "内閣府 防災情報のページ 新着", "status": "変更なし／1件", "checked_at": "2026-07-30T12:57:09.693406+09:00"}, {"id": "kyuden_power", "label": "九州電力送配電 停電情報", "status": "19,450戸", "checked_at": "2026-07-30T12:57:09.693406+09:00"}, {"id": "mlit_water", "label": "国土交通省 被害状況（断水）", "status": "第7報／95,200戸", "checked_at": "2026-07-30T12:57:09.693406+09:00"}, {"id": "nhk_shakai", "label": "NHKニュース（社会）", "status": "更新あり／19件", "checked_at": "2026-07-30T12:57:09.693406+09:00"}], "errors": []};
+window.__CRAWLED__ = {"generated_at": "2026-07-30T15:02:31.765567+09:00", "quakes": [{"at": "2026-07-30T13:51:00+09:00", "place": "岩手県沖", "mag": "3.6", "maxi": "2", "depth": "50km", "title": "震源・震度情報", "eid": "20260730135103"}, {"at": "2026-07-30T13:43:00+09:00", "place": "熊本県熊本地方", "mag": "2.1", "maxi": "1", "depth": "10km", "title": "震源・震度情報", "eid": "20260730134329"}, {"at": "2026-07-30T13:39:00+09:00", "place": "熊本県熊本地方", "mag": "1.8", "maxi": "1", "depth": "10km", "title": "震源・震度情報", "eid": "20260730133901"}, {"at": "2026-07-30T13:21:00+09:00", "place": "熊本県天草・芦北地方", "mag": "2.7", "maxi": "1", "depth": "", "title": "震源・震度情報", "eid": "20260730132137"}, {"at": "2026-07-30T12:44:00+09:00", "place": "熊本県天草・芦北地方", "mag": "3.2", "maxi": "2", "depth": "10km", "title": "震源・震度情報", "eid": "20260730124423"}, {"at": "2026-07-30T12:40:00+09:00", "place": "熊本県熊本地方", "mag": "2.5", "maxi": "2", "depth": "", "title": "震源・震度情報", "eid": "20260730124006"}, {"at": "2026-07-30T12:01:00+09:00", "place": "熊本県熊本地方", "mag": "2.6", "maxi": "1", "depth": "10km", "title": "震源・震度情報", "eid": "20260730120124"}, {"at": "2026-07-30T11:43:00+09:00", "place": "熊本県熊本地方", "mag": "3.7", "maxi": "2", "depth": "10km", "title": "震源・震度情報", "eid": "20260730114307"}, {"at": "2026-07-30T11:18:00+09:00", "place": "熊本県熊本地方", "mag": "2.6", "maxi": "1", "depth": "10km", "title": "震源・震度情報", "eid": "20260730111849"}, {"at": "2026-07-30T11:13:00+09:00", "place": "熊本県天草・芦北地方", "mag": "3.3", "maxi": "2", "depth": "", "title": "震源・震度情報", "eid": "20260730111311"}, {"at": "2026-07-30T10:34:00+09:00", "place": "熊本県熊本地方", "mag": "2.6", "maxi": "1", "depth": "10km", "title": "震源・震度情報", "eid": "20260730103456"}, {"at": "2026-07-30T10:03:00+09:00", "place": "熊本県熊本地方", "mag": "2.5", "maxi": "1", "depth": "10km", "title": "震源・震度情報", "eid": "20260730100337"}, {"at": "2026-07-30T09:56:00+09:00", "place": "熊本県天草・芦北地方", "mag": "4.2", "maxi": "3", "depth": "10km", "title": "震源・震度情報", "eid": "20260730095617"}, {"at": "2026-07-30T09:30:00+09:00", "place": "熊本県熊本地方", "mag": "2.4", "maxi": "1", "depth": "10km", "title": "震源・震度情報", "eid": "20260730093015"}, {"at": "2026-07-30T09:14:00+09:00", "place": "熊本県熊本地方", "mag": "2.6", "maxi": "1", "depth": "10km", "title": "震源・震度情報", "eid": "20260730091402"}, {"at": "2026-07-30T09:05:00+09:00", "place": "熊本県熊本地方", "mag": "3.8", "maxi": "2", "depth": "10km", "title": "震源・震度情報", "eid": "20260730090520"}, {"at": "2026-07-30T08:47:00+09:00", "place": "熊本県熊本地方", "mag": "2.2", "maxi": "1", "depth": "", "title": "震源・震度情報", "eid": "20260730084702"}, {"at": "2026-07-30T08:30:00+09:00", "place": "熊本県熊本地方", "mag": "2.8", "maxi": "2", "depth": "10km", "title": "震源・震度情報", "eid": "20260730083053"}, {"at": "2026-07-30T08:06:00+09:00", "place": "熊本県熊本地方", "mag": "2.4", "maxi": "1", "depth": "10km", "title": "震源・震度情報", "eid": "20260730080620"}, {"at": "2026-07-30T07:51:00+09:00", "place": "熊本県天草・芦北地方", "mag": "2.5", "maxi": "1", "depth": "10km", "title": "震源・震度情報", "eid": "20260730075143"}, {"at": "2026-07-30T06:59:00+09:00", "place": "熊本県熊本地方", "mag": "2.6", "maxi": "2", "depth": "10km", "title": "震源・震度情報", "eid": "20260730065923"}, {"at": "2026-07-30T06:50:00+09:00", "place": "熊本県熊本地方", "mag": "2.3", "maxi": "1", "depth": "", "title": "震源・震度情報", "eid": "20260730065036"}, {"at": "2026-07-30T06:25:00+09:00", "place": "熊本県熊本地方", "mag": "3.0", "maxi": "1", "depth": "10km", "title": "震源・震度情報", "eid": "20260730062528"}, {"at": "2026-07-30T06:19:00+09:00", "place": "トカラ列島近海", "mag": "2.0", "maxi": "1", "depth": "", "title": "震源・震度情報", "eid": "20260730061928"}, {"at": "2026-07-30T06:10:00+09:00", "place": "熊本県熊本地方", "mag": "3.0", "maxi": "2", "depth": "10km", "title": "震源・震度情報", "eid": "20260730061055"}, {"at": "2026-07-30T06:08:00+09:00", "place": "熊本県熊本地方", "mag": "2.8", "maxi": "1", "depth": "10km", "title": "震源・震度情報", "eid": "20260730060828"}, {"at": "2026-07-30T06:05:00+09:00", "place": "熊本県熊本地方", "mag": "2.3", "maxi": "2", "depth": "", "title": "震源・震度情報", "eid": "20260730060505"}, {"at": "2026-07-30T05:55:00+09:00", "place": "熊本県熊本地方", "mag": "2.0", "maxi": "1", "depth": "", "title": "震源・震度情報", "eid": "20260730055524"}, {"at": "2026-07-30T05:37:00+09:00", "place": "熊本県熊本地方", "mag": "2.6", "maxi": "1", "depth": "10km", "title": "震源・震度情報", "eid": "20260730053728"}, {"at": "2026-07-30T05:34:00+09:00", "place": "熊本県熊本地方", "mag": "2.2", "maxi": "1", "depth": "10km", "title": "震源・震度情報", "eid": "20260730053406"}, {"at": "2026-07-30T05:32:00+09:00", "place": "熊本県熊本地方", "mag": "2.3", "maxi": "1", "depth": "10km", "title": "震源・震度情報", "eid": "20260730053211"}, {"at": "2026-07-30T05:27:00+09:00", "place": "熊本県熊本地方", "mag": "2.5", "maxi": "1", "depth": "10km", "title": "震源・震度情報", "eid": "20260730052728"}, {"at": "2026-07-30T05:16:00+09:00", "place": "熊本県熊本地方", "mag": "4.6", "maxi": "4", "depth": "10km", "title": "震源・震度情報", "eid": "20260730051638"}, {"at": "2026-07-30T05:07:00+09:00", "place": "熊本県熊本地方", "mag": "2.7", "maxi": "1", "depth": "10km", "title": "震源・震度情報", "eid": "20260730050709"}, {"at": "2026-07-30T04:28:00+09:00", "place": "熊本県熊本地方", "mag": "2.3", "maxi": "1", "depth": "", "title": "震源・震度情報", "eid": "20260730042800"}, {"at": "2026-07-30T04:02:00+09:00", "place": "熊本県熊本地方", "mag": "3.4", "maxi": "3", "depth": "10km", "title": "震源・震度情報", "eid": "20260730040222"}, {"at": "2026-07-30T03:59:00+09:00", "place": "熊本県熊本地方", "mag": "3.3", "maxi": "3", "depth": "10km", "title": "震源・震度情報", "eid": "20260730035909"}, {"at": "2026-07-30T03:35:00+09:00", "place": "熊本県天草・芦北地方", "mag": "3.5", "maxi": "2", "depth": "10km", "title": "震源・震度情報", "eid": "20260730033552"}, {"at": "2026-07-30T03:29:00+09:00", "place": "熊本県天草・芦北地方", "mag": "2.5", "maxi": "1", "depth": "10km", "title": "震源・震度情報", "eid": "20260730032904"}, {"at": "2026-07-30T02:54:00+09:00", "place": "熊本県熊本地方", "mag": "1.8", "maxi": "1", "depth": "10km", "title": "震源・震度情報", "eid": "20260730025450"}], "stats": {"kyuden_power": {"as_of": "2026-07-30T15:02:13+09:00", "current": 18590, "restoration": "7月31日夕方", "comment": "地震の影響に伴い、停電が発生し、大変ご迷惑をおかけしております。 設備被害状況の確認後、順次復旧作業を行っております。", "regions": [{"name": "熊本地方", "now": 18590}], "source_url": "https://www.kyuden.co.jp/td_teiden/kyushu.html", "fetched_at": "2026-07-30T15:02:31.765567+09:00"}, "mlit_water": {"as_of": "7月30日 12:00", "current": 93700, "current_pref": 1, "current_muni": 11, "peak": 108100, "peak_pref": 5, "peak_muni": 24, "municipalities": [{"name": "八代市", "max": 25269, "now": 25269}, {"name": "宇城市", "max": 18000, "now": 17000}, {"name": "人吉市", "max": 15000, "now": 15000}, {"name": "宇土市", "max": 12200, "now": 12200}, {"name": "熊本市", "max": 20970, "now": 8700}, {"name": "上天草市", "max": 7670, "now": 7670}, {"name": "氷川町", "max": 3231, "now": 3231}, {"name": "御船町", "max": 2600, "now": 2100}, {"name": "天草市", "max": 1100, "now": 1100}, {"name": "芦北町", "max": 1000, "now": 1000}, {"name": "甲佐町", "max": 500, "now": 400}, {"name": "合志市", "max": 0, "now": 0}], "report_no": 8, "source_url": "https://www.mlit.go.jp/common/002014404.pdf", "source_page": "https://www.mlit.go.jp/saigai/saigai_260728.html", "source_label": "令和８年熊本地震による被害状況等について（第8報）2026年7月30日 14:00時点", "fetched_at": "2026-07-30T15:02:31.765567+09:00"}}, "updates": [{"title": "熊本県内 約7万4800戸が断水 30日の給水所設置状況は", "url": "http://www3.nhk.or.jp/news/html/20260730/k10015190511000.html", "published": "2026-07-30T14:59:00+09:00", "desc": "熊本県が発表した30日午前7時半現在の断水の状況です。あわせておよそ7万4800戸が断水しています。", "source_id": "nhk_shakai", "source": "NHKニュース（社会）", "group": "news", "area": "", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "日本製紙 八代工場 8人死亡 2人けが 1人安否不明 熊本県", "url": "http://www3.nhk.or.jp/news/html/20260730/k10015190441000.html", "published": "2026-07-30T14:50:00+09:00", "desc": "地震で煙突が倒壊するなどした熊本県八代市にある日本製紙の八代工場では、30日朝までに新たに3人が救助されましたが死亡が確認され、亡くなったのは8人となりました。今も1人の安否がわかっておらず救助活動が続いています。", "source_id": "nhk_shakai", "source": "NHKニュース（社会）", "group": "news", "area": "", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "熊本へ トイレカー派遣 能登半島地震でつながり 石川 能登町", "url": "http://www3.nhk.or.jp/news/html/20260730/k10015190771000.html", "published": "2026-07-30T14:39:00+09:00", "desc": "今回の地震で大きな被害が出ている熊本県に、おととしの能登半島地震で被災した石川県能登町と輪島市から水洗トイレを備えた「トイレカー」が派遣されました。", "source_id": "nhk_shakai", "source": "NHKニュース（社会）", "group": "news", "area": "", "first_seen": "2026-07-30T15:02:31.765567+09:00"}, {"title": "片山財務相 金融機関などに被災住民や事業者へ柔軟な対応要請", "url": "http://www3.nhk.or.jp/news/html/20260730/k10015190681000.html", "published": "2026-07-30T14:35:00+09:00", "desc": "片山財務大臣は、30日の臨時閣議のあとの記者会見で、「今回の熊本地震により、被災されたすべての方々に心からお見舞いを申し上げる。国民の生活、金融経済に及ぼす影響を最小化するために関係者と緊密に連携し、迅速に対応していく」と述べ、金融機関などに対し、被災住民や事業者の資金繰りに支障が生じないよう柔軟な対応を要請したことを", "source_id": "nhk_shakai", "source": "NHKニュース（社会）", "group": "news", "area": "", "first_seen": "2026-07-30T15:02:31.765567+09:00"}, {"title": "長部田海床路の通行止めについて", "url": "https://www.city.uto.lg.jp/article/view/1092/16355.html", "published": "2026-07-30T14:33:00+09:00", "desc": "令和8年7月28日に発生した地震の影響により、長部田海床路の一部が損傷しました。そのため、通行者に危険を及ぼす恐れがありますので、現在、...", "source_id": "uto", "source": "宇土市", "group": "city", "area": "宇土市", "first_seen": "2026-07-30T15:02:31.765567+09:00"}, {"title": "被災宅地危険度判定における実施本部の設置について", "url": "https://www.city.kumamoto.jp/kiji00372177/index.html", "published": "2026-07-30T14:31:17+09:00", "desc": "", "source_id": "kumamoto_city", "source": "熊本市", "group": "city", "area": "熊本市", "first_seen": "2026-07-30T15:02:31.765567+09:00"}, {"title": "令和８年熊本地震に伴う企業様からの物資提供のお願い", "url": "https://www.city.yatsushiro.lg.jp/kiji00326767/index.html", "published": "2026-07-30T14:15:07+09:00", "desc": "", "source_id": "yatsushiro", "source": "八代市", "group": "city", "area": "八代市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "熊本地震で18人死亡 6人心肺停止 1人安否不明 県発表", "url": "http://www3.nhk.or.jp/news/html/20260730/k10015190421000.html", "published": "2026-07-30T14:13:00+09:00", "desc": "熊本県は、ショッピングセンター「イオンモール熊本」で救助中だった1人の死亡が確認されたと発表しました。県によりますと、これで今回の地震で県内ではあわせて18人が死亡し、6人が心肺停止、少なくとも1人が安否不明となっているということです。", "source_id": "nhk_shakai", "source": "NHKニュース（社会）", "group": "news", "area": "", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "熊本地震 災害関連調査中を含め死者30人に 高市首相", "url": "http://www3.nhk.or.jp/news/html/20260730/k10015190721000.html", "published": "2026-07-30T14:10:00+09:00", "desc": "高市総理大臣は政府の「非常災害対策本部」で、今回の地震で30日午後0時半時点で、災害との関連を調査している人も含めて、死亡した人が30人にのぼっていると明らかにしました。", "source_id": "nhk_shakai", "source": "NHKニュース（社会）", "group": "news", "area": "", "first_seen": "2026-07-30T15:02:31.765567+09:00"}, {"title": "【令和8年熊本地震】大規模災害による旅券手数料の減免について", "url": "https://www.pref.kumamoto.jp/soshiki/70/274903.html", "published": "2026-07-30T14:00:00+09:00", "desc": "", "source_id": "pref_kumamoto_new", "source": "熊本県 新着情報", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T15:02:31.765567+09:00"}, {"title": "地震で発生したごみの受入れ（災害仮置場開設）について", "url": "https://www.town.kumamoto-misato.lg.jp/kinkyutop_news/3901.html", "published": "2026-07-30T14:00:00+09:00", "desc": "", "source_id": "misato", "source": "美里町", "group": "city", "area": "美里町", "first_seen": "2026-07-30T15:02:31.765567+09:00"}, {"title": "令和8年熊本地震に伴う災害ごみの搬入について", "url": "https://www.city.uto.lg.jp/article/view/1303/16352.html", "published": "2026-07-30T13:59:00+09:00", "desc": "被災された皆様にお見舞い申し上げます。地震により発生した災害ごみについて仮置き場を開設します。搬入場所㈲ＣＳネットワーク宇土市松山町39...", "source_id": "uto", "source": "宇土市", "group": "city", "area": "宇土市", "first_seen": "2026-07-30T15:02:31.765567+09:00"}, {"title": "【令和8年熊本地震】企業版ふるさと納税による支援寄付金の受付について", "url": "https://www.city.yatsushiro.lg.jp/kiji00326766/index.html", "published": "2026-07-30T13:56:35+09:00", "desc": "", "source_id": "yatsushiro", "source": "八代市", "group": "city", "area": "八代市", "first_seen": "2026-07-30T15:02:31.765567+09:00"}, {"title": "被災建築物応急危険度判定における実施本部を設置します", "url": "https://www.city.kumamoto.jp/kiji00372172/index.html", "published": "2026-07-30T13:54:08+09:00", "desc": "", "source_id": "kumamoto_city", "source": "熊本市", "group": "city", "area": "熊本市", "first_seen": "2026-07-30T15:02:31.765567+09:00"}, {"title": "「行長しゃん号」、「のんなっせ」、「のりのり号」の運行について", "url": "https://www.city.uto.lg.jp/article/view/1304/16354.html", "published": "2026-07-30T13:48:00+09:00", "desc": "コミュニティバス「行長しゃん号」、ミニバス「のんなっせ」、予約型乗合タクシー「のりのり号」は、地震の影響により当面の間運休します。運行再開については、改めてお知らせします。", "source_id": "uto", "source": "宇土市", "group": "city", "area": "宇土市", "first_seen": "2026-07-30T15:02:31.765567+09:00"}, {"title": "令和8年熊本地震で発生したブロック、瓦等のがれきを撤去します", "url": "https://www.city.kumamoto.jp/kiji00372176/index.html", "published": "2026-07-30T13:46:19+09:00", "desc": "", "source_id": "kumamoto_city", "source": "熊本市", "group": "city", "area": "熊本市", "first_seen": "2026-07-30T15:02:31.765567+09:00"}, {"title": "令和８年熊本地震に伴う災害に係る農業者向け営農相談窓口の設置について", "url": "https://www.pref.kumamoto.jp/soshiki/74/274911.html", "published": "2026-07-30T13:45:00+09:00", "desc": "", "source_id": "pref_kumamoto_new", "source": "熊本県 新着情報", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T15:02:31.765567+09:00"}, {"title": "山崎製パン 熊本 宇城市の工場は稼働停止 再開の時期未定", "url": "http://www3.nhk.or.jp/news/html/20260730/k10015190621000.html", "published": "2026-07-30T13:40:00+09:00", "desc": "今回の地震の影響で、熊本県など九州にある大手メーカーの工場では操業に影響が出ています。", "source_id": "nhk_shakai", "source": "NHKニュース（社会）", "group": "news", "area": "", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "令和8年熊本地震で発生した災害ごみの市のごみ処理施設への持込みについて", "url": "https://www.city.kumamoto.jp/kiji00372078/index.html", "published": "2026-07-30T13:31:19+09:00", "desc": "", "source_id": "kumamoto_city", "source": "熊本市", "group": "city", "area": "熊本市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "イオンモール熊本 6人死亡 1人心肺停止 5人がけが 熊本県", "url": "http://www3.nhk.or.jp/news/html/20260730/k10015190461000.html", "published": "2026-07-30T13:26:00+09:00", "desc": "熊本県は、ショッピングセンター「イオンモール熊本」で30日新たに発見された2人のうち、救助中としていた1人の死亡が確認されたと発表しました。県によりますと、このショッピングセンターでは合わせて12人が救助され、6人が死亡し、1人が心肺停止、5人がけがをしたということです。警察や消防は引き続き建物内に安否不明者がいるとみ", "source_id": "nhk_shakai", "source": "NHKニュース（社会）", "group": "news", "area": "", "first_seen": "2026-07-30T15:02:31.765567+09:00"}, {"title": "断水のお知らせ(R8.07.28 現在)", "url": "https://www.city.yatsushiro.lg.jp/kiji00326740/index.html", "published": "2026-07-30T13:22:51+09:00", "desc": "", "source_id": "yatsushiro", "source": "八代市", "group": "city", "area": "八代市", "first_seen": "2026-07-30T15:02:31.765567+09:00"}, {"title": "令和8年熊本地震に係る社会福祉施設等災害復旧費国庫補助金（建物分）について", "url": "https://www.city.kumamoto.jp/kiji00365958/index.html", "published": "2026-07-30T13:07:38+09:00", "desc": "", "source_id": "kumamoto_city", "source": "熊本市", "group": "city", "area": "熊本市", "first_seen": "2026-07-30T15:02:31.765567+09:00"}, {"title": "令和8年熊本地震に係る寄附金について", "url": "https://www.city.kumamoto.jp/kiji00372174/index.html", "published": "2026-07-30T13:06:20+09:00", "desc": "", "source_id": "kumamoto_city", "source": "熊本市", "group": "city", "area": "熊本市", "first_seen": "2026-07-30T15:02:31.765567+09:00"}, {"title": "ごみの収集について", "url": "https://www.town.hikawa.kumamoto.jp/kinkyu.html#kid17", "published": "2026-07-30T13:00:00+09:00", "desc": "【災害ごみの受け入れについて】 現在調整中です。決まり次第、防災無線・町のホームページ及びSNSでお知らせします。 【燃えるごみの収集について】 通常どおり収集を行います。 ※ごみステーションの場所によっては、収集車が通れないところがありますので、収集車が通れるごみステーションに出してください。 ※収集ルートが変更にな", "source_id": "hikawa_kinkyu", "source": "氷川町 緊急情報", "group": "city", "area": "氷川町", "first_seen": "2026-07-30T15:02:31.765567+09:00"}, {"title": "令和8年熊本地震による施設の閉館・イベント中止情報", "url": "https://www.city.kumamoto.jp/kiji00344187/index.html", "published": "2026-07-30T12:24:05+09:00", "desc": "", "source_id": "kumamoto_city", "source": "熊本市", "group": "city", "area": "熊本市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "【開設中の避難所について】", "url": "https://www.town.hikawa.kumamoto.jp/kinkyu.html#kid15", "published": "2026-07-30T12:24:00+09:00", "desc": "本日、7月30日（木曜日）現在開設中の避難所は以下のとおりです。 【開設場所】 ・竜北西部小学校 ・竜北東小学校 ・氷川中学校", "source_id": "hikawa_kinkyu", "source": "氷川町 緊急情報", "group": "city", "area": "氷川町", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "令和8年熊本地震　関連情報", "url": "https://www.city.yatsushiro.lg.jp/kiji00326750/index.html", "published": "2026-07-30T12:15:40+09:00", "desc": "", "source_id": "yatsushiro", "source": "八代市", "group": "city", "area": "八代市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "熊本 地震被害の「り災証明書」 申請の受け付け始まる", "url": "http://www3.nhk.or.jp/news/html/20260730/k10015190311000.html", "published": "2026-07-30T12:15:00+09:00", "desc": "熊本県内の自治体では、被災した人たちが公的な支援を受けるために必要な「り災証明書」の申請の受け付けが始まっています。「り災証明書」は住宅の被害の度合いを自治体が証明する書類で、被災者生活再建支援金や仮設住宅への入居といったさまざまな支援を受ける際に必要になります。受け付けの状況についてNHKは、30日午前時点で震度6弱", "source_id": "nhk_shakai", "source": "NHKニュース（社会）", "group": "news", "area": "", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "きょうも危険な暑さ 熊本で猛暑日予想 東北や新潟は激しい雨も", "url": "http://www3.nhk.or.jp/news/html/20260730/k10015190281000.html", "published": "2026-07-30T12:11:00+09:00", "desc": "30日も広い範囲で気温が上がっていて東日本と西日本では38度を超える危険な暑さとなるところがあり、熊本県の地震の被災地でも猛暑日となる見込みです。熱中症対策を徹底してください。一方、低気圧などの影響で東北や新潟県では断続的に激しい雨が降り、レベル4の危険警報が発表されている地域もあり、土砂災害に厳重な警戒が必要です。", "source_id": "nhk_shakai", "source": "NHKニュース（社会）", "group": "news", "area": "", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "令和８年熊本地震に伴う被災証明書（住家以外）の発行について", "url": "https://www.town.mashiki.lg.jp/kiji0038065/index.html", "published": "2026-07-30T12:07:07+09:00", "desc": "", "source_id": "mashiki", "source": "益城町", "group": "city", "area": "益城町", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "九州新幹線の運転見合わせ 高速道路の通行止め区間【30日】", "url": "http://www3.nhk.or.jp/news/html/20260730/k10015190231000.html", "published": "2026-07-30T12:07:00+09:00", "desc": "地震の影響で九州新幹線は一部区間の運転見合わせが続いています。また九州の高速道路では熊本県内を中心に通行止めが続いています。交通機関への影響をまとめました。", "source_id": "nhk_shakai", "source": "NHKニュース（社会）", "group": "news", "area": "", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "令和８年熊本地震に伴う罹災証明書の発行について", "url": "https://www.town.mashiki.lg.jp/kiji0038063/index.html", "published": "2026-07-30T12:02:14+09:00", "desc": "", "source_id": "mashiki", "source": "益城町", "group": "city", "area": "益城町", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "【給水所情報】", "url": "https://www.city.yatsushiro.lg.jp/kiji00326773/index.html", "published": "2026-07-30T12:01:06+09:00", "desc": "", "source_id": "yatsushiro", "source": "八代市", "group": "city", "area": "八代市", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "7月30日(木曜日)の水・食料の配給について", "url": "https://www.town.hikawa.kumamoto.jp/kinkyu.html#kid16", "published": "2026-07-30T12:00:00+09:00", "desc": "【場所】 役場・宮原振興局 【配給】 保存食1人1食分 水500ml 1人1本 情報が更新されましたら随時お知らせします", "source_id": "hikawa_kinkyu", "source": "氷川町 緊急情報", "group": "city", "area": "氷川町", "first_seen": "2026-07-30T15:02:31.765567+09:00"}, {"title": "鏡文化センターの休館及び旧八代市厚生会館に係る市民対話の延期について", "url": "https://www.city.yatsushiro.lg.jp/kiji00326769/index.html", "published": "2026-07-30T11:59:06+09:00", "desc": "", "source_id": "yatsushiro", "source": "八代市", "group": "city", "area": "八代市", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "災害時における井戸水の提供について", "url": "https://www.city.kumamoto.jp/kiji00315906/index.html", "published": "2026-07-30T11:58:11+09:00", "desc": "", "source_id": "kumamoto_city", "source": "熊本市", "group": "city", "area": "熊本市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "熊本県で震度7 同程度の地震に注意 きょうも熱中症対策を", "url": "http://www3.nhk.or.jp/news/html/20260730/k10015190291000.html", "published": "2026-07-30T11:53:00+09:00", "desc": "28日、最大震度7の揺れを観測し、大きな被害が出ている熊本県では29日夜も震度5弱の揺れを観測するなど地震活動が活発な状態が続いています。気象庁は1週間ほどは最大震度7程度の地震に注意するよう呼びかけています。熊本県では30日も気温が上がり猛烈な暑さが予想されていて、復旧作業などの際は熱中症を防ぐためにできるかぎりの対", "source_id": "nhk_shakai", "source": "NHKニュース（社会）", "group": "news", "area": "", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "米国務省 “地震の影響受けた方々にお見舞い 日本政府と連絡”", "url": "http://www3.nhk.or.jp/news/html/20260730/k10015190601000.html", "published": "2026-07-30T11:49:00+09:00", "desc": "熊本県で発生した大地震について、アメリカ国務省の報道担当者は、29日、NHKの取材に対し、「アメリカ政府は状況を注視している。地震の影響を受けた方々にお見舞いを申し上げる」とコメントしました。", "source_id": "nhk_shakai", "source": "NHKニュース（社会）", "group": "news", "area": "", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "水道の復旧状況について", "url": "https://www.city.uto.lg.jp/article/view/1014/16317.html", "published": "2026-07-30T11:35:00+09:00", "desc": "現在、復旧に向けた取り組みとして、試験的に通水を行っております。一時的に水が出ることがありますが、途中で断水する場合があります。お住...", "source_id": "uto", "source": "宇土市", "group": "city", "area": "宇土市", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "通行規制情報（7月30日午前11時00分時点）", "url": "https://www.town.mashiki.lg.jp/kinkyu.html#kid54", "published": "2026-07-30T11:31:00+09:00", "desc": "7月30日午前11時00分時点の道路通行規制の情報をお知らせします。 ・福原袴野線（内寺付近 落⽯の恐れがあるため通⾏⽌め） ・町道第一土地区画整理20号線（宅地擁壁倒壊のため通行止め） ・町道前畑下北田線（家屋倒壊による通行止め） また、以下の道路通行規制は解除されました。 ・木山橋南側 ・宮園橋 ・五楽橋 ・町道馬", "source_id": "mashiki_kinkyu", "source": "益城町 緊急情報", "group": "city", "area": "益城町", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "給水車による給水のお知らせ（7/30 11:00更新）", "url": "https://www.city.uto.lg.jp/article/view/1308/16322.html", "published": "2026-07-30T11:05:00+09:00", "desc": "本日午前9時から給水車による給水を行います。場所は以下の5か所です。※走潟地区体育館において、給水車による給水を開始しました給水場所（５...", "source_id": "uto", "source": "宇土市", "group": "city", "area": "宇土市", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "り災証明書受付終了（7月30日受付分）のお知らせ", "url": "https://www.city.uto.lg.jp/article/view/1307/16350.html", "published": "2026-07-30T10:58:00+09:00", "desc": "本日から、り災証明書の受付を開始しましたが、多くの皆さまから申請をいただき、長時間お待たせしている状況です。つきましては、本日（7月30...", "source_id": "uto", "source": "宇土市", "group": "city", "area": "宇土市", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "令和8年熊本地震に伴う市政だより配布の遅延について", "url": "https://www.city.kumamoto.jp/kiji00372126/index.html", "published": "2026-07-30T10:52:47+09:00", "desc": "", "source_id": "kumamoto_city", "source": "熊本市", "group": "city", "area": "熊本市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "住家の「り災証明書」の発行について", "url": "https://www.city.kumamoto.jp/kiji0032451/index.html", "published": "2026-07-30T10:42:46+09:00", "desc": "", "source_id": "kumamoto_city", "source": "熊本市", "group": "city", "area": "熊本市", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "令和8年7月地震により被害を受けたときの罹災証明について", "url": "https://www.town.kumamoto-misato.lg.jp/town_news/3352.html", "published": "2026-07-30T10:40:00+09:00", "desc": "", "source_id": "misato", "source": "美里町", "group": "city", "area": "美里町", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "令和８年熊本地震に伴う八代市公共交通（バス・乗合タクシー）の運休について", "url": "https://www.city.yatsushiro.lg.jp/kiji00326748/index.html", "published": "2026-07-30T10:29:15+09:00", "desc": "", "source_id": "yatsushiro", "source": "八代市", "group": "city", "area": "八代市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "令和8年度 宇土市少年の主張大会中止のお知らせ", "url": "https://www.city.uto.lg.jp/article/view/1061/16349.html", "published": "2026-07-30T10:16:00+09:00", "desc": "本日7月30日、午後1時30分から開催を予定しておりました「令和8年度 宇土市少年の主張大会」は、令和8年熊本地震による被害のため中止いたします...", "source_id": "uto", "source": "宇土市", "group": "city", "area": "宇土市", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "※中止のご連絡※【まちなか情報】第53回本町土曜夜市が開催されます！（7月25日、8月1日、8月8日）", "url": "https://www.city.yatsushiro.lg.jp/kiji00326615/index.html", "published": "2026-07-30T10:13:42+09:00", "desc": "", "source_id": "yatsushiro", "source": "八代市", "group": "city", "area": "八代市", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "【地震情報】熊本県 鹿児島県で震度3 津波の心配なし", "url": "http://www3.nhk.or.jp/news/html/20260730/k10015190451000.html", "published": "2026-07-30T10:01:00+09:00", "desc": "３０日午前９時５６分ごろ地震がありました。この地震による津波の心配はありません。震源地は熊本県天草・芦北地方で震源の深さは１０キロ、地震の規模を示すマグニチュードは４．２と推定されます。各市町村の震度は以下のとおりです。▼震度３が、熊本県八代市、熊本県水俣市、熊本県上天草市、熊本県芦北町、熊本県津奈木町、熊本県球磨村、", "source_id": "nhk_shakai", "source": "NHKニュース（社会）", "group": "news", "area": "", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "【中止】令和8年8月9日開催予定　グローバル未来留学フェア中止のお知らせ", "url": "https://www.pref.kumamoto.jp/soshiki/11/274926.html", "published": "2026-07-30T10:00:00+09:00", "desc": "", "source_id": "pref_kumamoto_new", "source": "熊本県 新着情報", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T15:02:31.765567+09:00"}, {"title": "避難所開設情報", "url": "https://www.city.yatsushiro.lg.jp/kiji00326737/index.html", "published": "2026-07-30T10:00:00+09:00", "desc": "", "source_id": "yatsushiro", "source": "八代市", "group": "city", "area": "八代市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "り災証明書の交付を受けた場合、証明書の交付手数料を無料にすることができます。", "url": "https://www.city.uto.lg.jp/article/view/1307/16348.html", "published": "2026-07-30T09:59:00+09:00", "desc": "り災証明書（以下「り災証明書」という。）の交付を受けた場合で保険金等の請求など市長が認める場合には、手数料を免除（無料）することがで...", "source_id": "uto", "source": "宇土市", "group": "city", "area": "宇土市", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "給水車による応急給水について", "url": "https://www.town.hikawa.kumamoto.jp/kinkyu.html#kid13", "published": "2026-07-30T09:55:00+09:00", "desc": "本日、7月30日（木曜日）の給水車による給水については以下のとおりです。 時間：7：00～19：00 場所：氷川町役場、宮原振興局 ※1回あたり5ℓまで 水を入れる容器をお持ちの方はご持参ください。 情報が更新されましたら、随時お知らせします。", "source_id": "hikawa_kinkyu", "source": "氷川町 緊急情報", "group": "city", "area": "氷川町", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "地震被害に伴う災害ごみの収集等について", "url": "https://www.city.kumamoto.jp/kiji00372079/index.html", "published": "2026-07-30T09:54:29+09:00", "desc": "", "source_id": "kumamoto_city", "source": "熊本市", "group": "city", "area": "熊本市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "【令和8年熊本地震】被災者支援制度 （冊子）をご利用ください（第1版）", "url": "https://www.city.kumamoto.jp/kiji00372110/index.html", "published": "2026-07-30T09:37:07+09:00", "desc": "", "source_id": "kumamoto_city", "source": "熊本市", "group": "city", "area": "熊本市", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "災害時の医療（令和8年熊本地震　診療可能医療機関一覧掲載）", "url": "https://www.city.kumamoto.jp/kiji00345259/index.html", "published": "2026-07-30T09:18:11+09:00", "desc": "", "source_id": "kumamoto_city", "source": "熊本市", "group": "city", "area": "熊本市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "給水車による給水を行っています", "url": "https://www.town.mashiki.lg.jp/kiji0038070/index.html", "published": "2026-07-30T09:12:43+09:00", "desc": "", "source_id": "mashiki", "source": "益城町", "group": "city", "area": "益城町", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "令和8年熊本地震に係る災害対策本部会議", "url": "https://www.pref.kumamoto.jp/soshiki/222/274487.html", "published": "2026-07-30T09:00:00+09:00", "desc": "", "source_id": "pref_kumamoto_new", "source": "熊本県 新着情報", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "令和８年熊本地震に伴う一部の県税窓口の休止について", "url": "https://www.pref.kumamoto.jp/soshiki/16/274568.html", "published": "2026-07-30T09:00:00+09:00", "desc": "", "source_id": "pref_kumamoto_new", "source": "熊本県 新着情報", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "避難所について（7/30 9:00更新）", "url": "https://www.city.uto.lg.jp/article/view/1014/16304.html", "published": "2026-07-30T08:52:00+09:00", "desc": "令和8年熊本地震が発生したことに伴い、避難所を開設しています。開設している避難所は、以下のとおりです。【避難所開設】宇土地区　　福祉セ...", "source_id": "uto", "source": "宇土市", "group": "city", "area": "宇土市", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "被災者支援に関する総合相談窓口の設置について", "url": "https://www.city.yatsushiro.lg.jp/kiji00326749/index.html", "published": "2026-07-30T08:33:17+09:00", "desc": "", "source_id": "yatsushiro", "source": "八代市", "group": "city", "area": "八代市", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "【開催中止】第1回ニューファーマー研修会について", "url": "https://www.pref.kumamoto.jp/site/kenhoku/274902.html", "published": "2026-07-30T08:30:00+09:00", "desc": "新規就農者　若手農業者　農業　菊池　研修会", "source_id": "pref_kumamoto_new", "source": "熊本県 新着情報", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "地震に伴うイチゴ苗の転倒・損傷等への技術対策について", "url": "https://www.pref.kumamoto.jp/soshiki/74/274894.html", "published": "2026-07-30T08:00:00+09:00", "desc": "", "source_id": "pref_kumamoto_new", "source": "熊本県 新着情報", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "令和８年熊本地震発生に伴う町児童福祉施設等の対応について（お知らせ）", "url": "https://www.town.mashiki.lg.jp/kiji0038062/index.html", "published": "2026-07-30T07:52:34+09:00", "desc": "", "source_id": "mashiki", "source": "益城町", "group": "city", "area": "益城町", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "【地震速報】熊本県熊本地方で震度4  津波の心配なし (5:16)", "url": "http://www3.nhk.or.jp/news/html/20260730/k10015190251000.html", "published": "2026-07-30T06:01:00+09:00", "desc": "30日午前5時16分ごろ、熊本県の熊本地方を震源とする地震があり、震度4の揺れを観測しました。この地震による津波の心配はありません。", "source_id": "nhk_shakai", "source": "NHKニュース（社会）", "group": "news", "area": "", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "地震情報", "url": "https://www.town.mashiki.lg.jp/kinkyu.html#kid68", "published": "2026-07-30T05:18:00+09:00", "desc": "震度4の地震が発生しました。 「地震情報」 地震ID:20260730051638 2026年07月30日05時18分 気象庁 発表 震度速報 ３０日０５時１６分ころ、地震による強い揺れを感じました。震度３以上が 観測された地域をお知らせします。 震度 地域 4 熊本県熊本 3 熊本県天草・芦北 宮崎県北部平野部 今後", "source_id": "mashiki_kinkyu", "source": "益城町 緊急情報", "group": "city", "area": "益城町", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "【被害情報】熊本 氷川町 複数の建物が倒壊 5人が心肺停止", "url": "http://www3.nhk.or.jp/news/html/20260730/k10015190301000.html", "published": "2026-07-30T05:16:00+09:00", "desc": "熊本県によりますと、29日午後7時の時点で、今回の地震による死者が12人、心肺停止の状態が6人で、けが人は64人にのぼっています。また、安否不明となっている人が少なくとも4人いるということです。震度7の揺れを観測した熊本県氷川町では、NHKの現地取材で複数の建物が倒壊するなどの被害が確認されていますが、町は調査中だとし", "source_id": "nhk_shakai", "source": "NHKニュース（社会）", "group": "news", "area": "", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "熊本地震 熱中症対策やガソリン供給など重点的に取り組む 政府", "url": "http://www3.nhk.or.jp/news/html/20260730/k10015190321000.html", "published": "2026-07-30T05:13:00+09:00", "desc": "今回の地震が厳しい暑さの中での災害となったことから、政府は、避難所での熱中症対策や被災地へのガソリン供給などを進めることで、被災者の生活支援に重点的に取り組む方針です。", "source_id": "nhk_shakai", "source": "NHKニュース（社会）", "group": "news", "area": "", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "令和８年熊本地震による農地・農業用施設被害に関するお知らせ", "url": "https://www.town.mashiki.lg.jp/kiji0038057/index.html", "published": "2026-07-30T00:41:36+09:00", "desc": "", "source_id": "mashiki", "source": "益城町", "group": "city", "area": "益城町", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "【令和8年熊本地震】八代児童相談所の執務場所を変更しています", "url": "https://www.pref.kumamoto.jp/soshiki/37/274923.html", "published": "2026-07-30T00:00:00+09:00", "desc": "", "source_id": "pref_kumamoto_new", "source": "熊本県 新着情報", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "【薬務関係者の皆さまへ】令和8年熊本地震に係る厚生労働省通知等を掲載します", "url": "https://www.pref.kumamoto.jp/soshiki/45/274891.html", "published": "2026-07-30T00:00:00+09:00", "desc": "薬事関係通知", "source_id": "pref_kumamoto_new", "source": "熊本県 新着情報", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "ふるさとくまもと応援寄附金（ふるさと納税）を通じた令和8年熊本地震に係る復興支援のお願いについて", "url": "https://www.pref.kumamoto.jp/soshiki/16/274644.html", "published": "2026-07-30T00:00:00+09:00", "desc": "", "source_id": "pref_kumamoto_new", "source": "熊本県 新着情報", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T12:57:09.693406+09:00"}, {"title": "令和8年熊本地震（7月28日発生）に関する情報（7月30日 14時00分更新）", "url": "https://www.city.uki.kumamoto.jp/index.php", "published": "2026-07-30T00:00:00+09:00", "desc": "", "source_id": "uki", "source": "宇城市", "group": "city", "area": "宇城市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "被災地で炊き出しボランティアをされる方へ", "url": "https://www.pref.kumamoto.jp/soshiki/30/51395.html", "published": "2026-07-30T00:00:00+09:00", "desc": "被災地　炊き出し　ボランティア", "source_id": "pref_kumamoto_new", "source": "熊本県 新着情報", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T15:02:31.765567+09:00"}, {"title": "避難所へ食料を提供される方々へ", "url": "https://www.pref.kumamoto.jp/soshiki/30/4889.html", "published": "2026-07-30T00:00:00+09:00", "desc": "", "source_id": "pref_kumamoto_new", "source": "熊本県 新着情報", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T15:02:31.765567+09:00"}, {"title": "緊急地震速報 推定震度5弱", "url": "https://www.town.mashiki.lg.jp/kinkyu.html#kid64", "published": "2026-07-29T22:19:00+09:00", "desc": "大地震です。 「緊急地震速報（警報）」 地震ID:20260729221939 2026年07月29日22時19分 気象庁 発表 緊急地震速報（警報）（第1報） 29日22時19分36秒頃 熊本県天草・芦北地方マグニチュード4.5程度以上の地震発生 ＜主要動の到達予測＞ 地域 震度 長周期地震動階級 到達予測 熊本県熊", "source_id": "mashiki_kinkyu", "source": "益城町 緊急情報", "group": "city", "area": "益城町", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "上下水道に関するお知らせ（令和8年熊本地震）", "url": "https://www.kumamoto-waterworks.jp/", "published": "2026-07-29T21:02:07+09:00", "desc": "", "source_id": "kumamoto_city", "source": "熊本市", "group": "city", "area": "熊本市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "町役場の開庁状況と、その他行政施設の休館について", "url": "https://www.town.mashiki.lg.jp/kiji0038058/index.html", "published": "2026-07-29T19:21:32+09:00", "desc": "", "source_id": "mashiki", "source": "益城町", "group": "city", "area": "益城町", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "令和8年度（2026年度）災害に係る市町村分の地方財政措置等について", "url": "https://www.pref.kumamoto.jp/soshiki/12/274839.html", "published": "2026-07-29T19:15:00+09:00", "desc": "", "source_id": "pref_kumamoto_new", "source": "熊本県 新着情報", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "令和8年熊本地震に関する情報", "url": "https://www.pref.kumamoto.jp/soshiki/1/274517.html", "published": "2026-07-29T19:00:00+09:00", "desc": "", "source_id": "pref_kumamoto_urgent", "source": "熊本県 緊急・重要なお知らせ", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "地震発生に伴う公設公営の育成クラブの運営について（7月29日時点）", "url": "https://www.city.kumamoto.jp/kiji00372096/index.html", "published": "2026-07-29T17:59:54+09:00", "desc": "", "source_id": "kumamoto_city", "source": "熊本市", "group": "city", "area": "熊本市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "【図書館】令和８年熊本地震被災による休館について", "url": "https://www.city.yatsushiro.lg.jp/kiji00326772/index.html", "published": "2026-07-29T17:36:58+09:00", "desc": "", "source_id": "yatsushiro", "source": "八代市", "group": "city", "area": "八代市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "令和8年熊本地震に伴う「第39回やつしろ全国花火競技大会」の有料観覧席・駐車場販売の休止及び大会開催に関するお知らせ", "url": "https://www.city.yatsushiro.lg.jp/kiji00326759/index.html", "published": "2026-07-29T17:07:15+09:00", "desc": "", "source_id": "yatsushiro", "source": "八代市", "group": "city", "area": "八代市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "【7月31日まで臨時休館】地震に伴う熊本県プロフェッショナル人材戦略拠点の臨時休館延長のお知らせ", "url": "https://www.pref.kumamoto.jp/soshiki/65/274500.html", "published": "2026-07-29T17:00:00+09:00", "desc": "", "source_id": "pref_kumamoto_new", "source": "熊本県 新着情報", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "【宇城地域振興局】令和8年熊本地震に伴う一部窓口休止のお知らせ", "url": "https://www.pref.kumamoto.jp/soshiki/162/274792.html", "published": "2026-07-29T16:30:00+09:00", "desc": "", "source_id": "pref_kumamoto_new", "source": "熊本県 新着情報", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "令和8年熊本地震による事業所の災害ごみ処分費の減免について", "url": "https://www.city.kumamoto.jp/kiji00372073/index.html", "published": "2026-07-29T16:30:00+09:00", "desc": "", "source_id": "kumamoto_city", "source": "熊本市", "group": "city", "area": "熊本市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "令和8年熊本地震で被害を受けた事業所の家電4品目（テレビ・エアコン・冷蔵庫・洗濯機）の処分について", "url": "https://www.city.kumamoto.jp/kiji00372114/index.html", "published": "2026-07-29T16:30:00+09:00", "desc": "", "source_id": "kumamoto_city", "source": "熊本市", "group": "city", "area": "熊本市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "【臨時休館】八代市公民館、赤星公園の臨時休館のお知らせ", "url": "https://www.city.yatsushiro.lg.jp/kiji00326770/index.html", "published": "2026-07-29T16:29:03+09:00", "desc": "", "source_id": "yatsushiro", "source": "八代市", "group": "city", "area": "八代市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "令和８年熊本地震に係るペットの相談窓口について", "url": "https://www.city.yatsushiro.lg.jp/kiji00326764/index.html", "published": "2026-07-29T16:20:42+09:00", "desc": "", "source_id": "yatsushiro", "source": "八代市", "group": "city", "area": "八代市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "地震発生後の食品営業施設における衛生管理について", "url": "https://www.city.kumamoto.jp/kiji00372124/index.html", "published": "2026-07-29T16:16:07+09:00", "desc": "", "source_id": "kumamoto_city", "source": "熊本市", "group": "city", "area": "熊本市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "災害時における飲用井戸水等の水質検査について", "url": "https://www.city.kumamoto.jp/kiji00365823/index.html", "published": "2026-07-29T16:00:31+09:00", "desc": "", "source_id": "kumamoto_city", "source": "熊本市", "group": "city", "area": "熊本市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "令和８年熊本地震における障がいのある方への支援について", "url": "https://www.pref.kumamoto.jp/soshiki/39/274727.html", "published": "2026-07-29T16:00:00+09:00", "desc": "", "source_id": "pref_kumamoto_new", "source": "熊本県 新着情報", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "【臨時休館中】地震の影響に伴う臨時休館のお知らせ", "url": "https://www.pref.kumamoto.jp/site/museum/274468.html", "published": "2026-07-29T16:00:00+09:00", "desc": "熊本県立美術館　臨時休館　地震", "source_id": "pref_kumamoto_new", "source": "熊本県 新着情報", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "「令和8年熊本地震」に伴う市町村税の減免措置等について", "url": "https://www.pref.kumamoto.jp/soshiki/12/274637.html", "published": "2026-07-29T16:00:00+09:00", "desc": "", "source_id": "pref_kumamoto_new", "source": "熊本県 新着情報", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "観光施設の臨時休館（利用停止）および今後の利用再開について", "url": "https://www.city.yatsushiro.lg.jp/kiji00326768/index.html", "published": "2026-07-29T16:00:00+09:00", "desc": "", "source_id": "yatsushiro", "source": "八代市", "group": "city", "area": "八代市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "体育施設の臨時休館（利用停止）および今後の利用再開について", "url": "https://www.city.yatsushiro.lg.jp/kiji00326760/index.html", "published": "2026-07-29T15:35:17+09:00", "desc": "", "source_id": "yatsushiro", "source": "八代市", "group": "city", "area": "八代市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "給水を行っています", "url": "https://www.town.mashiki.lg.jp/kinkyu.html#kid62", "published": "2026-07-29T15:25:00+09:00", "desc": "令和8年熊本地震に伴い、給水車による給水を以下の場所、時間にて行っています。 【給水場所】 ・地域共生センターカタル（木山592） ・保健福祉センターはぴねす（惣領1470） ・町公民館福田分館（福原1970） 【時間】 8時00分～20時00分 ※各自、容器を持参くださいますようお願いします。 ※給水車への補充のため", "source_id": "mashiki_kinkyu", "source": "益城町 緊急情報", "group": "city", "area": "益城町", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "避難所の開設情報（7月29日14時現在）", "url": "https://www.town.mashiki.lg.jp/kinkyu.html#kid51", "published": "2026-07-29T14:38:00+09:00", "desc": "地震発生に伴い、以下の避難所を開設しています。 避難所：・町総合体育館（キズナアリーナ益城） ・町公民館飯野分館 ※ペット同伴の受け入れは行っていません。 また、以下の避難所には避難者がいらっしゃらなかったため閉鎖しました。 ・町公民館福田分館 ・〃 津森分館", "source_id": "mashiki_kinkyu", "source": "益城町 緊急情報", "group": "city", "area": "益城町", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "商工政策課所管施設（勤労者向け施設）の臨時休館（利用停止）および今後の利用再開について", "url": "https://www.city.yatsushiro.lg.jp/kiji00326757/index.html", "published": "2026-07-29T14:30:03+09:00", "desc": "", "source_id": "yatsushiro", "source": "八代市", "group": "city", "area": "八代市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "地震に伴う八代市立博物館の臨時休館について", "url": "https://www.city.yatsushiro.lg.jp/kiji00326755/index.html", "published": "2026-07-29T14:00:00+09:00", "desc": "", "source_id": "yatsushiro", "source": "八代市", "group": "city", "area": "八代市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "令和8年熊本地震に伴う「第59回八代くま川祭り」の開催中止について", "url": "https://www.city.yatsushiro.lg.jp/kiji00326756/index.html", "published": "2026-07-29T13:00:00+09:00", "desc": "", "source_id": "yatsushiro", "source": "八代市", "group": "city", "area": "八代市", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "【重要】家に入る前にはまず安全確認を！", "url": "https://www.town.hikawa.kumamoto.jp/kinkyu.html#kid14", "published": "2026-07-29T12:53:00+09:00", "desc": "余震が続いています。 安全が確認でき、片づけを始める際には、罹災証明や保険申請に必要な「被害写真」の撮影を必ず行ってください。 ・建物の全景（4方向）や、安全な場所から室内の被害・家財を撮影してください。 ・撮影は必ず安全最優先で行ってください。 なお、罹災証明書などの手続き関係につきましては、 詳細が決まり次第お知ら", "source_id": "hikawa_kinkyu", "source": "氷川町 緊急情報", "group": "city", "area": "氷川町", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "【氷川町役場からのお知らせ】", "url": "https://www.town.hikawa.kumamoto.jp/kinkyu.html#kid12", "published": "2026-07-29T09:26:00+09:00", "desc": "現在、地震の影響により、 氷川町内全域で断水および停電が発生しています。 関係機関において復旧作業が進められていますが、 現時点では復旧のめどはたっていません。 新しい情報が入り次第、随時お知らせします。 今後の情報にご注意いただくとともに、 安全を最優先に行動してください。", "source_id": "hikawa_kinkyu", "source": "氷川町 緊急情報", "group": "city", "area": "氷川町", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "一部の地域で、水道水に「にごり」が発生しています", "url": "https://www.town.mashiki.lg.jp/kinkyu.html#kid61", "published": "2026-07-29T07:29:00+09:00", "desc": "益城町水道センターからお知らせします。 現在、一部の地域で、水道水に「にごり」が発生しています。 「にごり」が発生している地域におかれましては、飲用水として使用されませんようにお願いします。", "source_id": "mashiki_kinkyu", "source": "益城町 緊急情報", "group": "city", "area": "益城町", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "地震被害に伴う災害ごみの収集について", "url": "https://www.town.mashiki.lg.jp/kinkyu.html#kid58", "published": "2026-07-29T02:58:00+09:00", "desc": "地震被害に伴う災害ごみの収集等について、災害ごみの受け入れ場所を現在検討中です。 決定次第、改めてお知らせします。 現時点で益城クリーンセンターでの受け入れは行っていませんので、同施設への持ち込みをしないようにお願いします。", "source_id": "mashiki_kinkyu", "source": "益城町 緊急情報", "group": "city", "area": "益城町", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "7月29日の町役場の開庁、その他行政施設の休館について", "url": "https://www.town.mashiki.lg.jp/kinkyu.html#kid57", "published": "2026-07-29T02:46:00+09:00", "desc": "7月29日は、町役場は通常通り開庁します。 以下の施設については休館します。営業開始時期については、ホームページで改めてお知らせします。 【休館施設】 ・キズナパーク益城（町総合運動公園）と併設施設 ・交流情報センターミナテラス及び図書館 ・保健福祉センターはぴねす及び児童館 ・地域共生センターカタル ・復興まちづくり", "source_id": "mashiki_kinkyu", "source": "益城町 緊急情報", "group": "city", "area": "益城町", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "令和８年熊本地震に係る災害救助法の適用について（PDF形式：190KB）", "url": "https://www.bousai.go.jp/pdf/260728.pdf", "published": "2026-07-28T20:00:00+09:00", "desc": "令和８年熊本地震に係る災害救助法の適用について（PDF形式：190KB）", "source_id": "cao_bousai", "source": "内閣府 防災情報のページ 新着", "group": "gov", "area": "", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "​令和8年(2026年)7月28日【知事コメント】大地震に関する知事コメント", "url": "https://www.pref.kumamoto.jp/site/chiji/274483.html", "published": "2026-07-28T18:30:00+09:00", "desc": "", "source_id": "pref_kumamoto_urgent", "source": "熊本県 緊急・重要なお知らせ", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "避難所の開設情報", "url": "https://www.town.mashiki.lg.jp/kinkyu.html#kid45", "published": "2026-07-28T17:51:00+09:00", "desc": "町総合体育館（キズナアリーナ）に避難所を開設しました。 ※現時点ではペット同伴の受け入れは行っていません。 地域共生センターカタルを避難所として開設したと、防災無線等でアナウンスしましたが、施設の被害状況を受けて、避難所としての開設を取りやめています。 その他の避難所の開設については、おってお知らせします。", "source_id": "mashiki_kinkyu", "source": "益城町 緊急情報", "group": "city", "area": "益城町", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "令和８年熊本地震による被害及び 消防機関等の対応状況（第20報・R8.7.30）", "url": "https://www.fdma.go.jp/disaster/info/#070089", "published": "2026-07-28T16:52:00+09:00", "desc": "", "source_id": "fdma_disaster", "source": "総務省消防庁 災害情報", "group": "gov", "area": "", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "令和8年熊本地震に係る災害救助法の適用について", "url": "https://www.pref.kumamoto.jp/soshiki/27/274494.html", "published": "2026-07-28T00:00:00+09:00", "desc": "", "source_id": "pref_kumamoto_urgent", "source": "熊本県 緊急・重要なお知らせ", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "熊本地震10年シンポジウム「地震・火山とともに生きる～恵みの山、益城４座」", "url": "https://www.town.mashiki.lg.jp/kiji0038036/index.html", "published": "2026-07-21T08:49:16+09:00", "desc": "", "source_id": "mashiki", "source": "益城町", "group": "city", "area": "益城町", "first_seen": "2026-07-30T00:32:44.001401+09:00"}, {"title": "最新の防災情報は「防災情報くまもと」でご確認ください", "url": "https://portal.bousai.pref.kumamoto.jp/?p=top", "published": "2026-07-06T00:00:00+09:00", "desc": "", "source_id": "pref_kumamoto_urgent", "source": "熊本県 緊急・重要なお知らせ", "group": "pref", "area": "熊本県", "first_seen": "2026-07-30T00:32:44.001401+09:00"}], "sources": [{"id": "jma_quake_list", "label": "気象庁 地震情報", "status": "40件", "checked_at": "2026-07-30T15:02:31.765567+09:00"}, {"id": "jma_eqvol_feed", "label": "気象庁 防災情報XML（地震火山・高頻度）", "status": "更新あり／30件", "checked_at": "2026-07-30T15:02:31.765567+09:00"}, {"id": "pref_kumamoto_urgent", "label": "熊本県 緊急・重要なお知らせ", "status": "取得失敗", "checked_at": "2026-07-30T15:02:31.765567+09:00"}, {"id": "pref_kumamoto_new", "label": "熊本県 新着情報", "status": "更新あり／19件", "checked_at": "2026-07-30T15:02:31.765567+09:00"}, {"id": "kumamoto_city", "label": "熊本市", "status": "更新あり／19件", "checked_at": "2026-07-30T15:02:31.765567+09:00"}, {"id": "yatsushiro", "label": "八代市", "status": "更新あり／20件", "checked_at": "2026-07-30T15:02:31.765567+09:00"}, {"id": "uto", "label": "宇土市", "status": "更新あり／9件", "checked_at": "2026-07-30T15:02:31.765567+09:00"}, {"id": "hikawa", "label": "氷川町", "status": "変更なし", "checked_at": "2026-07-30T15:02:31.765567+09:00"}, {"id": "mashiki", "label": "益城町", "status": "更新あり／7件", "checked_at": "2026-07-30T15:02:31.765567+09:00"}, {"id": "misato", "label": "美里町", "status": "更新あり／2件", "checked_at": "2026-07-30T15:02:31.765567+09:00"}, {"id": "hikawa_kinkyu", "label": "氷川町 緊急情報", "status": "更新あり／6件", "checked_at": "2026-07-30T15:02:31.765567+09:00"}, {"id": "mashiki_kinkyu", "label": "益城町 緊急情報", "status": "更新あり／13件", "checked_at": "2026-07-30T15:02:31.765567+09:00"}, {"id": "uki", "label": "宇城市", "status": "更新あり／1件", "checked_at": "2026-07-30T15:02:31.765567+09:00"}, {"id": "fdma_disaster", "label": "総務省消防庁 災害情報", "status": "更新あり／1件", "checked_at": "2026-07-30T15:02:31.765567+09:00"}, {"id": "cao_bousai", "label": "内閣府 防災情報のページ 新着", "status": "変更なし／1件", "checked_at": "2026-07-30T15:02:31.765567+09:00"}, {"id": "kyuden_power", "label": "九州電力送配電 停電情報", "status": "18,590戸", "checked_at": "2026-07-30T15:02:31.765567+09:00"}, {"id": "mlit_water", "label": "国土交通省 被害状況（断水）", "status": "第8報／93,700戸", "checked_at": "2026-07-30T15:02:31.765567+09:00"}, {"id": "nhk_shakai", "label": "NHKニュース（社会）", "status": "更新あり／17件", "checked_at": "2026-07-30T15:02:31.765567+09:00"}], "errors": [{"id": "pref_kumamoto_urgent", "label": "熊本県 緊急・重要なお知らせ", "error": "URLError: <urlopen error [Errno 104] Connection reset by peer>", "at": "2026-07-30T15:02:31.765567+09:00"}]};
 /*__CRAWLED_DATA_END__*/
 
 /* =========================================================
    データ：すべて2026年7月29日に公式サイトで実在確認したもの
    ========================================================= */
 const G = q => "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(q);
+
+/* 公式発表の住所を座標に変換したもの（国土地理院 住所検索APIで2026年7月30日に一括変換）。
+   [緯度, 経度, 精度] 精度 1 = 番地まで一致 ／ 0 = 町名（大字）までの概略位置。
+   住所に番地の登録がない地域（美里町・氷川町など）は 0 になる。地図では点線のふちどりで区別し、
+   正確な場所は住所とGoogleマップで確認してもらう。推測で番地を補うことはしない。 */
+const GEO = {
+  "宇城市三角町波多619-1":[32.626102,130.485626,0],
+  "宇城市不知火町高良2273-1":[32.646633,130.668945,1],
+  "宇城市小川町江頭100":[32.592487,130.703766,1],
+  "宇城市松橋町大野85":[32.648109,130.684418,1],
+  "宇城市松橋町松橋564-2":[32.651493,130.678787,1],
+  "宇城市松橋町豊福1786":[32.642166,130.703033,1],
+  "宇城市豊野町糸石3140-3":[32.635307,130.761765,0],
+  "熊本県上益城郡益城町大字宮園702":[32.791698,130.816589,1],
+  "熊本県下益城郡美里町馬場1100":[32.638218,130.791565,0],
+  "熊本県八代市松江城町1-25":[32.506725,130.602081,1],
+  "熊本県八代郡氷川町宮原栄久69-1":[32.556202,130.682312,0],
+  "熊本県八代郡氷川町島地642":[32.580479,130.674042,0],
+  "熊本県宇土市浦田町51":[32.687256,130.658615,1],
+  "熊本県宇城市松橋町大野85":[32.648109,130.684418,1],
+  "熊本県熊本市中央区手取本町1-1":[32.803417,130.708023,1],
+  "熊本県熊本市中央区水前寺6丁目18番1号":[32.789379,130.742004,1],
+  "美里町三和420":[32.626358,130.869522,0],
+  "美里町佐俣338":[32.621201,130.822784,0],
+  "美里町原町330":[32.619286,130.866867,0],
+  "美里町土喰330":[32.618462,130.871246,0],
+  "美里町永富1510":[32.607075,130.866592,0],
+  "美里町畝野1944":[32.642166,130.912521,0],
+  "美里町畝野3701-1":[32.642166,130.912521,0],
+  "美里町萱野745":[32.630241,130.805725,0],
+  "美里町馬場1100":[32.638218,130.791565,0],
+  "美里町馬場537-1":[32.638218,130.791565,0],
+  "美里町馬場6":[32.638218,130.791565,0]
+};
 
 const TOP_LINKS = [
   {t:"内閣府｜令和8年熊本地震による被害状況等について", u:"https://www.bousai.go.jp/updates/r8kumamoto_jishin/index.html", d:"国の総合窓口。被害状況・被災者支援・生活再建の情報が集約されています。まずここ。"},
@@ -693,22 +876,22 @@ const CITIES = [
     status:"網田地区を除く全域で断水。復旧の見通しは立っていません。約10,000戸。市役所の窓口業務も当面停止。",
     links:[
       {t:"宇土市の防災情報（地震のまとめ）", u:"https://www.city.uto.lg.jp/category/list/1301.html", d:"避難所・公共交通・公共施設・上下水道・ごみ収集をカテゴリ別に整理。市の起点。"},
-      {t:"避難所について", u:"https://www.city.uto.lg.jp/article/view/1014/16304.html", d:"開設中の避難所一覧。7/29 13:30更新。"},
+      {t:"避難所について", u:"https://www.city.uto.lg.jp/article/view/1014/16304.html", d:"開設中の避難所一覧。7/30 9:00更新。"},
       {t:"地震に伴う断水について", u:"https://www.city.uto.lg.jp/article/view/1232/16317.html", d:"断水区域と復旧の見通し。"},
-      {t:"給水車による給水のお知らせ", u:"https://www.city.uto.lg.jp/article/view/1244/16322.html", d:"給水車の場所と時間。7/29 9:00から。"},
+      {t:"給水車による給水のお知らせ", u:"https://www.city.uto.lg.jp/article/view/1308/16322.html", d:"給水車の場所と時間。7/29 9:00から。"},
       {t:"り災証明書・被災証明書の交付について", u:"https://www.city.uto.lg.jp/article/view/1229/1368.html", d:"税務課の窓口またはマイナポータルからのオンライン申請。必要書類の説明あり。"},
       {t:"窓口業務の停止について", u:"https://www.city.uto.lg.jp/article/view/1014/16312.html", d:"本庁・網津支所・網田支所の窓口業務を当面停止。"}
     ],
-    shelter:{title:"開設中の避難所（7/29 13:30時点）", note:"公式ページに住所の記載がないため、施設名でGoogleマップを検索します。花園コミュニティセンターは停電と断水のため開設できていません。", items:[
+    shelter:{title:"開設中の避難所（7/30 9:00時点）", note:"公式ページに住所の記載がないため、施設名でGoogleマップを検索します。網田小学校の体育館は7月30日8:30に閉鎖されました。", items:[
       {n:"福祉センター", q:"宇土市 福祉センター"},
       {n:"宇土市役所 別館", q:"宇土市役所 熊本県宇土市浦田町51"},
       {n:"宇土市民会館 2階会議室", q:"宇土市民会館"},
       {n:"椿原公民館", q:"椿原公民館 宇土市", note:"轟公民館から変更"},
+      {n:"花園コミュニティセンター", q:"花園コミュニティセンター 宇土市"},
       {n:"緑川小学校", q:"宇土市立緑川小学校"},
       {n:"網津防災センター", q:"網津防災センター 宇土市"},
       {n:"走潟小学校", q:"宇土市立走潟小学校"},
-      {n:"網田コミュニティセンター", q:"網田コミュニティセンター 宇土市"},
-      {n:"網田小学校 体育館", q:"宇土市立網田小学校", note:"追加開設"}
+      {n:"網田コミュニティセンター", q:"網田コミュニティセンター 宇土市"}
     ]},
     water:{title:"給水場所（7/29 9:00〜）", items:[
       {n:"ecowin宇土アリーナ（市民体育館）", q:"宇土市民体育館 ecowin宇土アリーナ"},
@@ -744,7 +927,7 @@ const CITIES = [
       {t:"益城町 緊急情報（地震の情報はここ）", u:"https://www.town.mashiki.lg.jp/kinkyu.html", d:"避難所の開設情報、水道の濁り、信号機、道路通行止め、施設休館を時系列で掲載。"},
       {t:"益城町 防災サイト", u:"https://www.town.mashiki.lg.jp/bousai/default.html", d:"防災情報の総合ポータル。多言語対応。"},
       {t:"避難場所・避難所", u:"https://www.town.mashiki.lg.jp/bousai/list01038.html", d:"平常時に指定されている避難所の一覧。"},
-      {t:"被災証明書・罹災証明書について", u:"https://www.town.mashiki.lg.jp/kiji0033967/index.html", d:"2種類の証明書の違い、必要書類（認印・被災箇所の写真・本人確認書類）。郵送申請も可。窓口は税務課（仮設庁舎1階）平日9:00〜17:00。"}
+      {t:"益城町 公式トップ", u:"https://www.town.mashiki.lg.jp/", d:"2種類の証明書の違い、必要書類（認印・被災箇所の写真・本人確認書類）。郵送申請も可。窓口は税務課（仮設庁舎1階）平日9:00〜17:00。"}
     ],
     tels:[{l:"町役場（代表）", n:"096-286-3111"},{l:"水道課", n:"096-286-6880"}],
     office:{n:"益城町役場", a:"熊本県上益城郡益城町大字宮園702"},
@@ -987,7 +1170,7 @@ $("#cityJump").innerHTML = CITIES.map((c,i)=>
   `<button type="button" data-jump="${i}">${esc(c.name)}</button>`).join("");
 
 $("#cityList").innerHTML = CITIES.map((c,i)=>`
-<details class="acc" ${i===0?"open":""}>
+<details class="acc" data-ci="${i}" ${i===0?"open":""}>
   <summary>
     <span>${esc(c.name)}</span>
     ${c.tag?`<span class="badge ${c.tagc}">${esc(c.tag)}</span>`:""}
@@ -1017,16 +1200,21 @@ $("#cityList").innerHTML = CITIES.map((c,i)=>`
   </div>
 </details>`).join("");
 
-document.querySelectorAll('#cityJump button').forEach(b=>{
-  b.onclick = () => {
-    const d = document.querySelectorAll('#cityList details.acc')[b.dataset.jump];
-    if(!d) return;
-    d.open = true;
-    // ヘッダーとタブが上に固定されているぶん、見出しが隠れないよう余白を取る
-    const y = d.getBoundingClientRect().top + window.scrollY - 110;
-    window.scrollTo({top: y, behavior: "smooth"});
-  };
-});
+/* 並べ替えても壊れないよう、DOMの並び順ではなく data-ci で引く */
+function openCity(ci, smooth){
+  const d = document.querySelector('#cityList details.acc[data-ci="' + ci + '"]');
+  if(!d) return;
+  d.open = true;
+  // ヘッダーとタブが上に固定されているぶん、見出しが隠れないよう余白を取る
+  const y = d.getBoundingClientRect().top + window.scrollY - 110;
+  window.scrollTo({top: y, behavior: smooth === false ? "auto" : "smooth"});
+}
+function wireCityJump(){
+  document.querySelectorAll('#cityJump button').forEach(b=>{
+    b.onclick = () => openCity(b.dataset.jump);
+  });
+}
+wireCityJump();
 
 $("#lifeList").innerHTML = LIFE.map(s=>`
   <h3 style="font-size:1rem;margin:20px 0 8px">${esc(s.h)}</h3>
@@ -1058,6 +1246,532 @@ $("#snsUnverified").innerHTML = SNS_CHECK.map(a=>acctRow(a,false)).join("");
 $("#fakeLinks").innerHTML = linkList(FAKE_LINKS);
 $("#lineLinks").innerHTML = linkList(LINE_LINKS);
 $("#appLinks").innerHTML = linkList(APP_LINKS);
+
+/* =========================================================
+   現在地（端末の中だけで使う）
+
+   navigator.geolocation はボタンを押したときだけ呼ぶ。取得した座標は距離の計算に
+   使うだけで、どこにも送信せず、localStorage にも入れない（そもそも使っていない）。
+   拒否されても機能を落とすだけで、表示は壊さない。
+   ========================================================= */
+let ME = null;
+
+function distKm(aLat, aLon, bLat, bLon){
+  const R = 6371, r = Math.PI/180;
+  const dLat = (bLat-aLat)*r, dLon = (bLon-aLon)*r;
+  const h = Math.sin(dLat/2)**2 + Math.cos(aLat*r)*Math.cos(bLat*r)*Math.sin(dLon/2)**2;
+  return 2*R*Math.asin(Math.min(1, Math.sqrt(h)));
+}
+function fmtKm(km){
+  if(km < 1) return Math.round(km*100)*10 + "m";
+  return (km < 10 ? km.toFixed(1) : Math.round(km)) + "km";
+}
+function locate(cb){
+  if(!navigator.geolocation){
+    cb(false, "このブラウザでは位置情報が使えません。");
+    return;
+  }
+  /* 許可ダイアログを閉じずに放置された場合、ブラウザはどちらのコールバックも呼ばない。
+     ボタンが「確認しています…」のまま押せなくなるので、自前の時間切れを必ず用意する。 */
+  let done = false;
+  const fin = (ok, msg) => { if(done) return; done = true; cb(ok, msg); };
+  const bail = setTimeout(() => fin(false,
+    "現在地を確認できませんでした。ブラウザの許可を尋ねる表示が出ていたら、それに答えてからもう一度押してください。"), 13000);
+  navigator.geolocation.getCurrentPosition(
+    p => {
+      clearTimeout(bail);
+      ME = {lat:p.coords.latitude, lon:p.coords.longitude};
+      fin(true);
+    },
+    e => {
+      clearTimeout(bail);
+      fin(false, e && e.code === 1
+        ? "位置情報の利用が許可されませんでした。ブラウザの設定で許可すると使えます。許可しなくても、下の一覧はそのままご利用いただけます。"
+        : "現在地を取得できませんでした。屋内や地下では取得できないことがあります。");
+    },
+    {enableHighAccuracy:true, timeout:10000, maximumAge:60000}
+  );
+}
+
+/* =========================================================
+   地図
+
+   外部の地図ライブラリは読み込まない。災害時に CDN が詰まると地図ごと出なくなるため、
+   タイルの並べ方だけを自前で書いている（背景タイルは国土地理院のもの）。
+   拡大縮小は整数ズームに限らず連続値で持ち、タイルは round(z) を使って
+   差分を CSS の拡大率で吸収する。こうするとピンチ操作が滑らかに追従する。
+   ========================================================= */
+const GSI_TILE = "https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png";
+const KIND = {
+  water:  {l:"給水所", g:"水"},
+  shelter:{l:"避難所", g:"避"},
+  office: {l:"役所",   g:"庁"}
+};
+const isPrefRow = c => /^熊本県/.test(c.name);
+
+/* CITIES と GEO からピンを組み立てる。住所が公式発表に無いものはピンにしない。 */
+function buildPins(){
+  const out = [];
+  CITIES.forEach((c, ci) => {
+    const add = (kind, it, group) => {
+      const g = it.a && GEO[it.a];
+      if(!g) return;
+      out.push({kind, ci, city:c.name, n:it.n, a:it.a, note:it.note||"", group:group||"",
+                lat:g[0], lon:g[1], acc:g[2], tels:c.tels||[]});
+    };
+    if(c.water)   (c.water.items   || []).forEach(it => add("water",   it, c.water.title));
+    if(c.shelter) (c.shelter.items || []).forEach(it => add("shelter", it, c.shelter.title));
+    // 役所が給水所・避難所としても発表されている場合は、同じ建物に2本ピンが立つので足さない。
+    // 住所の書き方（「熊本県」の有無など）が発表元でまちまちなので、文字列ではなく座標で比べる。
+    if(c.office){
+      const g = c.office.a && GEO[c.office.a];
+      const dup = g && out.some(p => p.ci === ci &&
+        Math.abs(p.lat - g[0]) < 1e-6 && Math.abs(p.lon - g[1]) < 1e-6);
+      if(!dup) add("office", {n:c.office.n, a:c.office.a}, "役所の場所");
+    }
+  });
+  /* 町名までしか座標が無い住所は同じ点に重なる。少しずつずらして全部押せるようにする。
+     ずらした点は概略位置なので、ふちどりを点線にして見た目でも区別する。 */
+  const seen = {};
+  out.forEach(p => {
+    const k = p.lat.toFixed(5) + "," + p.lon.toFixed(5);
+    const i = (seen[k] = (seen[k]||0) + 1) - 1;
+    if(i){
+      const ang = i * 2.399963, r = 0.00042 * Math.sqrt(i);
+      p.lat += r * Math.cos(ang);
+      p.lon += r * Math.sin(ang) / Math.cos(p.lat*Math.PI/180);
+    }
+  });
+  return out;
+}
+const PINS = buildPins();
+
+const mapKindSel = new Set();
+const mapCitySel = new Set();
+let mSel = -1;          // 選択中のピン
+let mapReady = false;
+
+const elMap    = $("#map");
+const elTiles  = $("#mapTiles");
+const elPins   = $("#mapPins");
+
+let mCenter = {lat:32.66, lon:130.70}, mZoom = 10;
+
+function mTz(){ return Math.max(2, Math.min(18, Math.round(mZoom))); }
+function mSc(){ return Math.pow(2, mZoom - mTz()); }
+function mProj(lat, lon, t){
+  const n = 256*Math.pow(2, t);
+  const s = Math.sin(lat*Math.PI/180);
+  return {x:(lon+180)/360*n, y:(0.5 - Math.log((1+s)/(1-s))/(4*Math.PI))*n};
+}
+function mUnproj(x, y, t){
+  const n = 256*Math.pow(2, t);
+  const q = Math.PI*(1 - 2*y/n);
+  return {lat:180/Math.PI*Math.atan(0.5*(Math.exp(q)-Math.exp(-q))), lon:x/n*360-180};
+}
+function mView(){
+  const t = mTz(), s = mSc(), w = elMap.clientWidth, h = elMap.clientHeight;
+  const c = mProj(mCenter.lat, mCenter.lon, t);
+  return {t, s, w, h, ox:c.x - (w/2)/s, oy:c.y - (h/2)/s};
+}
+function mToScreen(lat, lon, v){
+  const p = mProj(lat, lon, v.t);
+  return {x:(p.x - v.ox)*v.s, y:(p.y - v.oy)*v.s};
+}
+function mToLatLon(sx, sy, v){
+  return mUnproj(v.ox + sx/v.s, v.oy + sy/v.s, v.t);
+}
+/* 画面上で (dx,dy) だけ中心をずらす（地図の中身は逆方向に動く） */
+function mPan(dx, dy){
+  const v = mView();
+  if(!v.w || !v.h) return;
+  mCenter = mToLatLon(v.w/2 + dx, v.h/2 + dy, v);
+}
+function mZoomAt(nz, sx, sy){
+  nz = Math.max(9.5, Math.min(17, nz));
+  if(nz === mZoom) return;
+  const v0 = mView();
+  if(!v0.w) { mZoom = nz; return; }
+  const ll = mToLatLon(sx, sy, v0);
+  mZoom = nz;
+  const p = mToScreen(ll.lat, ll.lon, mView());
+  mPan(p.x - sx, p.y - sy);
+}
+
+const mTileEls = new Map();
+function mRender(){
+  const v = mView();
+  if(!v.w || !v.h) return;
+  const size = Math.ceil(256*v.s) + 1;
+  const max  = Math.pow(2, v.t);
+  const x0 = Math.floor(v.ox/256), x1 = Math.floor((v.ox + v.w/v.s)/256);
+  const y0 = Math.floor(v.oy/256), y1 = Math.floor((v.oy + v.h/v.s)/256);
+  const keep = new Set();
+  for(let ty = y0; ty <= y1; ty++){
+    if(ty < 0 || ty >= max) continue;
+    for(let tx = x0; tx <= x1; tx++){
+      const wx = ((tx % max) + max) % max;
+      const key = v.t + "/" + wx + "/" + ty + "@" + tx;
+      keep.add(key);
+      let im = mTileEls.get(key);
+      if(!im){
+        im = document.createElement("img");
+        im.className = "mt"; im.alt = ""; im.decoding = "async"; im.draggable = false;
+        im.src = GSI_TILE.replace("{z}", v.t).replace("{x}", wx).replace("{y}", ty);
+        im.onerror = () => { im.style.visibility = "hidden"; };
+        mTileEls.set(key, im);
+        elTiles.appendChild(im);
+      }
+      im.style.width = im.style.height = size + "px";
+      im.style.transform = "translate(" + Math.round((tx*256 - v.ox)*v.s) + "px," +
+                                          Math.round((ty*256 - v.oy)*v.s) + "px)";
+    }
+  }
+  mTileEls.forEach((im, k) => { if(!keep.has(k)){ im.remove(); mTileEls.delete(k); } });
+  mRenderPins(v);
+}
+
+function mVisiblePins(){
+  return PINS.filter(p =>
+    (!mapKindSel.size || mapKindSel.has(p.kind)) &&
+    (!mapCitySel.size || mapCitySel.has(p.city)));
+}
+
+const mPinEls = new Map();
+function mRenderPins(v){
+  const vis = mVisiblePins();
+  const keep = new Set();
+  vis.forEach(p => {
+    const i = PINS.indexOf(p), key = "p" + i;
+    keep.add(key);
+    let b = mPinEls.get(key);
+    if(!b){
+      b = document.createElement("button");
+      b.type = "button";
+      b.className = "mpin k-" + p.kind + (p.acc ? "" : " approx");
+      b.innerHTML = '<i><span>' + KIND[p.kind].g + '</span></i>';
+      b.title = p.n + "（" + p.city + "）";
+      b.setAttribute("aria-label", KIND[p.kind].l + "：" + p.n + "（" + p.city + "）");
+      b.onclick = ev => { ev.stopPropagation(); if(!mDragged) mSelect(i); };
+      mPinEls.set(key, b);
+      elPins.appendChild(b);
+    }
+    b.setAttribute("aria-pressed", mSel === i);
+    const s = mToScreen(p.lat, p.lon, v);
+    b.style.transform = "translate(" + Math.round(s.x) + "px," + Math.round(s.y) + "px)";
+    b.style.marginLeft = "-15px"; b.style.marginTop = "-38px";
+    b.style.left = "0"; b.style.top = "0";
+  });
+  mPinEls.forEach((b, k) => { if(!keep.has(k)){ b.remove(); mPinEls.delete(k); } });
+
+  let me = elPins.querySelector(".mk-me");
+  if(ME){
+    if(!me){ me = document.createElement("div"); me.className = "mk-me"; me.title = "現在地"; elPins.appendChild(me); }
+    const s = mToScreen(ME.lat, ME.lon, v);
+    me.style.transform = "translate(" + Math.round(s.x) + "px," + Math.round(s.y) + "px)";
+    me.style.marginLeft = "-8px"; me.style.marginTop = "-8px";
+    me.style.left = "0"; me.style.top = "0";
+  } else if(me){ me.remove(); }
+}
+
+function mFit(pts){
+  const list = (pts && pts.length) ? pts : mVisiblePins();
+  if(!list.length) return;
+  let la1 = 90, la2 = -90, lo1 = 180, lo2 = -180;
+  list.forEach(p => {
+    la1 = Math.min(la1, p.lat); la2 = Math.max(la2, p.lat);
+    lo1 = Math.min(lo1, p.lon); lo2 = Math.max(lo2, p.lon);
+  });
+  mCenter = {lat:(la1+la2)/2, lon:(lo1+lo2)/2};
+  const w = elMap.clientWidth || 360, h = elMap.clientHeight || 300;
+  const yy = (la, n) => { const s = Math.sin(la*Math.PI/180); return (0.5 - Math.log((1+s)/(1-s))/(4*Math.PI))*n; };
+  let best = 9.5;
+  for(let t = 17; t >= 9.5; t -= 0.25){
+    const n = 256*Math.pow(2, t);
+    const dx = Math.abs((lo2-lo1)/360*n);
+    const dy = Math.abs(yy(la1, n) - yy(la2, n));
+    if(dx <= Math.max(60, w - 80) && dy <= Math.max(60, h - 80)){ best = t; break; }
+  }
+  mZoom = best;
+}
+
+/* ピンを選ぶ → 地図の下に詳細を出す。地図の上に吹き出しを重ねると、
+   小さい画面で地図の半分が隠れてしまうので下に置いている。 */
+function mSelect(i, center){
+  mSel = i;
+  const p = PINS[i];
+  const box = $("#mapPop");
+  if(!p){ box.innerHTML = ""; return; }
+  const tel = (p.tels||[])[0];
+  box.innerHTML =
+    '<div class="pop">' +
+      '<span class="badge ' + (p.kind==="water"?"b-info":p.kind==="shelter"?"b-ok":"b-grey") + '">' +
+        esc(KIND[p.kind].l) + '</span> <span class="stamp">' + esc(p.city) + '</span>' +
+      '<div class="pn2">' + esc(p.n) + (p.note ? ' <span class="badge b-grey">' + esc(p.note) + '</span>' : '') + '</div>' +
+      '<div class="pa">' + esc(p.a) + '</div>' +
+      (p.group ? '<div class="stamp" style="margin-top:6px">' + esc(p.group) + '</div>' : '') +
+      (p.acc ? '' : '<div class="notice" style="margin:8px 0 0;font-size:.79rem">この地点は<b>町名（大字）までの概略位置</b>です。公式発表の住所に番地の座標が登録されていないため、実際の場所とは数百メートルずれることがあります。上の住所かGoogleマップでご確認ください。</div>') +
+      '<div class="px">' +
+        '<a class="gmap" href="' + G(p.a || p.n) + '" target="_blank" rel="noopener">Googleマップで開く ↗</a>' +
+        (tel ? '<a class="tel" href="tel:' + tel.n.replace(/-/g,"") + '">' + esc(tel.l) + ' ' + esc(tel.n) + '</a>' : '') +
+      '</div>' +
+    '</div>';
+  if(center){ mCenter = {lat:p.lat, lon:p.lon}; if(mZoom < 13) mZoom = 14; }
+  mRender();
+  if(center) box.scrollIntoView({behavior:"smooth", block:"nearest"});
+}
+
+/* ---- 操作（ドラッグ・ホイール・ピンチ） ---- */
+let mHintT;
+function mHint(){
+  const h = $("#mapHint");
+  if(!h) return;
+  h.classList.add("on");
+  clearTimeout(mHintT);
+  mHintT = setTimeout(() => h.classList.remove("on"), 1800);
+}
+let mDragged = false;
+const mPts = new Map();
+let mPinchD = 0, mPinchZ = 0;
+
+elMap.addEventListener("pointerdown", e => {
+  mPts.set(e.pointerId, {x:e.clientX, y:e.clientY});
+  mDragged = false;
+  // 指が地図の外に出ても追従させる。使えない環境でも操作自体は止めない
+  try{ elMap.setPointerCapture(e.pointerId); }catch(_){}
+  if(mPts.size === 2){
+    const [a, b] = [...mPts.values()];
+    mPinchD = Math.hypot(a.x-b.x, a.y-b.y);
+    mPinchZ = mZoom;
+  }
+  elMap.classList.add("drag");
+});
+elMap.addEventListener("pointermove", e => {
+  const prev = mPts.get(e.pointerId);
+  if(!prev) return;
+  const now = {x:e.clientX, y:e.clientY};
+  /* 指1本のときは地図を動かさず、ページのスクロールに譲る。
+     画面いっぱいの地図が1本指を奪うと、下の一覧までスクロールできず閉じ込められる。
+     動かすときは指2本（Googleマップの埋め込みと同じ作法）。マウスは1つで動かせる。 */
+  if(e.pointerType === "touch" && mPts.size < 2){
+    if(Math.abs(now.x - prev.x) > 6 || Math.abs(now.y - prev.y) > 6) mHint();
+    mPts.set(e.pointerId, now);
+    return;
+  }
+  if(mPts.size === 1){
+    const dx = now.x - prev.x, dy = now.y - prev.y;
+    if(Math.abs(dx) > 3 || Math.abs(dy) > 3) mDragged = true;
+    mPan(-dx, -dy);
+    mPts.set(e.pointerId, now);
+    mRender();
+  } else if(mPts.size === 2){
+    mPts.set(e.pointerId, now);
+    const [a, b] = [...mPts.values()];
+    const d = Math.hypot(a.x-b.x, a.y-b.y);
+    if(mPinchD > 8 && d > 8){
+      mDragged = true;
+      const r = elMap.getBoundingClientRect();
+      mZoomAt(mPinchZ + Math.log2(d/mPinchD), (a.x+b.x)/2 - r.left, (a.y+b.y)/2 - r.top);
+      mRender();
+    }
+  }
+});
+function mUp(e){
+  mPts.delete(e.pointerId);
+  if(mPts.size < 2) mPinchD = 0;
+  if(!mPts.size) elMap.classList.remove("drag");
+}
+elMap.addEventListener("pointerup", mUp);
+elMap.addEventListener("pointercancel", mUp);
+/* ホイールは Ctrl（Macは⌘）と併用のときだけ拡大縮小に使う。
+   単独で乗っ取ると、地図の上でページを下にスクロールできなくなる。 */
+elMap.addEventListener("wheel", e => {
+  if(!(e.ctrlKey || e.metaKey)){ mHint(); return; }
+  e.preventDefault();
+  const r = elMap.getBoundingClientRect();
+  mZoomAt(mZoom - Math.sign(e.deltaY)*0.5, e.clientX - r.left, e.clientY - r.top);
+  mRender();
+}, {passive:false});
+elMap.addEventListener("dblclick", e => {
+  const r = elMap.getBoundingClientRect();
+  mZoomAt(mZoom + 1, e.clientX - r.left, e.clientY - r.top);
+  mRender();
+});
+
+$("#mapIn").onclick  = () => { mZoomAt(mZoom + 1, elMap.clientWidth/2, elMap.clientHeight/2); mRender(); };
+$("#mapOut").onclick = () => { mZoomAt(mZoom - 1, elMap.clientWidth/2, elMap.clientHeight/2); mRender(); };
+$("#mapFit").onclick = () => { mFit(); mRender(); };
+
+/* ---- 絞り込み ---- */
+function mChips(){
+  const kinds = ["water","shelter","office"].filter(k => PINS.some(p => p.kind === k));
+  $("#mapKinds").innerHTML = "";
+  kinds.forEach(k => {
+    const n = PINS.filter(p => p.kind === k).length;
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "chip";
+    b.textContent = KIND[k].l + " " + n;
+    b.setAttribute("aria-pressed", mapKindSel.has(k));
+    b.onclick = () => {
+      mapKindSel.has(k) ? mapKindSel.delete(k) : mapKindSel.add(k);
+      b.setAttribute("aria-pressed", mapKindSel.has(k));
+      mSel = -1; $("#mapPop").innerHTML = "";
+      mRender(); mList();
+    };
+    $("#mapKinds").appendChild(b);
+  });
+
+  const cities = [...new Set(PINS.map(p => p.city))];
+  $("#mapCities").innerHTML = "";
+  cities.forEach(c => {
+    const n = PINS.filter(p => p.city === c).length;
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "chip";
+    b.textContent = c + " " + n;
+    b.setAttribute("aria-pressed", mapCitySel.has(c));
+    b.onclick = () => {
+      mapCitySel.has(c) ? mapCitySel.delete(c) : mapCitySel.add(c);
+      b.setAttribute("aria-pressed", mapCitySel.has(c));
+      mSel = -1; $("#mapPop").innerHTML = "";
+      mFit(); mRender(); mList();
+    };
+    $("#mapCities").appendChild(b);
+  });
+}
+
+/* ---- 一覧（現在地があれば近い順） ---- */
+function mList(){
+  const vis = mVisiblePins().slice();
+  if(ME) vis.forEach(p => p.km = distKm(ME.lat, ME.lon, p.lat, p.lon));
+  if(ME) vis.sort((a,b) => a.km - b.km);
+  else   vis.sort((a,b) => a.ci - b.ci || a.kind.localeCompare(b.kind));
+
+  $("#mapListNote").textContent = vis.length
+    ? (ME ? "現在地から近い順に " : "") + vis.length + "件（全" + PINS.length + "件）"
+    : "絞り込みに合うものがありません。上のボタンを解除してください。";
+
+  $("#mapList").innerHTML = vis.length ? '<div class="card" style="padding:6px 14px">' + vis.map(p => {
+    const i = PINS.indexOf(p);
+    return '<div class="place">' +
+      '<div class="info">' +
+        '<div class="nm"><span class="badge ' + (p.kind==="water"?"b-info":p.kind==="shelter"?"b-ok":"b-grey") + '">' +
+          esc(KIND[p.kind].l) + '</span> ' + esc(p.n) +
+          (p.acc ? '' : ' <span class="badge b-grey">概略位置</span>') + '</div>' +
+        '<div class="ad">' + esc(p.city) + '　' + esc(p.a) + '</div>' +
+      '</div>' +
+      (ME ? '<span class="dist">' + fmtKm(p.km) + '</span>' : '') +
+      '<button type="button" class="gmap" data-pin="' + i + '" style="cursor:pointer">地図で見る</button>' +
+    '</div>';
+  }).join("") + '</div>' : "";
+
+  $("#mapList").querySelectorAll("[data-pin]").forEach(b => {
+    b.onclick = () => {
+      const i = +b.dataset.pin;
+      mSelect(i, true);
+      $("#map").scrollIntoView({behavior:"smooth", block:"center"});
+    };
+  });
+}
+
+/* ---- 地図に載せられていない施設・市町村 ---- */
+function mMissing(){
+  const rows = [];
+  CITIES.forEach(c => {
+    const noAddr = [];
+    [["water", c.water], ["shelter", c.shelter]].forEach(([k, g]) => {
+      (g && g.items || []).forEach(it => { if(!it.a || !GEO[it.a]) noAddr.push({k, n:it.n}); });
+    });
+    const has = PINS.some(p => p.ci === CITIES.indexOf(c) && p.kind !== "office");
+    if(!noAddr.length && has) return;
+    rows.push({c, noAddr, has});
+  });
+  $("#mapMissing").innerHTML = rows.length ? rows.map(r =>
+    '<div style="padding:9px 0;border-bottom:1px solid var(--line)">' +
+      '<div style="font-weight:700;font-size:.92rem">' + esc(r.c.name) + '</div>' +
+      '<div class="stamp" style="margin:2px 0 5px">' +
+        (r.noAddr.length
+          ? '公式発表に住所がないため地図に置いていません（' + r.noAddr.length + '件）：' +
+            r.noAddr.map(x => esc(x.n)).join("、")
+          : '給水所・避難所の施設名が公式に一覧化されていません。市の公式ページでご確認ください。') +
+      '</div>' +
+      '<div class="row">' +
+        r.noAddr.slice(0, 12).map(x =>
+          '<a class="gmap" href="' + G(r.c.name.replace(/（.*/, "") + " " + x.n) + '" target="_blank" rel="noopener">' +
+          esc(x.n) + ' ↗</a>').join("") +
+      '</div>' +
+      '<div style="margin-top:6px"><a href="' + esc(r.c.links[0].u) + '" target="_blank" rel="noopener" style="font-size:.83rem;font-weight:700">' +
+        esc(r.c.name) + 'の公式ページで確認する ↗</a></div>' +
+    '</div>').join("") : '<p class="stamp" style="margin:0">すべての施設を地図に載せています。</p>';
+}
+
+/* ---- 現在地ボタン（地図） ---- */
+$("#mapLocBtn").onclick = () => {
+  const btn = $("#mapLocBtn"), msg = $("#mapLocMsg");
+  btn.disabled = true; msg.textContent = "現在地を確認しています…";
+  locate((ok, err) => {
+    btn.disabled = false;
+    if(!ok){ msg.textContent = err; return; }
+    const vis = mVisiblePins();
+    let near = null;
+    vis.forEach(p => {
+      const km = distKm(ME.lat, ME.lon, p.lat, p.lon);
+      if(!near || km < near.km) near = {p, km};
+    });
+    msg.innerHTML = near
+      ? "近い順に並べました。いちばん近いのは <b>" + esc(near.p.n) + "</b>（" + esc(near.p.city) + "・約" +
+        fmtKm(near.km) + "）。<span class=\"stamp\">位置情報は端末の中だけで使い、送信していません。</span>"
+      : "現在地を取得しました。";
+    mList();
+    if(near){ mCenter = {lat:(ME.lat + near.p.lat)/2, lon:(ME.lon + near.p.lon)/2}; mZoom = Math.max(11, Math.min(14, mZoom)); }
+    mRender();
+  });
+};
+
+/* ---- 市町村別タブの「近い順」 ---- */
+$("#cityLocBtn").onclick = () => {
+  const btn = $("#cityLocBtn"), msg = $("#cityLocMsg");
+  btn.disabled = true; msg.textContent = "現在地を確認しています…";
+  locate((ok, err) => {
+    btn.disabled = false;
+    if(!ok){ msg.textContent = err; return; }
+    const ref = CITIES.map((c, i) => {
+      const g = c.office && c.office.a && GEO[c.office.a];
+      return {i, name:c.name, pref:isPrefRow(c),
+              km:(g && !isPrefRow(c)) ? distKm(ME.lat, ME.lon, g[0], g[1]) : Infinity};
+    });
+    const ord = ref.slice().sort((a,b) => a.km - b.km);
+    const jump = $("#cityJump"), list = $("#cityList");
+    jump.innerHTML = ord.map(o =>
+      '<button type="button" data-jump="' + o.i + '">' + esc(o.name) +
+      (isFinite(o.km) ? '<span class="n">約' + fmtKm(o.km) + '</span>' : '') + '</button>').join("");
+    wireCityJump();
+    ord.forEach(o => {
+      const d = list.querySelector('details.acc[data-ci="' + o.i + '"]');
+      if(d) list.appendChild(d);
+    });
+    const top = ord.find(o => isFinite(o.km));
+    msg.innerHTML = top
+      ? "近い順に並べました。いちばん近いのは <b>" + esc(top.name) + "</b>（役所まで約" + fmtKm(top.km) +
+        "）。<span class=\"stamp\">位置情報は端末の中だけで使い、送信していません。</span>"
+      : "現在地を取得しましたが、距離を計算できませんでした。";
+    if(top) openCity(top.i);
+  });
+};
+
+/* ---- 地図タブが表示された瞬間に初期化する ----
+   非表示の要素は幅も高さも 0 なので、タブを開くまで描画できない。 */
+function mapShown(){
+  if(!mapReady){
+    mChips(); mList(); mMissing(); mFit();
+    mapReady = true;
+  }
+  mRender();
+}
+let mRz;
+window.addEventListener("resize", () => {
+  if(!mapReady || $("#p-map").classList.contains("hidden")) return;
+  clearTimeout(mRz); mRz = setTimeout(mRender, 150);
+});
 
 /* ---------- 巡回結果（最新情報） ----------
    データの取り方は2段構え。
@@ -1167,6 +1881,17 @@ function renderHomePreviews(){
     put("city", CITIES.slice(0, 3).map(c => row(c.name, c.status || "")).join(""),
         "8市町村の避難所・給水所・連絡先");
   }
+
+  // 地図：載せているピンの数と、いちばん多い市町村
+  const byKind = k => PINS.filter(p => p.kind === k).length;
+  const cityCnt = {};
+  PINS.forEach(p => { if(p.kind !== "office") cityCnt[p.city] = (cityCnt[p.city]||0) + 1; });
+  const topCity = Object.keys(cityCnt).sort((a,b) => cityCnt[b] - cityCnt[a])[0];
+  put("map",
+    row("給水所", byKind("water") + "か所を地図に掲載") +
+    row("避難所", byKind("shelter") + "か所を地図に掲載") +
+    (topCity ? row(topCity, "この市町村がいちばん多く載っています") : ""),
+    "現在地から近い順に並べる");
 
   // ライフライン：各分野の代表的な確認先
   const pw = C && C.stats && C.stats.kyuden_power;
@@ -1286,30 +2011,73 @@ function renderQuakes(){
 const GROUP_LABEL = {city:"市町村", pref:"熊本県", gov:"国", news:"報道"};
 const feedSel = new Set();   // 絞り込みの選択状態は再描画をまたいで保持する
 
+/* 「暮らしに直結するものだけ」の絞り込み。
+   100件以上を上から読ませるのは現実的でないので、行動に関わる語を含むものだけに絞れるようにする。
+   語で機械的に絞っているだけなので、取りこぼしがある前提で「全部見る」に戻せる形にしてある。 */
+const IMP_KW = /避難|断水|給水|停電|通行止|通行規制|全面通行|片側|罹災|り災|被災証明|支援金|義援金|仮設|入浴|風呂|洗濯|充電|Wi-?Fi|災害ごみ|災害ゴミ|廃棄物|ごみの|ゴミの|休校|休園|臨時休|運休|再開|復旧|開設|閉鎖|窓口|相談|医療|診療|給水車|水道|下水|ガス|物資|受付/;
+let feedImp = false;
+const impOf = u => IMP_KW.test((u.title||"") + " " + (u.desc||""));
+
 function renderChips(){
   const ups = (C && C.updates) || [];
+  const base = ups.filter(u => !feedImp || impOf(u));
   const groups = ["city","pref","gov","news"].filter(g=>ups.some(u=>u.group===g));
-  const wrap = $("#feedChips");
-  if(wrap.dataset.built === groups.join(",")) return;   // 中身が同じなら作り直さない
-  wrap.dataset.built = groups.join(",");
-  wrap.innerHTML = "";
-  groups.forEach(g=>{
+
+  // 「暮らしに直結」トグル
+  const kw = $("#feedKw");
+  const impN = ups.filter(impOf).length;
+  const kwKey = impN + "/" + ups.length;
+  if(kw.dataset.built !== kwKey){
+    kw.dataset.built = kwKey;
+    kw.innerHTML = "";
     const b = document.createElement("button");
-    b.className = "chip"; b.textContent = GROUP_LABEL[g]||g;
-    b.setAttribute("aria-pressed", feedSel.has(g));
+    b.className = "chip";
+    b.innerHTML = "暮らしに直結するものだけ <b>" + impN + "</b>";
+    b.title = "避難・断水・給水・停電・通行止・罹災証明・支援金・災害ごみ・休校・運休などを含むものに絞ります";
+    b.setAttribute("aria-pressed", feedImp);
     b.onclick = () => {
-      feedSel.has(g) ? feedSel.delete(g) : feedSel.add(g);
-      b.setAttribute("aria-pressed", feedSel.has(g));
-      renderFeed();
+      feedImp = !feedImp;
+      b.setAttribute("aria-pressed", feedImp);
+      renderChips(); renderFeed();
     };
-    wrap.appendChild(b);
-  });
+    kw.appendChild(b);
+  } else {
+    const b = kw.querySelector("button");
+    if(b) b.setAttribute("aria-pressed", feedImp);
+  }
+
+  // 発信元。件数は「暮らしに直結」の絞り込みを反映した数を出す
+  const wrap = $("#feedChips");
+  const key = groups.map(g => g + ":" + base.filter(u=>u.group===g).length).join(",");
+  if(wrap.dataset.built !== key){
+    wrap.dataset.built = key;
+    wrap.innerHTML = "";
+    groups.forEach(g=>{
+      const n = base.filter(u=>u.group===g).length;
+      const b = document.createElement("button");
+      b.className = "chip";
+      b.innerHTML = esc(GROUP_LABEL[g]||g) + " <b>" + n + "</b>";
+      b.setAttribute("aria-pressed", feedSel.has(g));
+      b.onclick = () => {
+        feedSel.has(g) ? feedSel.delete(g) : feedSel.add(g);
+        b.setAttribute("aria-pressed", feedSel.has(g));
+        renderChips(); renderFeed();
+      };
+      wrap.appendChild(b);
+    });
+  } else {
+    groups.forEach((g,i)=>{
+      const b = wrap.children[i];
+      if(b) b.setAttribute("aria-pressed", feedSel.has(g));
+    });
+  }
 }
 
 function renderFeed(){
   const ups = (C && C.updates) || [];
-  const list = ups.filter(u=>!feedSel.size || feedSel.has(u.group));
-  $("#feedCount").textContent = `${list.length}件を表示（全${ups.length}件）`;
+  const list = ups.filter(u => (!feedSel.size || feedSel.has(u.group)) && (!feedImp || impOf(u)));
+  $("#feedCount").textContent = `${list.length}件を表示（全${ups.length}件）` +
+    (feedImp ? "／暮らしに直結するものだけ" : "");
   $("#feedList").innerHTML = list.map(u=>{
     const when = u.published || u.first_seen;
     return `<article class="feed"><a href="${esc(u.url)}" target="_blank" rel="noopener">
@@ -1456,11 +2224,12 @@ scheduleQuakePoll();
 })();
 
 /* タブ */
-const PAGES=["home","live","city","life","guide","vol","sns"];
+const PAGES=["home","live","map","city","life","guide","vol","sns"];
 function go(tab){
   PAGES.forEach(p=>$("#p-"+p).classList.toggle("hidden",p!==tab));
   document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===tab));
   window.scrollTo(0,0);
+  if(tab==="map") mapShown();
 }
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>go(b.dataset.tab));
 document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
