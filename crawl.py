@@ -251,6 +251,16 @@ SOURCES = [
 
     # --- 報道（一次情報ではないので区別して扱う） ---------------------------
     {
+        "id": "kvc_kumamoto",
+        "label": "熊本県災害ボランティアセンター",
+        "kind": "kvc_html",
+        "url": "https://www.fukushi-kumamoto.or.jp/kvc/",
+        "group": "pref",
+        "area": "熊本県",
+        "note": "県社協が運営する災害ボランティア情報サイト。市町村の災害VCがいつ立ち上がるかは"
+                "被災者にも支援したい人にも影響が大きい。RSSが無いためHTMLを読む。",
+    },
+    {
         "id": "nhk_shakai",
         "label": "NHKニュース（社会）",
         "kind": "rss",
@@ -369,6 +379,12 @@ def parse_date_loose(s):
                 sign = 1
             tz = dt.timezone(dt.timedelta(minutes=sign * off))
         return base.replace(tzinfo=tz).astimezone(JST).isoformat()
+
+    # 日付のみ（2026-07-30 / 2026/7/30）。時刻が無いCMSはJSTの0時として扱う
+    m = re.fullmatch(r"(\d{4})[-/](\d{1,2})[-/](\d{1,2})", s)
+    if m:
+        y, mo, d = (int(m.group(i)) for i in range(1, 4))
+        return dt.datetime(y, mo, d, tzinfo=JST).isoformat()
 
     # 日本語表記
     m = re.search(r"(\d{4})年\s*(\d{1,2})月\s*(\d{1,2})日", s)
@@ -547,6 +563,46 @@ def parse_kinkyu_html(html, src):
         if k in seen:
             continue
         seen.add(k)
+        uniq.append(i)
+    uniq.sort(key=lambda x: x["published"] or "", reverse=True)
+    return uniq[:MAX_ITEMS_PER_SOURCE]
+
+
+def parse_kvc_html(html, src):
+    """熊本県社会福祉協議会（県災害ボランティアセンター）のお知らせ一覧。
+
+    RSSが無いCMSなので、1件ぶんのブロックを id="block<ブロックID>-<記事ID>" で切って読む。
+
+      <div id="block4334-2211" ... data-record-id="2211">
+        <div class="... date" data-switch="date">2026-07-30</div>
+        <a href="/pages/291/detail=1/b_id=4334/r_id=2211#...">
+          <span class="title ..." data-switch="title">市町村災害ボランティアセンターについて</span>
+
+    市町村の災害ボランティアセンターがいつ立ち上がるかは、被災者にも支援したい人にも
+    影響が大きい。ここが更新された瞬間に拾えるようにしておく。
+    """
+    items = []
+    blocks = re.split(r'(?=<div\s+id="block\d+-\d+")', html)
+    for b in blocks:
+        tm = re.search(r'data-switch="title"[^>]*>([^<]{2,200})<', b)
+        dm = re.search(r'data-switch="date"[^>]*>.*?(\d{4}-\d{2}-\d{2})', b, re.S)
+        hm = re.search(r'href="(/pages/\d+/detail=1/b_id=\d+/r_id=\d+)', b)
+        # 日付と記事リンクの両方があるものだけを記事とみなす。
+        # 同じCMSでよくある質問（Q&A）も data-switch="title" を持つので、これで弾く。
+        if not (tm and dm and hm):
+            continue
+        title = re.sub(r"\s+", " ", tm.group(1)).strip()
+        items.append({
+            "title": title,
+            "url": "https://www.fukushi-kumamoto.or.jp" + hm.group(1),
+            "published": parse_date_loose(dm.group(1)),
+            "desc": "",
+        })
+    seen, uniq = set(), []
+    for i in items:
+        if i["url"] in seen:
+            continue
+        seen.add(i["url"])
         uniq.append(i)
     uniq.sort(key=lambda x: x["published"] or "", reverse=True)
     return uniq[:MAX_ITEMS_PER_SOURCE]
@@ -874,6 +930,8 @@ def crawl(verbose=False):
                 items = parse_misato_json(body_text, src)
             elif kind == "uki_html":
                 items = parse_uki_html(body_text, src)
+            elif kind == "kvc_html":
+                items = parse_kvc_html(body_text, src)
             elif kind == "kinkyu_html":
                 items = parse_kinkyu_html(body_text, src)
             else:
