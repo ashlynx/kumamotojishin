@@ -1,0 +1,5 @@
+# 令和8年熊本地震 情報まとめ（非公式）
+User-agent: *
+Allow: /
+
+Sitemap: https://kumamotojishin.jp/sitemap.xml
