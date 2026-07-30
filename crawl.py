@@ -64,6 +64,17 @@ KEEP_QUAKES = 40
 QUAKE_HIST_FROM = "2026-07-28"      # この日より前の地震は数えない（今回の地震活動の開始日）
 QUAKE_HOURS_KEEP = 24 * 21          # 3週間分だけ保持する
 
+# 震源の位置。気象庁のJSONは直近しか持たず、過去分をたどる手段が公開されていないため、
+# 気象庁の発表を蓄積している P2P地震情報 のJSON APIから取る（商用・非商用問わず無償で、
+# 二次利用可。https://www.p2pquake.net/develop/json_api_v2/ ）。
+# 無償提供でサーバー増強が難しいと明言されているので、取得は1回の巡回で1ページだけにし、
+# 7/28まで遡れていないときだけページをたどる。閲覧者のブラウザからは叩かず、
+# こちらが集めたものを data.json 経由で配る。
+P2P_URL = "https://api.p2pquake.net/v2/history?codes=551&limit=100&offset={offset}"
+P2P_PAGES_BACKFILL = 6
+HYPO_BBOX = (30.8, 34.2, 129.2, 132.2)   # 南限, 北限, 西限, 東限（九州中部）
+HYPO_KEEP = 3000
+
 HERE = os.path.dirname(os.path.abspath(__file__)) or "."
 OUT_DIR = os.path.join(HERE, "out")
 STATE_PATH = os.path.join(HERE, "state.json")
@@ -827,6 +838,93 @@ def parse_jma_quake(body, src):
 # メイン
 # ----------------------------------------------------------------------------
 
+def fetch_hypocenters(prev, verbose=False):
+    """震源（緯度・経度・深さ・規模・最大震度）を集める。
+
+    返すのは {"updated_at":..., "items":[[時刻, 緯度, 経度, 深さkm, M, 最大震度コード], ...]}。
+    最大震度コードは P2P地震情報 の値そのまま（10=震度1、45=5弱、70=7、-1=不明）。
+    同じ地震は「時刻＋緯度＋経度」で重複を除きます。
+    """
+    old = (prev.get("hypo") or {})
+    items = {}
+    for it in (old.get("items") or []):
+        if isinstance(it, list) and len(it) >= 6:
+            items[f"{it[0]}|{it[1]}|{it[2]}"] = it
+
+    oldest = min((it[0] for it in items.values()), default="9999")
+    need_backfill = oldest > "2026-07-28T16:27"
+    pages = P2P_PAGES_BACKFILL if need_backfill else 1
+    added, fetched = 0, 0
+
+    for page in range(pages):
+        url = P2P_URL.format(offset=page * 100)
+        try:
+            _st, raw, _ = fetch(url, {})
+        except Exception as e:
+            if verbose:
+                print(f"    震源の取得に失敗: {e}")
+            break
+        if not raw:
+            break
+        fetched += 1
+        try:
+            rows = json.loads(raw.decode("utf-8", "replace"))
+        except Exception:
+            break
+        if not rows:
+            break
+
+        page_oldest = "9999"
+        for r in rows:
+            eq = (r or {}).get("earthquake") or {}
+            hy = eq.get("hypocenter") or {}
+            t = str(eq.get("time") or "")            # "2026/07/30 21:12:00"
+            m = re.match(r"(\d{4})/(\d{2})/(\d{2}) (\d{2}):(\d{2})", t)
+            if not m:
+                continue
+            ts = f"{m.group(1)}-{m.group(2)}-{m.group(3)}T{m.group(4)}:{m.group(5)}"
+            page_oldest = min(page_oldest, ts)
+            if ts < "2026-07-28T00:00":
+                continue
+            try:
+                lat, lon = float(hy.get("latitude")), float(hy.get("longitude"))
+            except (TypeError, ValueError):
+                continue
+            if lat == 0 and lon == 0:
+                continue
+            s1, n1, w1, e1 = HYPO_BBOX
+            if not (s1 <= lat <= n1 and w1 <= lon <= e1):
+                continue
+            try:
+                mag = float(hy.get("magnitude"))
+            except (TypeError, ValueError):
+                mag = -1.0
+            try:
+                dep = int(float(hy.get("depth")))
+            except (TypeError, ValueError):
+                dep = -1
+            row = [ts, round(lat, 3), round(lon, 3), dep, round(mag, 1),
+                   int(eq.get("maxScale") if eq.get("maxScale") is not None else -1)]
+            key = f"{row[0]}|{row[1]}|{row[2]}"
+            if key not in items:
+                added += 1
+            items[key] = row
+
+        # このページで7/28より前まで戻れたら、これ以上たどる必要はない
+        if page_oldest < "2026-07-28T00:00":
+            break
+
+    out = sorted(items.values(), key=lambda x: x[0])[-HYPO_KEEP:]
+    if verbose:
+        print(f"  震源: 新規 {added}件 ／ 保持 {len(out)}件 ／ 取得ページ {fetched}")
+    return {
+        "items": out,
+        "count": len(out),
+        "added": added,
+        "backfilled": bool(out) and out[0][0] <= "2026-07-28T16:27",
+    }
+
+
 def merge_quake_hours(prev, quakes):
     """時間ごとの有感地震回数を積み上げる。
 
@@ -1079,6 +1177,17 @@ def crawl(verbose=False):
                        "error": f"{TIME_BUDGET}秒を超えたため未取得: " + "、".join(skipped),
                        "at": now.isoformat()})
 
+    try:
+        hypo = fetch_hypocenters(prev, verbose)
+        sources_status.append({"id": "p2p_hypo", "label": "P2P地震情報（震源の位置）",
+                               "status": f"{hypo['count']}件", "checked_at": now.isoformat()})
+    except Exception as e:
+        hypo = prev.get("hypo") or {"items": [], "count": 0}
+        errors.append({"id": "p2p_hypo", "label": "P2P地震情報（震源の位置）",
+                       "error": str(e), "at": now.isoformat()})
+        sources_status.append({"id": "p2p_hypo", "label": "P2P地震情報（震源の位置）",
+                               "status": "取得失敗", "checked_at": now.isoformat()})
+
     quake_hours, quake_max_eid, quake_added = merge_quake_hours(prev, quakes)
     if verbose:
         print(f"  地震の回数集計: 新規 {quake_added}件 ／ 保持 {len(quake_hours)}時間分")
@@ -1087,6 +1196,7 @@ def crawl(verbose=False):
         "generated_at": now.isoformat(),
         "quakes": quakes,
         "quake_hours": quake_hours,
+        "hypo": hypo,
         "quake_max_eid": quake_max_eid,
         "stats": stats,
         "updates": picked[:KEEP_UPDATES],

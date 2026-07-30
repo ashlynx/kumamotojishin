@@ -173,6 +173,21 @@
   .qchart .tx.d{font-size:10px;fill:var(--ink-2);font-weight:700}
   .silist{display:grid;gap:12px}
   .silist>div{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start;font-size:.87rem;line-height:1.8}
+  #mapBox.hypo .map-lg:not(.qhlg), #mapBox.hypo #mapPop{display:none}
+  .lyr.hy{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+  .lyr.hy circle{pointer-events:auto;cursor:pointer}
+  .qhstat{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin:10px 0 8px}
+  .qhstat .n{font-size:1.25rem;font-weight:800;line-height:1.2}
+  .qhstat .l{font-size:.72rem;color:var(--ink-3)}
+  .qhbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .qhbar input[type=range]{flex:1 1 180px;min-width:140px;accent-color:var(--accent)}
+  .qhbar button,.qhbar select{font:inherit;font-size:.8rem;padding:7px 10px;border:1px solid var(--line);
+    background:#fff;border-radius:8px;cursor:pointer;color:var(--ink)}
+  .qhbar button[aria-pressed="true"]{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .qhtime{font-size:.8rem;color:var(--ink-2);margin-top:6px;font-variant-numeric:tabular-nums}
+  .qhlg{margin-top:8px}
+  .qhlg b{border-radius:50%}
+  .qhinfo{font-size:.83rem;line-height:1.7;margin-top:8px;min-height:1.7em}
   .feed{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 13px;margin-bottom:8px;box-shadow:var(--shadow)}
   .feed a{text-decoration:none;color:var(--ink);display:block}
   .feed .ttl{font-weight:700;font-size:.9rem;line-height:1.55}
@@ -513,6 +528,10 @@
     </p>
   </div>
 
+  <h2 class="sec">震源の地図</h2>
+  <p class="lead" style="margin-bottom:8px">前震から現在までの震源です。<b>円の色＝最大震度、円の大きさ＝規模（マグニチュード）。</b>下のつまみを動かすと、地震が起きた順に見られます。</p>
+  <div id="mapHostQuake"></div>
+
   <h2 class="sec">余震の回数は減っているか</h2>
   <div class="card">
     <div id="qTrend" class="qtrend"></div>
@@ -598,6 +617,7 @@
     <div class="map" id="map">
       <div class="lyr" id="mapTiles"></div>
       <div class="lyr pn" id="mapPins"></div>
+      <svg class="lyr hy" id="mapHypo" aria-hidden="true"></svg>
       <div class="map-hint" id="mapHint">指2本で動かせます（拡大は＋−）</div>
     </div>
     <div class="map-ui">
@@ -615,6 +635,28 @@
     <span>点線＝町名までの<b style="width:auto;height:auto;background:none;font-weight:800">概略位置</b></span>
   </div>
   <div id="mapPop"></div>
+  <div id="mapQuakeFoot" class="hidden">
+    <div class="qhstat" id="qhStat"></div>
+    <div class="qhbar">
+      <button type="button" id="qhPlay" aria-label="再生">▶ 再生</button>
+      <input type="range" id="qhCur" min="0" max="1000" value="1000" step="1" aria-label="時刻">
+      <button type="button" id="qhNow">現在</button>
+      <select id="qhSpeed" aria-label="速さ">
+        <option value="600">600倍</option>
+        <option value="1800" selected>1800倍</option>
+        <option value="3600">3600倍</option>
+      </select>
+    </div>
+    <div class="qhtime" id="qhTime"></div>
+    <div class="map-lg qhlg" id="qhLegend"></div>
+    <div class="qhinfo" id="qhInfo"></div>
+    <p class="stamp" style="margin:8px 0 0">
+      震源の位置・深さ・規模・最大震度は気象庁の発表です。過去分をさかのぼる手段が気象庁から公開されていないため、
+      気象庁の発表を蓄積している <a href="https://www.p2pquake.net/develop/json_api_v2/" target="_blank" rel="noopener">P2P地震情報のJSON API</a> を経由して取得しています（出典：気象庁／P2P地震情報）。
+      深さが 0km と表示されるものは「ごく浅い」の意味です。地図の値は発表直後の速報値が残っているものがあり、後日精査された値と異なることがあります（本震の深さは、気象庁の精査後の発表では16kmです）。最大震度が「不明」のものは、震度の情報がまだ発表されていない地震です。
+      体に感じない小さな地震は含みません。
+    </p>
+  </div>
   <div id="mapHomeFoot" class="hidden" style="margin-top:8px">
     <button type="button" class="chip" data-go="map" style="font-weight:700">地図をひらく（一覧・絞り込み・現在地）→</button>
   </div>
@@ -2091,6 +2133,7 @@ const mapKindOn = new Set(["water","shelter","office"]);
 const mapCitySel = new Set();
 let mSel = -1;          // 選択中のピン
 let mapReady = false;
+let mapMode = "facility", hyFitted = false;
 
 const elMap    = $("#map");
 const elTiles  = $("#mapTiles");
@@ -2169,7 +2212,13 @@ function mRender(){
     }
   }
   mTileEls.forEach((im, k) => { if(!keep.has(k)){ im.remove(); mTileEls.delete(k); } });
-  mRenderPins(v);
+  if(mapMode === "hypo"){
+    mPinEls.forEach(b => b.remove()); mPinEls.clear();
+    mRenderHypo(v);
+  } else {
+    const sv = $("#mapHypo"); if(sv) sv.innerHTML = "";
+    mRenderPins(v);
+  }
 }
 
 function mVisiblePins(){
@@ -2226,8 +2275,8 @@ function mFit(pts){
   mCenter = {lat:(la1+la2)/2, lon:(lo1+lo2)/2};
   const w = elMap.clientWidth || 360, h = elMap.clientHeight || 300;
   const yy = (la, n) => { const s = Math.sin(la*Math.PI/180); return (0.5 - Math.log((1+s)/(1-s))/(4*Math.PI))*n; };
-  let best = 9.5;
-  for(let t = 17; t >= 9.5; t -= 0.25){
+  let best = 6;
+  for(let t = 17; t >= 6; t -= 0.25){
     const n = 256*Math.pow(2, t);
     const dx = Math.abs((lo2-lo1)/360*n);
     const dy = Math.abs(yy(la1, n) - yy(la2, n));
@@ -2347,7 +2396,7 @@ elMap.addEventListener("dblclick", e => {
 
 $("#mapIn").onclick  = () => { mZoomAt(mZoom + 1, elMap.clientWidth/2, elMap.clientHeight/2); mRender(); };
 $("#mapOut").onclick = () => { mZoomAt(mZoom - 1, elMap.clientWidth/2, elMap.clientHeight/2); mRender(); };
-$("#mapFit").onclick = () => { mFit(); mRender(); };
+$("#mapFit").onclick = () => { mFit(mapMode === "hypo" ? HY : null); mRender(); };
 
 /* ---- 絞り込み ---- */
 function mChips(){
@@ -2520,14 +2569,23 @@ $("#cityLocBtn").onclick = () => {
    非表示の要素は幅も高さも 0 なので、置いた直後に必ず描き直す。 */
 function mapMount(where){
   const box = $("#mapBox");
-  const host = where === "home" ? $("#mapHostHome") : $("#mapHostMap");
+  const host = where === "home" ? $("#mapHostHome")
+             : where === "quake" ? $("#mapHostQuake") : $("#mapHostMap");
   if(!box || !host) return;
   if(box.parentNode !== host) host.appendChild(box);
   box.classList.toggle("compact", where === "home");
+  mapMode = where === "quake" ? "hypo" : "facility";
+  box.classList.toggle("hypo", mapMode === "hypo");
   $("#mapHomeFoot").classList.toggle("hidden", where !== "home");
+  $("#mapQuakeFoot").classList.toggle("hidden", where !== "quake");
   if(!mapReady){
     mChips(); mList(); mMissing(); mFit();
     mapReady = true;
+  }
+  if(where === "quake"){
+    hyBind(); hyLegend();
+    if(!hyFitted && HY.length){ mFit(HY); hyFitted = true; }
+    hyStats();
   }
   mRender();
 }
@@ -2606,8 +2664,13 @@ if(!C){
        ${ng.length? "取得できなかったソース：" + ng.map(s=>esc(s.label)).join("、") + "（前回取得分を表示しています）" : "すべて取得できました。"}
      </p>`;
 
+  hyLoad();
   renderQuakes();
   renderQuakeTrend();
+  if(mapMode === "hypo"){
+    if(!hyFitted && HY.length){ mFit(HY); hyFitted = true; }
+    hyLegend(); hyStats(); mRender();
+  }
   renderChips();
   renderFeed();
 }
@@ -2780,6 +2843,151 @@ function renderQuakes(){
     </tr>`).join("") : `<tr><td colspan="5" style="color:var(--ink-3)">情報がありません</td></tr>`;
 }
 
+/* ===== 震源の地図 =====
+   既存の地図（国土地理院タイル・外部ライブラリなし）を使い回し、ピンの代わりに
+   震源の円を描く。円の色＝最大震度、大きさ＝規模。つまみで時刻をさかのぼれる。 */
+const SCALE_COL = {10:"#cfd6de",20:"#5b8fd0",30:"#2f8f5b",40:"#e0ad2a",45:"#e2892c",
+                   50:"#d4632a",55:"#c53a2c",60:"#a3236b",70:"#7a1f8f"};
+const SCALE_LBL = {10:"1",20:"2",30:"3",40:"4",45:"5弱",50:"5強",55:"6弱",60:"6強",70:"7"};
+const scaleCol = v => SCALE_COL[v] || "#b9c0ca";
+const scaleLbl = v => SCALE_LBL[v] || "不明";
+
+let HY = [];            // [{t:Date, lat, lon, dep, mag, sc}]
+let hyCur = 1;          // 0〜1。1 なら「現在」（全部表示）
+let hyPlay = false, hyRaf = 0, hyLast = 0, hySel = -1;
+
+function hyLoad(){
+  const src = (C && C.hypo && C.hypo.items) || [];
+  HY = src.map(r => ({
+    k: String(r[0]),                       // 日本時間の "2026-07-30T21:12"
+    t: new Date(r[0] + ":00+09:00"),
+    lat: +r[1], lon: +r[2], dep: +r[3], mag: +r[4], sc: +r[5]
+  })).filter(h => !isNaN(h.t) && h.lat && h.lon).sort((a,b) => a.t - b.t);
+}
+const hyT0 = () => HY.length ? HY[0].t.getTime() : 0;
+const hyT1 = () => HY.length ? HY[HY.length-1].t.getTime() : 0;
+const hyAt  = () => hyT0() + (hyT1() - hyT0()) * hyCur;
+
+/* 規模から円の半径。規模は対数なので、面積が効くように少し膨らませる */
+function hyR(mag){
+  const m = isNaN(mag) || mag < 0 ? 1 : mag;
+  const z = Math.max(0.6, Math.min(1.5, 0.55 + 0.07 * (mZoom - 7)));
+  return (2.4 + Math.pow(m, 1.55) * 0.62) * z;
+}
+
+function mRenderHypo(v){
+  const svg = $("#mapHypo");
+  if(!svg) return;
+  const now = hyAt();
+  let out = "";
+  const vis = HY.filter(h => h.t.getTime() <= now + 1);
+  vis.forEach((h, i) => {
+    const p = mToScreen(h.lat, h.lon, v);
+    if(p.x < -40 || p.y < -40 || p.x > v.w + 40 || p.y > v.h + 40) return;
+    const age = (now - h.t.getTime()) / 3600000;                 // 経過時間（時）
+    const op = hyCur >= 1 ? 0.8 : Math.max(0.18, 0.9 - age/12);  // 再生中は古いものを薄く
+    const sel = HY.indexOf(h) === hySel;
+    out += `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${hyR(h.mag).toFixed(1)}"
+      fill="${scaleCol(h.sc)}" fill-opacity="${op.toFixed(2)}"
+      stroke="${sel ? "#151c22" : "rgba(20,26,34,.55)"}" stroke-width="${sel ? 2.4 : 0.9}"
+      data-i="${HY.indexOf(h)}"><title>${fmtDT(h.t.toISOString())} 震度${scaleLbl(h.sc)} M${h.mag>=0?h.mag:"—"}</title></circle>`;
+  });
+  svg.innerHTML = out;
+}
+
+function hySelect(i){
+  hySel = i;
+  const h = HY[i];
+  $("#qhInfo").innerHTML = h
+    ? `<b>${fmtDT(h.t.toISOString())}</b>　最大震度 <span class="si ${siClass(scaleLbl(h.sc))}">${scaleLbl(h.sc)}</span>　
+       規模 <b>${h.mag>=0?"M"+h.mag.toFixed(1):"—"}</b>　深さ <b>${h.dep>0?h.dep+"km":"ごく浅い"}</b>　
+       <span class="stamp">北緯${h.lat.toFixed(2)}度／東経${h.lon.toFixed(2)}度</span>`
+    : "";
+  mRender();
+}
+
+function hyStats(){
+  const now = hyAt();
+  const vis = HY.filter(h => h.t.getTime() <= now + 1);
+  const mags = vis.map(h=>h.mag).filter(m=>m>=0);
+  const scs  = vis.map(h=>h.sc).filter(v=>v>0);
+  const last = vis[vis.length-1];
+  $("#qhStat").innerHTML =
+    `<div><div class="n">${vis.length}</div><div class="l">地震の回数</div></div>
+     <div><div class="n">${last && last.mag>=0 ? "M"+last.mag.toFixed(1) : "—"}</div><div class="l">いちばん新しい規模</div></div>
+     <div><div class="n">${mags.length ? "M"+Math.max(...mags).toFixed(1) : "—"}</div><div class="l">最大の規模</div></div>
+     <div><div class="n">${scs.length ? scaleLbl(Math.max(...scs)) : "—"}</div><div class="l">最大震度</div></div>`;
+  $("#qhTime").innerHTML = HY.length
+    ? (hyCur >= 1
+        ? `<b>現在まで全部を表示しています</b>（${fmtDT(HY[0].t.toISOString())} 〜 ${fmtDT(HY[HY.length-1].t.toISOString())}）`
+        : `<b>${fmtDT(new Date(now).toISOString())} まで</b>を表示しています`)
+    : "震源のデータをまだ取得していません。";
+}
+
+function hyLegend(){
+  const el = $("#qhLegend");
+  if(!el) return;
+  el.innerHTML = [10,20,30,40,45,50,55,60,70].map(v =>
+    `<span><b style="background:${SCALE_COL[v]}"></b>${SCALE_LBL[v]}</span>`).join("") +
+    `<span><b style="background:#b9c0ca"></b>不明</span>` +
+    `<span class="stamp">円の大きさ＝規模</span>`;
+}
+
+/* 震源データから1時間ごとの回数を数える。[回数, うち震度3以上] */
+function hyHours(){
+  const h = {};
+  HY.forEach(x => {
+    const k = x.k.slice(0,13);
+    const r = h[k] || (h[k] = [0,0]);
+    r[0]++;
+    if(x.sc >= 30) r[1]++;
+  });
+  return h;
+}
+
+function hyRender(){ hyStats(); mRender(); }
+
+function hyStop(){
+  hyPlay = false;
+  cancelAnimationFrame(hyRaf);
+  const b = $("#qhPlay");
+  if(b){ b.textContent = "▶ 再生"; b.setAttribute("aria-pressed", "false"); }
+}
+function hyStart(){
+  if(!HY.length) return;
+  if(hyCur >= 1) hyCur = 0;
+  hyPlay = true; hyLast = 0;
+  const b = $("#qhPlay");
+  b.textContent = "❙❙ 一時停止"; b.setAttribute("aria-pressed", "true");
+  const span = hyT1() - hyT0();
+  const step = ts => {
+    if(!hyPlay) return;
+    if(hyLast){
+      const sp = +$("#qhSpeed").value;
+      hyCur = Math.min(1, hyCur + (ts - hyLast) * sp / (span || 1));
+    }
+    hyLast = ts;
+    $("#qhCur").value = Math.round(hyCur * 1000);
+    hyRender();
+    if(hyCur >= 1){ hyStop(); return; }
+    hyRaf = requestAnimationFrame(step);
+  };
+  hyRaf = requestAnimationFrame(step);
+}
+
+function hyBind(){
+  const cur = $("#qhCur");
+  if(!cur || cur.dataset.bound) return;
+  cur.dataset.bound = "1";
+  cur.oninput = () => { hyStop(); hyCur = +cur.value / 1000; hyRender(); };
+  $("#qhPlay").onclick = () => hyPlay ? hyStop() : hyStart();
+  $("#qhNow").onclick  = () => { hyStop(); hyCur = 1; cur.value = 1000; hyRender(); };
+  $("#mapHypo").addEventListener("click", e => {
+    const c = e.target.closest("circle");
+    if(c && !mDragged) hySelect(+c.dataset.i);
+  });
+}
+
 /* ===== 地震・余震タブ =====
    本震からの経過と、有感地震の回数の推移を描く。
 
@@ -2791,9 +2999,16 @@ let QSTAT = null;   // ホームのカードと共用する
 const QUAKE_MAIN = new Date("2026-07-28T16:27:00+09:00");
 const QUAKE_WATCH_UNTIL = new Date("2026-08-04T16:27:00+09:00");   // 気象庁の「1週間程度」
 
+/* 時刻の表示はすべて日本時間に固定する。閲覧者の端末が海外の時間帯でもずれないよう、
+   ブラウザのローカル時刻ではなく +9時間 のUTCとして扱う。 */
+function jstParts(d){
+  const t = new Date(d.getTime() + 9*3600000);
+  return {y:t.getUTCFullYear(), mo:t.getUTCMonth()+1, da:t.getUTCDate(), h:t.getUTCHours()};
+}
 function hourKey(d){
   const p = n => String(n).padStart(2,"0");
-  return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate())+"T"+p(d.getHours());
+  const j = jstParts(d);
+  return j.y+"-"+p(j.mo)+"-"+p(j.da)+"T"+p(j.h);
 }
 function hourFromKey(k){
   return new Date(k.slice(0,4)+"-"+k.slice(5,7)+"-"+k.slice(8,10)+"T"+k.slice(11,13)+":00:00+09:00");
@@ -2815,7 +3030,10 @@ function renderQuakeElapsed(){
 function renderQuakeTrend(){
   const box = $("#qChart"), tr = $("#qTrend"), note = $("#qChartNote");
   if(!box) return;
-  const hours = (C && C.quake_hours) || {};
+  // 震源のデータ（7/28の前震から全部そろっている）があればそれを数える。
+  // なければ、気象庁の地震情報一覧から積み上げた分を使う。
+  const fromHY = HY.length > 20;
+  const hours = fromHY ? hyHours() : ((C && C.quake_hours) || {});
   const keys = Object.keys(hours).sort();
 
   if(keys.length < 3){
@@ -2825,8 +3043,8 @@ function renderQuakeTrend(){
     return;
   }
 
-  // 最初の1時間は途中からの集計なので外す
-  const from = hourFromKey(keys[1]);
+  // 積み上げ方式のときは最初の1時間が途中からなので外す。震源データは全部そろっている。
+  const from = hourFromKey(keys[fromHY ? 0 : 1]);
   const to   = hourFromKey(keys[keys.length-1]);
   const MAXH = 24*7;
   const series = [];
@@ -2864,9 +3082,9 @@ function renderQuakeTrend(){
     const x = i*bw, w = Math.max(1, bw-1.2);
     if(d.n) bars += `<rect class="bar" x="${x.toFixed(2)}" y="${y(d.n).toFixed(2)}" width="${w.toFixed(2)}" height="${(H-PADB-y(d.n)).toFixed(2)}"><title>${fmtDT(d.t.toISOString())} ${d.n}回</title></rect>`;
     if(d.n3) bars += `<rect class="bar3" x="${x.toFixed(2)}" y="${y(d.n3).toFixed(2)}" width="${w.toFixed(2)}" height="${(H-PADB-y(d.n3)).toFixed(2)}"></rect>`;
-    const hh = d.t.getHours();
+    const j = jstParts(d.t), hh = j.h;
     const anc = i < 2 ? "start" : i > series.length-3 ? "end" : "middle";
-    if(hh === 0) ticks += `<text class="tx d" x="${(x+bw/2).toFixed(2)}" y="${H-12}" text-anchor="${anc}">${d.t.getMonth()+1}/${d.t.getDate()}</text>`;
+    if(hh === 0) ticks += `<text class="tx d" x="${(x+bw/2).toFixed(2)}" y="${H-12}" text-anchor="${anc}">${j.mo}/${j.da}</text>`;
     else if(hh % 6 === 0) ticks += `<text class="tx" x="${(x+bw/2).toFixed(2)}" y="${H-12}" text-anchor="${anc}">${hh}時</text>`;
   });
   box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="1時間ごとの有感地震の回数">
@@ -2879,10 +3097,14 @@ function renderQuakeTrend(){
       <span style="display:inline-block;width:10px;height:10px;background:#b3261e;border-radius:2px;vertical-align:-1px"></span> うち震度3以上
     </div>`;
 
-  note.innerHTML = `1時間ごとの回数です。<b>この回数は当サイトが気象庁の地震情報一覧から積み上げた速報値で、気象庁の確定値ではありません。</b>
-    集計しているのは ${fmtDT(from.toISOString())} 以降だけで、それより前は取得していません。
-    グラフの左端より前に地震がなかったわけではありません。気象庁が公表している7月28日分の正確な回数は、下の表をご覧ください。
-    体に感じない小さな地震は含みません。`;
+  note.innerHTML = fromHY
+    ? `1時間ごとの回数です。本震より前の${fmtDT(from.toISOString())}台（前震）から現在まで、全期間を数えています。
+       <b>気象庁の発表を数えた速報値で、気象庁の確定値ではありません。</b>
+       気象庁が公表している7月28日分の正確な回数は、下の表をご覧ください。体に感じない小さな地震は含みません。`
+    : `1時間ごとの回数です。<b>この回数は当サイトが気象庁の地震情報一覧から積み上げた速報値で、気象庁の確定値ではありません。</b>
+       集計しているのは ${fmtDT(from.toISOString())} 以降だけで、それより前は取得していません。
+       グラフの左端より前に地震がなかったわけではありません。気象庁が公表している7月28日分の正確な回数は、下の表をご覧ください。
+       体に感じない小さな地震は含みません。`;
 }
 
 const GROUP_LABEL = {city:"市町村", pref:"熊本県", gov:"国", news:"報道"};
@@ -3110,8 +3332,10 @@ function go(tab){
   PAGES.forEach(p=>$("#p-"+p).classList.toggle("hidden",p!==tab));
   document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===tab));
   window.scrollTo(0,0);
+  if(tab!=="quake") hyStop();
   if(tab==="map") mapMount("map");
   else if(tab==="home") mapMount("home");
+  else if(tab==="quake") mapMount("quake");
 }
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>go(b.dataset.tab));
 document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
