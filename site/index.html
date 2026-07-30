@@ -157,6 +157,22 @@
   .si.s5{background:#fbe7d8;color:#a5490d}
   .si.s6{background:#fdecea;color:#b3261e}
   .si.s7{background:#b3261e;color:#fff}
+  .qfacts{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px 18px}
+  .qfacts .k{display:block;font-size:.73rem;color:var(--ink-3);margin-bottom:2px}
+  .qfacts b{font-size:1rem;line-height:1.5}
+  blockquote.quote{margin:0;padding:10px 12px;border-left:3px solid var(--accent);background:#fff;
+    border-radius:0 8px 8px 0;font-size:.9rem;line-height:1.85}
+  .qtrend{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:14px}
+  .qtrend .n{font-size:1.5rem;font-weight:800;line-height:1.2}
+  .qtrend .l{font-size:.75rem;color:var(--ink-3)}
+  .qchart svg{display:block;width:100%;height:auto}
+  .qchart .bar{fill:#c6cfdb}
+  .qchart .bar3{fill:#b3261e}
+  .qchart .ax{stroke:var(--line);stroke-width:1}
+  .qchart .tx{font-size:9px;fill:var(--ink-3)}
+  .qchart .tx.d{font-size:10px;fill:var(--ink-2);font-weight:700}
+  .silist{display:grid;gap:12px}
+  .silist>div{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start;font-size:.87rem;line-height:1.8}
   .feed{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 13px;margin-bottom:8px;box-shadow:var(--shadow)}
   .feed a{text-decoration:none;color:var(--ink);display:block}
   .feed .ttl{font-weight:700;font-size:.9rem;line-height:1.55}
@@ -328,6 +344,7 @@
 <nav class="tabs"><div class="tabs-in" role="tablist">
   <button role="tab" data-tab="home" aria-selected="true">ホーム</button>
   <button role="tab" data-tab="live" aria-selected="false">最新情報</button>
+  <button role="tab" data-tab="quake" aria-selected="false">地震・余震</button>
   <button role="tab" data-tab="map" aria-selected="false">地図</button>
   <button role="tab" data-tab="city" aria-selected="false">市町村別</button>
   <button role="tab" data-tab="life" aria-selected="false">ライフライン</button>
@@ -384,8 +401,14 @@
     <button class="home-card" data-go="live">
       <div class="k">さいしん</div>
       <h3>最新情報</h3>
-      <p>気象庁の地震情報と、各自治体・官公庁の発表を定期巡回して集めています。いま何が更新されたか。</p>
+      <p>各自治体・官公庁の発表を10分おきに巡回して集めています。いま何が更新されたか。「暮らしに直結するものだけ」に絞れます。</p>
       <div class="prev" id="prev-live"></div>
+    </button>
+    <button class="home-card" data-go="quake">
+      <div class="k">じしん</div>
+      <h3>地震・余震</h3>
+      <p>本震の情報、気象庁の「1週間程度は最大震度7程度に注意」という呼びかけ、余震の回数が減っているか、直近の地震の一覧。</p>
+      <div class="prev" id="prev-quake"></div>
     </button>
     <button class="home-card" data-go="map">
       <div class="k">ちず</div>
@@ -441,6 +464,96 @@
 
   <div class="card" id="crawlStatus" style="padding:12px"></div>
 
+  <div class="notice info">
+    <b>地震そのものの情報は「地震・余震」タブに移しました。</b>
+    本震の詳細、気象庁の呼びかけ、余震の回数の推移、直近の地震の一覧はそちらにまとめています。
+    <div style="margin-top:8px"><button type="button" class="chip" data-go="quake" style="font-weight:700">地震・余震をひらく →</button></div>
+  </div>
+
+  <h2 class="sec">自治体・官公庁の更新</h2>
+  <div class="row" id="feedChips" style="margin-bottom:10px"></div>
+  <div class="row" id="feedKw" style="margin-bottom:8px"></div>
+  <p class="stamp" id="feedCount" style="margin:0 0 8px"></p>
+  <div id="feedList"></div>
+
+  <div class="notice info">
+    <b>報道（NHK）は一次情報ではありません。</b>速報性は高い一方、避難所や給水の可否といった判断は、必ず自治体の発表で確認してください。このページでは発信元がひと目で分かるよう、すべての項目に出どころを表示しています。
+  </div>
+</section>
+
+<!-- ========== QUAKE ========== -->
+<section id="p-quake" class="hidden">
+  <h2 class="sec">地震・余震</h2>
+  <p class="lead">気象庁の発表だけをもとにしています。<b>このページは緊急地震速報の代わりにはなりません。</b>避難するかどうかの判断は、市町村の発表と身のまわりの状況で決めてください。</p>
+
+  <h2 class="sec">本震</h2>
+  <div class="card">
+    <div class="qfacts">
+      <div><span class="k">発生</span><b>2026年7月28日 16時27分ごろ</b></div>
+      <div><span class="k">震央</span><b>熊本県熊本地方</b></div>
+      <div><span class="k">深さ</span><b>16km</b></div>
+      <div><span class="k">規模</span><b>M7.1</b><span class="stamp">（暫定値）</span></div>
+      <div><span class="k">最大震度</span><b><span class="si s7">7</span> 宇城市・氷川町</b></div>
+      <div><span class="k">本震から</span><b id="qElapsed">—</b></div>
+    </div>
+    <p class="stamp" style="margin:10px 0 0">
+      出典：<a href="https://www.jma.go.jp/jma/menu/202607281627_jishingaiyou.pdf" target="_blank" rel="noopener">気象庁「令和8年熊本地震」の地震の概要（PDF・7月28日20時00分時点）</a>。
+      気象庁はこの一連の地震活動を「令和8年熊本地震」と命名しています。
+    </p>
+  </div>
+
+  <h2 class="sec">気象庁の呼びかけ</h2>
+  <div class="notice warn">
+    <p style="margin:0 0 8px">気象庁は7月28日20時30分の報道発表（第3報）で、次のように呼びかけています。</p>
+    <blockquote class="quote">この地域では過去に、大地震発生から1週間程度の間に同程度の地震が続発した事例があることから、揺れの強かった地域では、地震発生から1週間程度、最大震度7程度の地震に注意してください。特に地震発生から2〜3日程度は、強い揺れをもたらす地震が発生することが多くあります。</blockquote>
+    <p style="margin:8px 0 0"><b>「1週間程度」は8月4日（火）ごろまでを指します。</b>本震で傷んだ家は、同じ震度でも次にもちません。応急危険度判定で「危険（赤）」「要注意（黄）」の紙が貼られた建物には入らないでください。判定を受けていない家でも、壁に大きな亀裂がある・柱が傾いている・ドアが閉まらないなら、中で寝るのは避けてください。</p>
+    <p style="margin:8px 0 0"><b id="qWatch"></b></p>
+    <p class="stamp" style="margin:8px 0 0">
+      出典：<a href="https://www.jma.go.jp/jma/press/2607/28d/202607282030.html" target="_blank" rel="noopener">気象庁 報道発表「令和8年熊本地震」について（第3報）</a>
+    </p>
+  </div>
+
+  <h2 class="sec">余震の回数は減っているか</h2>
+  <div class="card">
+    <div id="qTrend" class="qtrend"></div>
+    <div id="qChart" class="qchart"></div>
+    <p class="stamp" id="qChartNote" style="margin:10px 0 0"></p>
+  </div>
+
+  <h2 class="sec">最初の7時間（気象庁の集計）</h2>
+  <div class="card" style="padding:0;overflow:hidden">
+    <div class="tbl-scroll"><table class="qt"><thead><tr>
+      <th>7月28日</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5弱</th><th>7</th><th>合計</th><th>累計</th>
+    </tr></thead><tbody>
+      <tr><td>16時台</td><td>0</td><td>2</td><td>3</td><td>2</td><td>1</td><td>1</td><td><b>9</b></td><td>9</td></tr>
+      <tr><td>17時台</td><td>1</td><td>6</td><td>6</td><td>4</td><td>1</td><td>0</td><td><b>18</b></td><td>27</td></tr>
+      <tr><td>18時台</td><td>9</td><td>3</td><td>5</td><td>1</td><td>0</td><td>0</td><td><b>18</b></td><td>45</td></tr>
+      <tr><td>19時台</td><td>5</td><td>8</td><td>4</td><td>0</td><td>1</td><td>0</td><td><b>18</b></td><td>63</td></tr>
+      <tr><td>20時台</td><td>6</td><td>5</td><td>3</td><td>0</td><td>0</td><td>0</td><td><b>14</b></td><td>77</td></tr>
+      <tr><td>21時台</td><td>4</td><td>4</td><td>2</td><td>1</td><td>0</td><td>0</td><td><b>11</b></td><td>88</td></tr>
+      <tr><td>22時台</td><td>7</td><td>2</td><td>3</td><td>0</td><td>0</td><td>0</td><td><b>12</b></td><td>100</td></tr>
+      <tr><td><b>合計</b></td><td><b>32</b></td><td><b>30</b></td><td><b>26</b></td><td><b>8</b></td><td><b>3</b></td><td><b>1</b></td><td><b>100</b></td><td>—</td></tr>
+    </tbody></table></div>
+  </div>
+  <p class="stamp" style="margin-top:8px">
+    出典：<a href="https://www.data.jma.go.jp/eqev/data/2026_07_28_kumamoto/kumamoto_jishinkaisu.pdf" target="_blank" rel="noopener">気象庁「震度1以上の地震の発生状況」（PDF・7月28日16時〜23時）</a>。
+    気象庁の注記に「掲載している地震回数は速報値であり、後日の調査で変更になることがある」とあります。
+    震度5強・6弱・6強は0回でしたので列を省きました。この表は7月28日の分だけで、気象庁は日ごとの続きを公表していません。
+  </p>
+
+  <h2 class="sec">震度の目安</h2>
+  <div class="card">
+    <p class="stamp" style="margin:0 0 10px">気象庁の震度階級関連解説表から、今回観測された強い震度のうち3段階だけを抜き出しています。「揺れの強さ」は同じ震度でも建物や地盤で変わります。</p>
+    <div class="silist">
+      <div><span class="si s5">5弱</span><div><b>大半の人が恐怖を覚え、物につかまりたいと感じる。</b>棚の食器や本が落ちることがある。固定していない家具が移動することがある。まれに窓ガラスが割れる。</div></div>
+      <div><span class="si s6">6弱</span><div><b>立っていることが困難になる。</b>固定していない家具の大半が移動し、倒れるものもある。ドアが開かなくなることがある。壁のタイルや窓ガラスが破損・落下する。補強されていないブロック塀が崩れることがある。</div></div>
+      <div><span class="si s7">7</span><div><b>立っていることができず、はわないと動くことができない。揺れにほんろうされ、動くこともできず、飛ばされることもある。</b>固定していない家具のほとんどが移動したり倒れたりし、飛ぶこともある。補強されているブロック塀も破損するものがある。</div></div>
+    </div>
+    <p class="stamp" style="margin:10px 0 0">
+      出典：<a href="https://www.jma.go.jp/jma/kishou/know/shindo/kaisetsu.html" target="_blank" rel="noopener">気象庁震度階級関連解説表</a>（表現を短くしています。全文はリンク先をご覧ください）
+    </p>
+  </div>
+
   <h2 class="sec">地震の最新（気象庁）</h2>
   <p class="lead" style="margin-bottom:8px">直近に発表された地震情報です。<b>気象庁は「1週間程度は最大震度7程度の地震に注意」</b>と呼びかけています。</p>
   <div class="live-bar" id="quakeLive">
@@ -458,14 +571,14 @@
     詳細と震度分布は <a href="https://www.jma.go.jp/jma/menu/20260728_kumamoto_jishin.html" target="_blank" rel="noopener">気象庁の関連情報ページ</a> をご覧ください。
   </p>
 
-  <h2 class="sec">自治体・官公庁の更新</h2>
-  <div class="row" id="feedChips" style="margin-bottom:10px"></div>
-  <div class="row" id="feedKw" style="margin-bottom:8px"></div>
-  <p class="stamp" id="feedCount" style="margin:0 0 8px"></p>
-  <div id="feedList"></div>
 
   <div class="notice info">
-    <b>報道（NHK）は一次情報ではありません。</b>速報性は高い一方、避難所や給水の可否といった判断は、必ず自治体の発表で確認してください。このページでは発信元がひと目で分かるよう、すべての項目に出どころを表示しています。
+    <b>震度分布や震央の分布を見たいときは気象庁の地図が確実です。</b>
+    <ul class="links" style="margin-top:8px">
+      <li><a href="https://www.jma.go.jp/bosai/map.html#contents=estimated_intensity_map" target="_blank" rel="noopener">推計震度分布図（気象庁）</a><span class="d">観測点のない場所の揺れも推計して色で示したもの。自分の家のあたりがどのくらい揺れたかの見当がつきます。</span></li>
+      <li><a href="https://www.jma.go.jp/bosai/map.html#9/32.539/130.66/&contents=hypo" target="_blank" rel="noopener">最新の地震活動の状況・震央分布（気象庁）</a><span class="d">余震がどこで起きているかを地図で見られます。</span></li>
+      <li><a href="https://www.jma.go.jp/jma/menu/20260728_kumamoto_jishin.html" target="_blank" rel="noopener">令和8年熊本地震の地震活動の関連情報（気象庁）</a><span class="d">気象庁がこの地震について出した資料の入口です。</span></li>
+    </ul>
   </div>
 </section>
 
@@ -2494,6 +2607,7 @@ if(!C){
      </p>`;
 
   renderQuakes();
+  renderQuakeTrend();
   renderChips();
   renderFeed();
 }
@@ -2517,12 +2631,19 @@ function renderHomePreviews(){
   // 最新情報：直近の更新3件と、最新の地震
   const ups = (C && C.updates) || [], qs = (C && C.quakes) || [];
   if(ups.length || qs.length){
-    let h = "";
-    if(qs[0]) h += row(`震度${qs[0].maxi || "—"}`, `${fmtDT(qs[0].at)} ${qs[0].place || ""}`);
-    h += ups.slice(0, 3).map(u => row(u.source, u.title)).join("");
-    put("live", h, `ほか ${ups.length}件の更新`);
+    const h = ups.slice(0, 4).map(u => row(u.source, u.title)).join("");
+    put("live", h, `ほか ${Math.max(0, ups.length - 4)}件の更新`);
   } else {
     put("live", row("", "巡回前です"), "");
+  }
+
+  // 地震・余震：直近24時間の回数と、最新の地震
+  {
+    let h = "";
+    if(QSTAT) h += row("直近24時間", `震度1以上 ${QSTAT.a24}回（うち震度3以上 ${QSTAT.a3}回）`);
+    h += row("本震", "7/28 16:27 M7.1 最大震度7");
+    if(qs[0]) h += row(`震度${qs[0].maxi || "—"}`, `${fmtDT(qs[0].at)} ${qs[0].place || ""}`);
+    put("quake", h, "気象庁の呼びかけと震度の目安");
   }
 
   // 市町村別：断水が多い市町村を3つ
@@ -2657,6 +2778,111 @@ function renderQuakes(){
       <td>${esc(q.depth||"—")}</td>
       <td style="white-space:normal">${esc(q.place||"")}</td>
     </tr>`).join("") : `<tr><td colspan="5" style="color:var(--ink-3)">情報がありません</td></tr>`;
+}
+
+/* ===== 地震・余震タブ =====
+   本震からの経過と、有感地震の回数の推移を描く。
+
+   回数は当サイトが気象庁の地震情報一覧から積み上げた速報値です。気象庁は7月28日分の
+   回数表しか公表していないため、7月29日から巡回を始めるまでの分は持っていません。
+   持っていない期間を0回として描くと「地震が止まった」と読めてしまうので、
+   グラフは集計できている期間だけを描き、いつからの集計かを必ず添えます。 */
+let QSTAT = null;   // ホームのカードと共用する
+const QUAKE_MAIN = new Date("2026-07-28T16:27:00+09:00");
+const QUAKE_WATCH_UNTIL = new Date("2026-08-04T16:27:00+09:00");   // 気象庁の「1週間程度」
+
+function hourKey(d){
+  const p = n => String(n).padStart(2,"0");
+  return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate())+"T"+p(d.getHours());
+}
+function hourFromKey(k){
+  return new Date(k.slice(0,4)+"-"+k.slice(5,7)+"-"+k.slice(8,10)+"T"+k.slice(11,13)+":00:00+09:00");
+}
+
+function renderQuakeElapsed(){
+  const el = $("#qElapsed");
+  if(!el) return;
+  const ms = Date.now() - QUAKE_MAIN.getTime();
+  const d = Math.floor(ms/86400000), h = Math.floor(ms%86400000/3600000);
+  const left = QUAKE_WATCH_UNTIL.getTime() - Date.now();
+  el.innerHTML = `${d}日${h}時間`;
+  const w = $("#qWatch");
+  if(w) w.textContent = left > 0
+    ? `気象庁が注意を呼びかけている「1週間程度」は、あと約${Math.ceil(left/86400000)}日（8月4日ごろまで）です。`
+    : `気象庁が呼びかけた「1週間程度」（8月4日ごろまで）は過ぎましたが、地震活動が続いているあいだは注意してください。`;
+}
+
+function renderQuakeTrend(){
+  const box = $("#qChart"), tr = $("#qTrend"), note = $("#qChartNote");
+  if(!box) return;
+  const hours = (C && C.quake_hours) || {};
+  const keys = Object.keys(hours).sort();
+
+  if(keys.length < 3){
+    tr.innerHTML = "";
+    box.innerHTML = `<p class="stamp" style="margin:0">回数の集計を始めたばかりです。数時間たつとグラフが出ます。</p>`;
+    note.innerHTML = "";
+    return;
+  }
+
+  // 最初の1時間は途中からの集計なので外す
+  const from = hourFromKey(keys[1]);
+  const to   = hourFromKey(keys[keys.length-1]);
+  const MAXH = 24*7;
+  const series = [];
+  for(let t = new Date(Math.max(from.getTime(), to.getTime()-(MAXH-1)*3600000)); t <= to; t = new Date(t.getTime()+3600000)){
+    const v = hours[hourKey(t)] || [0,0];
+    series.push({t, n:v[0], n3:v[1]});
+  }
+
+  // 直近24時間と、その前の24時間
+  const last = series.slice(-24), prev = series.slice(-48,-24);
+  const sum = a => a.reduce((x,y)=>x+y.n,0);
+  const sum3 = a => a.reduce((x,y)=>x+y.n3,0);
+  const a24 = sum(last), b24 = sum(prev), a3 = sum3(last);
+  const total = series.reduce((x,y)=>x+y.n,0);
+  QSTAT = {a24, a3, total, from};
+
+  const cmp = prev.length === 24
+    ? (a24 < b24 ? `<span style="color:var(--ok,#0f6b5c)">前の24時間より ${b24-a24}回 少ない</span>`
+      : a24 > b24 ? `<span style="color:#b3261e">前の24時間より ${a24-b24}回 多い</span>`
+      : "前の24時間と同じ")
+    : `<span class="stamp">前の24時間は集計していません</span>`;
+
+  tr.innerHTML =
+    `<div><div class="n">${a24}</div><div class="l">直近24時間の回数（震度1以上）</div><div class="l" style="margin-top:4px">${cmp}</div></div>
+     <div><div class="n">${a3}</div><div class="l">うち震度3以上</div></div>
+     <div><div class="n">${total}</div><div class="l">集計している期間の合計</div></div>`;
+
+  // 棒グラフ。外部ライブラリを使わずSVGを組み立てる
+  const W = 720, H = 150, PADB = 26, PADT = 8;
+  const bw = W / series.length;
+  const max = Math.max(3, ...series.map(d=>d.n));
+  const y = v => PADT + (H-PADB-PADT) * (1 - v/max);
+  let bars = "", ticks = "";
+  series.forEach((d,i)=>{
+    const x = i*bw, w = Math.max(1, bw-1.2);
+    if(d.n) bars += `<rect class="bar" x="${x.toFixed(2)}" y="${y(d.n).toFixed(2)}" width="${w.toFixed(2)}" height="${(H-PADB-y(d.n)).toFixed(2)}"><title>${fmtDT(d.t.toISOString())} ${d.n}回</title></rect>`;
+    if(d.n3) bars += `<rect class="bar3" x="${x.toFixed(2)}" y="${y(d.n3).toFixed(2)}" width="${w.toFixed(2)}" height="${(H-PADB-y(d.n3)).toFixed(2)}"></rect>`;
+    const hh = d.t.getHours();
+    const anc = i < 2 ? "start" : i > series.length-3 ? "end" : "middle";
+    if(hh === 0) ticks += `<text class="tx d" x="${(x+bw/2).toFixed(2)}" y="${H-12}" text-anchor="${anc}">${d.t.getMonth()+1}/${d.t.getDate()}</text>`;
+    else if(hh % 6 === 0) ticks += `<text class="tx" x="${(x+bw/2).toFixed(2)}" y="${H-12}" text-anchor="${anc}">${hh}時</text>`;
+  });
+  box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="1時間ごとの有感地震の回数">
+      <line class="ax" x1="0" y1="${H-PADB}" x2="${W}" y2="${H-PADB}"/>
+      <text class="tx" x="2" y="${PADT+8}">最大 ${max}回/時</text>
+      ${bars}${ticks}
+    </svg>
+    <div class="stamp" style="margin-top:6px">
+      <span style="display:inline-block;width:10px;height:10px;background:#c6cfdb;border-radius:2px;vertical-align:-1px"></span> 震度1以上　
+      <span style="display:inline-block;width:10px;height:10px;background:#b3261e;border-radius:2px;vertical-align:-1px"></span> うち震度3以上
+    </div>`;
+
+  note.innerHTML = `1時間ごとの回数です。<b>この回数は当サイトが気象庁の地震情報一覧から積み上げた速報値で、気象庁の確定値ではありません。</b>
+    集計しているのは ${fmtDT(from.toISOString())} 以降だけで、それより前は取得していません。
+    グラフの左端より前に地震がなかったわけではありません。気象庁が公表している7月28日分の正確な回数は、下の表をご覧ください。
+    体に感じない小さな地震は含みません。`;
 }
 
 const GROUP_LABEL = {city:"市町村", pref:"熊本県", gov:"国", news:"報道"};
@@ -2874,8 +3100,12 @@ scheduleQuakePoll();
   // どこからも取れなければ、埋め込み済みのデータのまま表示を続ける
 })();
 
+/* 本震からの経過は時計なので、データ更新とは別に1分ごとに進める */
+renderQuakeElapsed();
+setInterval(renderQuakeElapsed, 60000);
+
 /* タブ */
-const PAGES=["home","live","map","city","life","guide","vol","sns"];
+const PAGES=["home","live","quake","map","city","life","guide","vol","sns"];
 function go(tab){
   PAGES.forEach(p=>$("#p-"+p).classList.toggle("hidden",p!==tab));
   document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===tab));

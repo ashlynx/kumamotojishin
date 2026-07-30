@@ -59,6 +59,11 @@ KEEP_UPDATES = 200          # data.json に残す更新件数の上限
 KEEP_PER_SOURCE = 10        # 各ソースから最低限確保する件数（多弁なソースに埋もれさせない）
 KEEP_QUAKES = 40
 
+# 有感地震の回数を時間ごとに積み上げる。気象庁の一覧は直近しか持たないため、
+# 巡回のたびに新しい地震だけを足していく。前回の集計は out/data.json から引き継ぐ。
+QUAKE_HIST_FROM = "2026-07-28"      # この日より前の地震は数えない（今回の地震活動の開始日）
+QUAKE_HOURS_KEEP = 24 * 21          # 3週間分だけ保持する
+
 HERE = os.path.dirname(os.path.abspath(__file__)) or "."
 OUT_DIR = os.path.join(HERE, "out")
 STATE_PATH = os.path.join(HERE, "state.json")
@@ -822,6 +827,46 @@ def parse_jma_quake(body, src):
 # メイン
 # ----------------------------------------------------------------------------
 
+def merge_quake_hours(prev, quakes):
+    """時間ごとの有感地震回数を積み上げる。
+
+    返すのは {"2026-07-30T20": [その時間の回数, うち震度3以上の回数], ...} と、
+    処理済みの最大eid。eidは yyyymmddhhmmss なので、これより大きいものだけを
+    新しい地震として数える。あとから小さいeidで追加・訂正された地震は数え落と
+    しますが、二重に数えるより少なく数えるほうが安全なのでこの方式にしています。
+    数え落としがある前提で、サイト側には「当サイト集計の速報値」と明記します。
+    """
+    hours = {}
+    for k, v in (prev.get("quake_hours") or {}).items():
+        if isinstance(v, list) and len(v) == 2:
+            hours[k] = [int(v[0]), int(v[1])]
+    max_eid = str(prev.get("quake_max_eid") or "")
+
+    added = 0
+    for q in quakes:
+        eid = str(q.get("eid") or "")
+        at = q.get("at") or ""
+        if not eid or not at or at[:10] < QUAKE_HIST_FROM:
+            continue
+        if max_eid and eid <= max_eid:
+            continue
+        row = hours.setdefault(at[:13], [0, 0])       # "2026-07-30T20"
+        row[0] += 1
+        m = re.match(r"(\d)", str(q.get("maxi") or ""))
+        if m and int(m.group(1)) >= 3:
+            row[1] += 1
+        added += 1
+
+    for q in quakes:
+        eid = str(q.get("eid") or "")
+        if eid > max_eid:
+            max_eid = eid
+
+    for k in sorted(hours)[:-QUAKE_HOURS_KEEP]:
+        del hours[k]
+    return hours, max_eid, added
+
+
 def crawl(verbose=False):
     state = load_state()
     now = dt.datetime.now(JST)
@@ -1034,9 +1079,15 @@ def crawl(verbose=False):
                        "error": f"{TIME_BUDGET}秒を超えたため未取得: " + "、".join(skipped),
                        "at": now.isoformat()})
 
+    quake_hours, quake_max_eid, quake_added = merge_quake_hours(prev, quakes)
+    if verbose:
+        print(f"  地震の回数集計: 新規 {quake_added}件 ／ 保持 {len(quake_hours)}時間分")
+
     data = {
         "generated_at": now.isoformat(),
         "quakes": quakes,
+        "quake_hours": quake_hours,
+        "quake_max_eid": quake_max_eid,
         "stats": stats,
         "updates": picked[:KEEP_UPDATES],
         "sources": sources_status,
