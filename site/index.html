@@ -413,11 +413,8 @@
     <b>気象庁は「1週間程度は最大震度7程度の地震に注意」</b>と呼びかけています。倒れかけた建物や塀には近づかないでください。
   </div>
 
-  <h2 class="sec">地震の概要</h2>
+  <h2 class="sec">いまの状況</h2>
   <div class="stats">
-    <div class="stat"><div class="v">7月28日 16:27</div><div class="l">発生（2026年）</div></div>
-    <div class="stat"><div class="v">M7.1</div><div class="l">規模／深さ約16km</div></div>
-    <div class="stat"><div class="v">最大震度7</div><div class="l">宇城市・氷川町</div></div>
     <div class="stat" id="waterStat"><div class="v">—</div><div class="l">断水</div></div>
     <div class="stat" id="powerStat"><div class="v">—</div><div class="l">停電</div></div>
     <div class="stat"><div class="v">1,507戸</div><div class="l">住家被害（うち全壊179戸）7/31 15:00時点</div></div>
@@ -426,7 +423,6 @@
     <button type="button" class="stat go" data-go="city" id="statShelter"><div class="v">—</div><div class="l">開設中の避難所（市町村の発表の合計）→ 市町村別</div></button>
   </div>
   <p class="stamp">
-    震度6強：熊本市・八代市・宇土市・美里町・益城町ほか。日奈久断層帯の活動と推定。<br>
     断水と停電は当サイトが国土交通省・九州電力送配電から自動取得しています。<b>住家被害と都市ガスは自動取得ではなく、下記の発表を手作業で書き写した数値です。</b>
     住家被害は熊本県が7月31日15時時点として発表したもので（全壊179戸・大規模半壊20戸・半壊220戸ほか）、<b>調査が進むにつれて増えます。</b>
     都市ガスは九州ガスが7月29日に発表した八代市の供給停止戸数です。ほかに熊本市の一部でも西部ガスの供給停止がありました。
@@ -437,6 +433,10 @@
   </p>
   <div id="waterDetail"></div>
   <div id="powerDetail"></div>
+  <p class="stamp" style="margin-top:10px">
+    本震は2026年7月28日16時27分ごろ、熊本県熊本地方、深さ16km、M7.1（暫定値）。最大震度7を宇城市と氷川町で観測。震度6強は熊本市・八代市・宇土市・美里町・益城町ほか。日奈久断層帯の活動と推定されています。
+    <button type="button" class="chip" data-go="quake" style="margin-left:6px">本震と余震の詳しい情報 →</button>
+  </p>
 
   <h2 class="sec">給水所・避難所の地図</h2>
   <p class="lead">公式に発表された給水所・避難所・役所です。ピンを押すと住所と電話が出ます。</p>
