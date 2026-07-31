@@ -178,7 +178,11 @@
   .lyr.fa img{position:absolute;left:0;top:0;transform-origin:0 0;image-rendering:auto}
   #mapBox.dark .map{background:#0c1015}
   #mapBox.dark #mapTiles img{filter:invert(1) hue-rotate(180deg) saturate(.72) brightness(.92) contrast(1.06)}
-  #mapBox.dark #mapFault img{filter:brightness(1.5) saturate(1.6)}
+  /* 活断層図のタイルは透過ではなく、それ自体が白地の地図。そのまま重ねると下の地図を
+     白く塗りつぶすので、明るい地図では乗算、暗い地図では反転してスクリーンで重ねる。 */
+  #mapBox.dark #mapFault img{filter:invert(1) hue-rotate(180deg) saturate(1.9) brightness(1.35);
+    mix-blend-mode:screen;opacity:.8}
+  #mapBox:not(.dark) #mapFault img{mix-blend-mode:multiply;opacity:.85}
   #mapBox.dark .map-hint{background:rgba(12,16,21,.82);color:#fff}
   .lyr.hy{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
   .lyr.hy circle{pointer-events:auto;cursor:pointer}
@@ -3041,16 +3045,17 @@ function faultNote(){
   const z = mTz();
   b.title = (z < 11)
     ? "活断層図はもう少し拡大すると出ます（ズーム11以上で整備されています）"
-    : "都市圏活断層図（国土地理院）を重ねます";
+    : "都市圏活断層図（国土地理院）を重ねます。整備されている地域だけ四角い範囲で図が出ます";
 }
 
 function mapSkin(){
   const box = $("#mapBox");
   if(box) box.classList.toggle("dark", darkOn && mapMode === "hypo");
   const at = $(".map-attr");
-  if(at) at.innerHTML = (darkOn && mapMode === "hypo")
-    ? '出典：<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">国土地理院 地理院タイル</a>（淡色地図' + (faultOn ? '・都市圏活断層図' : '') + 'を加工して表示）'
-    : '出典：<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">国土地理院 地理院タイル（淡色地図）</a>';
+  const link = '<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">国土地理院 地理院タイル</a>';
+  const layers = "淡色地図" + (faultOn && mapMode === "hypo" ? "・都市圏活断層図" : "");
+  const edited = (darkOn && mapMode === "hypo") || (faultOn && mapMode === "hypo");
+  if(at) at.innerHTML = "出典：" + link + "（" + layers + (edited ? "を加工して表示" : "") + "）";
 }
 
 /* いま起きた地震が画面の端に来たら、中心を少しずつそちらに寄せる。
