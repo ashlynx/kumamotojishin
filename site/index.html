@@ -120,6 +120,9 @@
   .stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 13px}
   .stat .v{font-size:1.3rem;font-weight:800;line-height:1.25;letter-spacing:-.01em}
   .stat .l{font-size:.73rem;color:var(--ink-3)}
+  button.stat.go{cursor:pointer;text-align:left;width:100%;font:inherit;display:block}
+  button.stat.go:hover{border-color:var(--accent);background:var(--accent-soft)}
+  button.stat.go .l{text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:2px}
 
   .home-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
   @media(max-width:520px){.home-grid{grid-template-columns:1fr}}
@@ -419,12 +422,15 @@
     <div class="stat" id="powerStat"><div class="v">—</div><div class="l">停電</div></div>
     <div class="stat"><div class="v">1,507戸</div><div class="l">住家被害（うち全壊179戸）7/31 15:00時点</div></div>
     <div class="stat"><div class="v">約9,000戸</div><div class="l">都市ガス停止（八代市）復旧は8/3めど</div></div>
+    <button type="button" class="stat go" data-go="map" id="statWaterPt"><div class="v">—</div><div class="l">給水所（当サイト掲載）→ 地図</div></button>
+    <button type="button" class="stat go" data-go="city" id="statShelter"><div class="v">—</div><div class="l">開設中の避難所（市町村の発表の合計）→ 市町村別</div></button>
   </div>
   <p class="stamp">
     震度6強：熊本市・八代市・宇土市・美里町・益城町ほか。日奈久断層帯の活動と推定。<br>
     断水と停電は当サイトが国土交通省・九州電力送配電から自動取得しています。<b>住家被害と都市ガスは自動取得ではなく、下記の発表を手作業で書き写した数値です。</b>
     住家被害は熊本県が7月31日15時時点として発表したもので（全壊179戸・大規模半壊20戸・半壊220戸ほか）、<b>調査が進むにつれて増えます。</b>
     都市ガスは九州ガスが7月29日に発表した八代市の供給停止戸数です。ほかに熊本市の一部でも西部ガスの供給停止がありました。
+    給水所と避難所の数は、各市町村の発表を当サイトが数えたものです（熊本市の避難所は市が公表している180か所を使っています）。開設場所は日ごとに変わるので、押して一覧をご確認ください。<br>
     最新は <a href="https://www.pref.kumamoto.jp/soshiki/222/274487.html" target="_blank" rel="noopener">熊本県の災害対策本部会議資料</a>、
     <a href="https://www.fdma.go.jp/disaster/info/" target="_blank" rel="noopener">消防庁の被害報</a>、
     <a href="https://www.kyugas.co.jp/r8_kumamoto_info/" target="_blank" rel="noopener">九州ガスの関連情報</a> をご確認ください。
@@ -1695,7 +1701,7 @@ const CITIES = [
       {n:"北部中学校", a:"熊本県熊本市北区鹿子木町1"},
       {n:"山東小学校", a:"熊本県熊本市北区植木町有泉841"}
     ]},
-    shelter:{title:"開設中の避難所（180か所）", note:"数が多いため当サイトでは一覧を持たず、市の防災情報ポータル（上のリンク）へご案内しています。あちらは避難所名・開設状況・所在地・避難人数・混雑状況が表になっていて、区ごとに絞り込めます。7/30 17:38時点で開設180か所・閉鎖17か所。加えて、市の一覧とは別に法務省が熊本刑務所を避難所として開放しています（下記）。", items:[
+    shelter:{count:180, title:"開設中の避難所（180か所）", note:"数が多いため当サイトでは一覧を持たず、市の防災情報ポータル（上のリンク）へご案内しています。あちらは避難所名・開設状況・所在地・避難人数・混雑状況が表になっていて、区ごとに絞り込めます。7/30 17:38時点で開設180か所・閉鎖17か所。加えて、市の一覧とは別に法務省が熊本刑務所を避難所として開放しています（下記）。", items:[
       {n:"熊本刑務所（法務省の施設）", a:"熊本県熊本市中央区渡鹿7-12-1", note:"7/30 法務省矯正局が発表"}
     ]},
     tels:[{l:"市役所（代表）", n:"096-328-2111"},{l:"ひごまるコール（総合案内）", n:"096-334-1500"},{l:"上下水道局お客さまセンター", n:"096-381-1118"}],
@@ -2769,6 +2775,19 @@ if(!C){
   renderChips();
   renderFeed();
 }
+/* 給水所と避難所の数をトップに出す。給水所は当サイトが一覧として持っている数、
+   避難所は市町村が発表している総数（熊本市のように一覧を持たず件数だけ分かるものは count で補う）。 */
+function renderCounts(){
+  let w = 0, sh = 0;
+  CITIES.forEach(c => {
+    if(c.water && c.water.items) w += c.water.items.length;
+    if(c.shelter) sh += (c.shelter.count || (c.shelter.items ? c.shelter.items.length : 0));
+  });
+  const put = (id, n) => { const el = $("#" + id); if(el) el.querySelector(".v").textContent = n + "か所"; };
+  put("statWaterPt", w);
+  put("statShelter", sh);
+}
+renderCounts();
 renderWater();
 renderPower();
 renderHomePreviews();
