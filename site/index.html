@@ -423,7 +423,7 @@
     <button type="button" class="stat go" data-go="city" id="statShelter"><div class="v">—</div><div class="l">開設中の避難所（市町村の発表の合計）→ 市町村別</div></button>
   </div>
   <p class="stamp">
-    断水と停電は当サイトが国土交通省・九州電力送配電から自動取得しています。<b>住家被害と都市ガスは自動取得ではなく、下記の発表を手作業で書き写した数値です。</b>
+    断水と停電は当サイトが国土交通省・九州電力送配電から自動取得しています。<b>解消したものはこの欄から消え、また発生すれば戻ります。</b><b>住家被害と都市ガスは自動取得ではなく、下記の発表を手作業で書き写した数値です。</b>
     住家被害は熊本県が7月31日15時時点として発表したもので（全壊179戸・大規模半壊20戸・半壊220戸ほか）、<b>調査が進むにつれて増えます。</b>
     都市ガスは九州ガスが7月29日に発表した八代市の供給停止戸数です。ほかに熊本市の一部でも西部ガスの供給停止がありました。
     給水所と避難所の数は、各市町村の発表を当サイトが数えたものです（熊本市の避難所は市が公表している180か所を使っています）。開設場所は日ごとに変わるので、押して一覧をご確認ください。<br>
@@ -2872,6 +2872,7 @@ function renderPower(){
   if(!tile || !box) return;
 
   if(!w || w.current === undefined || w.current === null){
+    tile.classList.remove("hidden");
     tile.innerHTML = `<div class="v" style="font-size:1rem">確認中</div><div class="l">停電</div>`;
     box.innerHTML = "";
     return;
@@ -2880,14 +2881,18 @@ function renderPower(){
   const n = v => v.toLocaleString("ja-JP");
   const when = w.as_of ? fmtDT(w.as_of) : "";
 
+  /* 解消したものはタイルから外す。並んでいるだけで場所を取り、いま困っている項目が
+     見つけにくくなるため。新たに停電が起きれば自動でタイルが戻る。 */
   if(w.current === 0){
-    tile.innerHTML = `<div class="v" style="color:var(--ok)">解消</div>
-      <div class="l">停電（${esc(when)}時点）</div>`;
+    tile.classList.add("hidden");
     box.innerHTML = `<p class="stamp" style="margin:0">
-      熊本県内の停電は解消しています（九州電力送配電・${esc(when)}時点）。
-      <a href="https://www.kyuden.co.jp/td_teiden/kyushu.html" target="_blank" rel="noopener">停電情報 ↗</a></p>`;
+      <b>熊本県内の停電は解消しました</b>（九州電力送配電・${esc(when)}時点）。ピーク時は約108,100戸でした。
+      引込線や屋内配線の被害で個別に電気が来ない場合は、自分で触らず
+      <a href="https://www.kyuden.co.jp/td_teiden/kyushu.html" target="_blank" rel="noopener">九州電力送配電 ↗</a> へご連絡ください。
+      復旧後の<b>通電火災</b>にもご注意ください。新たな停電が起きれば、上の「いまの状況」に戻ります。</p>`;
     return;
   }
+  tile.classList.remove("hidden");
 
   tile.innerHTML = `<div class="v">約${n(w.current)}戸</div>
     <div class="l">停電（${esc(when)}時点）</div>`;
