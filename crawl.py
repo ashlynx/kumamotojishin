@@ -75,6 +75,12 @@ P2P_PAGES_BACKFILL = 6
 HYPO_BBOX = (30.8, 34.2, 129.2, 132.2)   # 南限, 北限, 西限, 東限（九州中部）
 HYPO_KEEP = 3000
 
+# 都市ガスの供給停止戸数は、内閣府「令和8年熊本地震に係る被害状況等について」から取る。
+# 経済産業省の情報が本文に文章で書かれており、日ごとに更新される。PDFに文字情報が入って
+# いるので機械で読める（消防庁の被害報は画像のみで読めない）。
+CAO_INDEX = "https://www.bousai.go.jp/updates/r8kumamoto_jishin/index.html"
+CAO_PDF = "https://www.bousai.go.jp/updates/r8kumamoto_jishin/pdf/r8kumamoto_jishin_%s.pdf"
+
 HERE = os.path.dirname(os.path.abspath(__file__)) or "."
 OUT_DIR = os.path.join(HERE, "out")
 STATE_PATH = os.path.join(HERE, "state.json")
@@ -925,6 +931,61 @@ def fetch_hypocenters(prev, verbose=False):
     }
 
 
+def fetch_cao_gas(prev, verbose=False):
+    """内閣府の被害状況PDFから都市ガスの供給停止戸数を読む。
+
+    住家被害はここから取っていません。消防庁経由の集計で、市町村からの報告が
+    集まるまで数日かかるため、熊本県が自ら発表している戸数と桁が違うからです
+    （7/30時点で内閣府2棟に対し、県の発表は7/31時点で1,507戸）。数字が小さい
+    ほうを載せると被害を過小に見せることになるので、住家被害は手作業のままに
+    しています。
+    """
+    import io
+    import pdfplumber
+
+    _st, raw, _ = fetch(CAO_INDEX, {})
+    if not raw:
+        raise ValueError("内閣府のページを取得できませんでした")
+    idx = decode(raw)
+    days = sorted(set(re.findall(r"pdf/r8kumamoto_jishin_(\d{8})\.pdf", idx)))
+    if not days:
+        raise ValueError("内閣府のPDFが見つかりませんでした")
+    day = days[-1]
+
+    old = prev.get("gas") or {}
+    if old.get("pdf_day") == day and old.get("current") is not None:
+        if verbose:
+            print(f"    内閣府PDF {day} は取得済み")
+        return old
+
+    pdf_url = CAO_PDF % day
+    body = fetch_bytes(pdf_url)
+    with pdfplumber.open(io.BytesIO(body)) as pdf:
+        txt = "\n".join((pg.extract_text() or "") for pg in pdf.pages[:8])
+    flat = re.sub(r"[ \u3000]+", "", txt)
+
+    out = {"pdf_day": day, "source_url": pdf_url,
+           "source_page": CAO_INDEX, "label": "内閣府（経済産業省情報）"}
+
+    tight = re.sub(r"\s+", "", txt)          # 改行も詰めて「令和８年７月30日06時30分現在」を拾う
+    m = re.search(r"令和８年(\d{1,2})月(\d{1,2})日(\d{1,2})時(\d{1,2})分現在", tight)
+    if not m:
+        m = re.search(r"(\d{1,2})月(\d{1,2})日(\d{1,2}):(\d{2})時点", flat)
+    if m:
+        out["as_of"] = f"{int(m.group(1))}月{int(m.group(2))}日 {int(m.group(3))}:{m.group(4).zfill(2)}"
+
+    i = flat.find("ア都市ガス")
+    seg = flat[i:i + 600] if i >= 0 else ""
+    stops = re.findall(r"約([\d,]+)戸供給停止", seg)
+    out["current"] = int(stops[0].replace(",", "")) if stops else 0
+    out["cities"] = re.findall(r"([^\s。、]{2,6}市)で、", seg)[:1]
+    out["cleared"] = re.findall(r"([^\s。、]{2,6}市)の供給支障については解消済み", seg)
+    if verbose:
+        print(f"    都市ガス {out['current']:,}戸（{out.get('as_of','時点不明')}）"
+              f" 解消: {'、'.join(out['cleared']) or 'なし'}")
+    return out
+
+
 def merge_quake_hours(prev, quakes):
     """時間ごとの有感地震回数を積み上げる。
 
@@ -1178,6 +1239,17 @@ def crawl(verbose=False):
                        "at": now.isoformat()})
 
     try:
+        gas = fetch_cao_gas(prev, verbose)
+        sources_status.append({"id": "cao_gas", "label": "内閣府 被害状況（都市ガス）",
+                               "status": f"{gas.get('current', 0):,}戸", "checked_at": now.isoformat()})
+    except Exception as e:
+        gas = prev.get("gas") or {}
+        errors.append({"id": "cao_gas", "label": "内閣府 被害状況（都市ガス）",
+                       "error": str(e), "at": now.isoformat()})
+        sources_status.append({"id": "cao_gas", "label": "内閣府 被害状況（都市ガス）",
+                               "status": "取得失敗", "checked_at": now.isoformat()})
+
+    try:
         hypo = fetch_hypocenters(prev, verbose)
         sources_status.append({"id": "p2p_hypo", "label": "P2P地震情報（震源の位置）",
                                "status": f"{hypo['count']}件", "checked_at": now.isoformat()})
@@ -1195,6 +1267,7 @@ def crawl(verbose=False):
     data = {
         "generated_at": now.isoformat(),
         "quakes": quakes,
+        "gas": gas,
         "quake_hours": quake_hours,
         "hypo": hypo,
         "quake_max_eid": quake_max_eid,

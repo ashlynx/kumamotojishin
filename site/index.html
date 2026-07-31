@@ -417,15 +417,15 @@
   <div class="stats">
     <div class="stat" id="waterStat"><div class="v">—</div><div class="l">断水</div></div>
     <div class="stat" id="powerStat"><div class="v">—</div><div class="l">停電</div></div>
-    <div class="stat"><div class="v">1,507戸</div><div class="l">住家被害（うち全壊179戸）7/31 15:00時点</div></div>
-    <div class="stat"><div class="v">約9,000戸</div><div class="l">都市ガス停止（八代市）復旧は8/3めど</div></div>
+    <div class="stat" id="houseStat"><div class="v">—</div><div class="l">住家被害</div></div>
+    <div class="stat" id="gasStat"><div class="v">—</div><div class="l">都市ガス</div></div>
     <button type="button" class="stat go" data-go="map" id="statWaterPt"><div class="v">—</div><div class="l">給水所（当サイト掲載）→ 地図</div></button>
     <button type="button" class="stat go" data-go="city" id="statShelter"><div class="v">—</div><div class="l">開設中の避難所（市町村の発表の合計）→ 市町村別</div></button>
   </div>
   <p class="stamp">
-    断水と停電は当サイトが国土交通省・九州電力送配電から自動取得しています。<b>解消したものはこの欄から消え、また発生すれば戻ります。</b><b>住家被害と都市ガスは自動取得ではなく、下記の発表を手作業で書き写した数値です。</b>
+    断水と停電は当サイトが国土交通省・九州電力送配電から自動取得しています。<b>解消したものはこの欄から消え、また発生すれば戻ります。</b>都市ガスは内閣府の被害状況資料（経済産業省情報）から自動取得しています。<b>住家被害だけは自動取得ではなく、熊本県の発表を手作業で書き写した数値です。</b>機械で読める国の集計は市町村からの報告を待つ仕組みで、県が自ら発表している数と桁が違うためです（7/30時点で内閣府2棟に対し、県は7/31時点で1,507戸）。小さいほうを載せると被害を過小に見せてしまいます。
     住家被害は熊本県が7月31日15時時点として発表したもので（全壊179戸・大規模半壊20戸・半壊220戸ほか）、<b>調査が進むにつれて増えます。</b>
-    都市ガスは九州ガスが7月29日に発表した八代市の供給停止戸数です。ほかに熊本市の一部でも西部ガスの供給停止がありました。
+   
     給水所と避難所の数は、各市町村の発表を当サイトが数えたものです（熊本市の避難所は市が公表している180か所を使っています）。開設場所は日ごとに変わるので、押して一覧をご確認ください。<br>
     最新は <a href="https://www.pref.kumamoto.jp/soshiki/222/274487.html" target="_blank" rel="noopener">熊本県の災害対策本部会議資料</a>、
     <a href="https://www.fdma.go.jp/disaster/info/" target="_blank" rel="noopener">消防庁の被害報</a>、
@@ -433,6 +433,7 @@
   </p>
   <div id="waterDetail"></div>
   <div id="powerDetail"></div>
+  <div id="gasDetail"></div>
   <p class="stamp" style="margin-top:10px">
     本震は2026年7月28日16時27分ごろ、熊本県熊本地方、深さ16km、M7.1（暫定値）。最大震度7を宇城市と氷川町で観測。震度6強は熊本市・八代市・宇土市・美里町・益城町ほか。日奈久断層帯の活動と推定されています。
     <button type="button" class="chip" data-go="quake" style="margin-left:6px">本震と余震の詳しい情報 →</button>
@@ -2231,6 +2232,16 @@ const mapCitySel = new Set();
 let mSel = -1;          // 選択中のピン
 let mapReady = false;
 let mapMode = "facility", hyFitted = false;
+/* 住家被害だけは自動取得していません。機械で読める国の集計（内閣府・消防庁）は
+   市町村からの報告待ちで、県が自ら発表している数と桁が違うためです
+   （7/30時点で内閣府2棟に対し、熊本県は7/31時点で1,507戸）。
+   小さいほうを載せると被害を過小に見せるので、県の発表を手で書き写しています。
+   古くなりやすいので、時点から一定時間たつと画面に警告を出します。 */
+const HOUSE = {
+  total: 1507, zenkai: 179, daikibo: 20, hankai: 220,
+  at: "2026-07-31T15:00:00+09:00", by: "熊本県",
+  url: "https://www.pref.kumamoto.jp/soshiki/222/274487.html"
+};
 /* 都市圏活断層図（地理院タイル afm）と、震源マップの暗い表示。
    地図の初期化より前に読まれるので、宣言はここに置く。 */
 const GSI_FAULT = "https://cyberjapandata.gsi.go.jp/xyz/afm/{z}/{x}/{y}.png";
@@ -2782,6 +2793,42 @@ if(!C){
 }
 /* 給水所と避難所の数をトップに出す。給水所は当サイトが一覧として持っている数、
    避難所は市町村が発表している総数（熊本市のように一覧を持たず件数だけ分かるものは count で補う）。 */
+function renderHouse(){
+  const tile = $("#houseStat");
+  if(!tile) return;
+  const hrs = (Date.now() - new Date(HOUSE.at).getTime()) / 3600000;
+  tile.innerHTML = `<div class="v">${HOUSE.total.toLocaleString("ja-JP")}戸</div>
+    <div class="l">住家被害（うち全壊${HOUSE.zenkai}戸）${fmtDT(HOUSE.at)}時点${
+      hrs > 30 ? `<br><b style="color:var(--urgent)">この数値は${Math.floor(hrs/24)}日前のものです</b>` : ""}</div>`;
+}
+
+function renderGas(){
+  const g = C && C.gas, tile = $("#gasStat"), box = $("#gasDetail");
+  if(!tile) return;
+  if(!g || g.current === undefined || g.current === null){
+    tile.classList.remove("hidden");
+    tile.innerHTML = `<div class="v" style="font-size:1rem">確認中</div><div class="l">都市ガス</div>`;
+    if(box) box.innerHTML = "";
+    return;
+  }
+  const when = g.as_of ? g.as_of + "時点" : "";
+  if(g.current === 0){
+    tile.classList.add("hidden");
+    if(box) box.innerHTML = `<p class="stamp" style="margin:0"><b>都市ガスの供給停止は解消しました</b>（${esc(when)}・内閣府の被害状況資料）。復旧後は器具の点検が必要です。ガスのにおいがしたら火を使わず窓を開けて供給会社へ。</p>`;
+    return;
+  }
+  tile.classList.remove("hidden");
+  const where = (g.cities && g.cities.length) ? g.cities.join("・") : "";
+  tile.innerHTML = `<div class="v">約${g.current.toLocaleString("ja-JP")}戸</div>
+    <div class="l">都市ガス停止${where ? "（" + esc(where) + "）" : ""}${when ? " " + esc(when) : ""}</div>`;
+  if(box) box.innerHTML = `<p class="stamp" style="margin:0">
+    都市ガスは${where ? esc(where) + "で" : ""}約${g.current.toLocaleString("ja-JP")}戸が供給停止（${esc(when)}・${esc(g.label || "内閣府")}）。
+    ${(g.cleared && g.cleared.length) ? esc(g.cleared.join("・")) + "は解消済み。" : ""}
+    九州ガスは<b>全面復旧を8月3日（月）めど</b>としています。
+    <a href="${esc(g.source_url || "")}" target="_blank" rel="noopener">原資料 ↗</a>
+    <a href="https://www.kyugas.co.jp/r8_kumamoto_info/" target="_blank" rel="noopener" style="margin-left:8px">九州ガスの関連情報 ↗</a></p>`;
+}
+
 function renderCounts(){
   let w = 0, sh = 0;
   CITIES.forEach(c => {
@@ -2793,8 +2840,10 @@ function renderCounts(){
   put("statShelter", sh);
 }
 renderCounts();
+renderHouse();
 renderWater();
 renderPower();
+renderGas();
 renderHomePreviews();
 }
 
