@@ -962,27 +962,48 @@ def fetch_cao_gas(prev, verbose=False):
     body = fetch_bytes(pdf_url)
     with pdfplumber.open(io.BytesIO(body)) as pdf:
         txt = "\n".join((pg.extract_text() or "") for pg in pdf.pages[:8])
-    flat = re.sub(r"[ \u3000]+", "", txt)
 
     out = {"pdf_day": day, "source_url": pdf_url,
            "source_page": CAO_INDEX, "label": "内閣府（経済産業省情報）"}
 
-    tight = re.sub(r"\s+", "", txt)          # 改行も詰めて「令和８年７月30日06時30分現在」を拾う
+    tight = re.sub(r"\s+", "", txt)   # 空白も改行も詰める。PDFは行の途中で折り返すため。
     m = re.search(r"令和８年(\d{1,2})月(\d{1,2})日(\d{1,2})時(\d{1,2})分現在", tight)
     if not m:
-        m = re.search(r"(\d{1,2})月(\d{1,2})日(\d{1,2}):(\d{2})時点", flat)
+        m = re.search(r"(\d{1,2})月(\d{1,2})日(\d{1,2}):(\d{2})時点", tight)
     if m:
         out["as_of"] = f"{int(m.group(1))}月{int(m.group(2))}日 {int(m.group(3))}:{m.group(4).zfill(2)}"
 
-    i = flat.find("ア都市ガス")
-    seg = flat[i:i + 600] if i >= 0 else ""
-    stops = re.findall(r"約([\d,]+)戸供給停止", seg)
-    out["current"] = int(stops[0].replace(",", "")) if stops else 0
-    out["cities"] = re.findall(r"([^\s。、]{2,6}市)で、", seg)[:1]
-    out["cleared"] = re.findall(r"([^\s。、]{2,6}市)の供給支障については解消済み", seg)
+    # 改行も詰める。PDFは行の途中で折り返すため（「8月3日に全戸再\n開予定」など）、
+    # 改行を残したまま正規表現をかけると拾えない。
+    i = tight.find("ア都市ガス")
+    j = tight.find("イＬＰガス", i + 1)
+    seg = tight[i:j if j > i else i + 900] if i >= 0 else ""
+
+    # 「約8,892戸供給停止」「8,892戸供給停止」どちらの書き方もある（7/31に書式が変わった）
+    stops = re.findall(r"約?([\d,]+)戸供給停止", seg)
+    if stops:
+        out["current"] = int(stops[0].replace(",", ""))
+    else:
+        # 読み取れなかったときは0にしない。0にすると「解消した」と表示され、
+        # 実際にはガスが止まっているのに解消済みだと誤って伝えてしまう。
+        out["current"] = None
+        out["parse_failed"] = True
+
+    # 地区名。「●八代」のような見出し、または「八代市で、」の両方に対応する
+    cities = re.findall(r"●([一-龥]{2,6})", seg) or re.findall(r"([^\s。、]{2,6}市)で、", seg)
+    out["cities"] = [c if c[-1] in "市町村" else c + "市" for c in cities[:2]]
+
+    out["cleared"] = re.findall(r"([一-龥]{2,4}市)の供給支障(?:について)?は(?:すべて)?解消済み", seg)
+
+    m2 = re.search(r"(\d{1,2})月(\d{1,2})日に全戸再開予定", seg)
+    if m2:
+        out["restore"] = f"{int(m2.group(1))}月{int(m2.group(2))}日に全戸再開予定"
     if verbose:
-        print(f"    都市ガス {out['current']:,}戸（{out.get('as_of','時点不明')}）"
-              f" 解消: {'、'.join(out['cleared']) or 'なし'}")
+        cur = out["current"]
+        print(f"    都市ガス {('%s戸' % f'{cur:,}') if cur is not None else '読み取れず'}"
+              f"（{out.get('as_of','時点不明')}）／{'・'.join(out['cities']) or '地区不明'}"
+              f"／解消: {'、'.join(out['cleared']) or 'なし'}"
+              f"／{out.get('restore','見通しの記載なし')}")
     return out
 
 

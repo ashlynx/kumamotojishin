@@ -2808,7 +2808,7 @@ function renderGas(){
   if(box) box.innerHTML = `<p class="stamp" style="margin:0">
     都市ガスは${where ? esc(where) + "で" : ""}約${g.current.toLocaleString("ja-JP")}戸が供給停止（${esc(when)}・${esc(g.label || "内閣府")}）。
     ${(g.cleared && g.cleared.length) ? esc(g.cleared.join("・")) + "は解消済み。" : ""}
-    九州ガスは<b>全面復旧を8月3日（月）めど</b>としています。
+    ${g.restore ? `内閣府の資料には<b>${esc(g.restore)}</b>と書かれています。` : "九州ガスは全面復旧を8月3日（月）めどとしています。"}
     <a href="${esc(g.source_url || "")}" target="_blank" rel="noopener">原資料 ↗</a>
     <a href="https://www.kyugas.co.jp/r8_kumamoto_info/" target="_blank" rel="noopener" style="margin-left:8px">九州ガスの関連情報 ↗</a></p>`;
 }
