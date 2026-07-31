@@ -80,6 +80,9 @@ HYPO_KEEP = 3000
 # いるので機械で読める（消防庁の被害報は画像のみで読めない）。
 CAO_INDEX = "https://www.bousai.go.jp/updates/r8kumamoto_jishin/index.html"
 CAO_PDF = "https://www.bousai.go.jp/updates/r8kumamoto_jishin/pdf/r8kumamoto_jishin_%s.pdf"
+# パーサーを直したら必ず増やすこと。前回の結果をそのまま使い回して、
+# 直したはずの誤りが残り続けるのを防ぐための番号。
+CAO_PARSER = 2
 
 HERE = os.path.dirname(os.path.abspath(__file__)) or "."
 OUT_DIR = os.path.join(HERE, "out")
@@ -953,9 +956,12 @@ def fetch_cao_gas(prev, verbose=False):
     day = days[-1]
 
     old = prev.get("gas") or {}
-    if old.get("pdf_day") == day and old.get("current") is not None:
+    reusable = (old.get("pdf_day") == day
+                and old.get("parser") == CAO_PARSER
+                and old.get("current") is not None)
+    if reusable:
         if verbose:
-            print(f"    内閣府PDF {day} は取得済み")
+            print(f"    内閣府PDF {day} は取得済み（{old.get('current'):,}戸）")
         return old
 
     pdf_url = CAO_PDF % day
@@ -963,7 +969,7 @@ def fetch_cao_gas(prev, verbose=False):
     with pdfplumber.open(io.BytesIO(body)) as pdf:
         txt = "\n".join((pg.extract_text() or "") for pg in pdf.pages[:8])
 
-    out = {"pdf_day": day, "source_url": pdf_url,
+    out = {"pdf_day": day, "parser": CAO_PARSER, "source_url": pdf_url,
            "source_page": CAO_INDEX, "label": "内閣府（経済産業省情報）"}
 
     tight = re.sub(r"\s+", "", txt)   # 空白も改行も詰める。PDFは行の途中で折り返すため。
