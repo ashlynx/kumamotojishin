@@ -174,6 +174,26 @@
   .clamp .cl-b{border:0;background:none;padding:3px 0 0;margin:0;font:inherit;
     font-size:.73rem;font-weight:700;color:var(--accent);cursor:pointer}
   .clamp .cl-b::after{content:" ▼";font-size:.62rem}
+  /* やさしい日本語。ふりがなが乗るぶん行間を広くとる */
+  .easy{line-height:2.5;font-size:1.02rem;margin-bottom:12px}
+  .easy h3{font-size:1.06rem;margin:0 0 10px;color:var(--accent);line-height:2.2}
+  .easy p{margin:0 0 10px}
+  .easy ruby rt{font-size:.55em;color:var(--ink-3);font-weight:400}
+  ul.steps-easy{margin:0 0 10px;padding-left:1.2em}
+  ul.steps-easy li{margin-bottom:6px}
+  /* 支援診断 */
+  .qz{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:14px;margin:0 0 12px}
+  .qz h4{margin:0 0 4px;font-size:.95rem}
+  .qz .hint{font-size:.76rem;color:var(--ink-3);margin:0 0 9px}
+  .qz .opts{display:flex;flex-wrap:wrap;gap:7px}
+  .qz .opts button{border:1px solid var(--line);background:#fff;border-radius:999px;
+    padding:8px 14px;font-size:.85rem;color:var(--ink-2);cursor:pointer;font-family:inherit}
+  .qz .opts button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+  .hit{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;
+    background:var(--surface);padding:11px 13px;margin:0 0 8px}
+  .hit .hn{font-weight:700;font-size:.95rem}
+  .hit .hw{font-size:.83rem;color:var(--ink-2);margin:5px 0 0;line-height:1.85}
+  .hit.mid{border-left-color:#f0a30a}
   .clamp.open .cl-b::after{content:" ▲"}
   .qfacts{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px 18px}
   .qfacts .k{display:block;font-size:.73rem;color:var(--ink-3);margin-bottom:2px}
@@ -399,6 +419,7 @@
   <button role="tab" data-tab="guide" aria-selected="false">手続き・支援制度</button>
   <button role="tab" data-tab="vol" aria-selected="false">支援したい方へ</button>
   <button role="tab" data-tab="sns" aria-selected="false">SNS・公式アカウント</button>
+  <button role="tab" data-tab="easy" aria-selected="false">やさしい日本語</button>
 </div></nav>
 
 <main class="wrap">
@@ -760,6 +781,7 @@
     <button type="button" id="cityLocBtn" style="margin-left:auto">📍 近い順に並べる</button>
   </div>
   <div class="jump" id="cityJump"></div>
+  <p class="stamp" id="cityMemo" style="margin:2px 0 10px"></p>
   <div id="cityList"></div>
 </section>
 
@@ -808,8 +830,38 @@
     </ol>
   </div>
 
+  <details class="fold">
+    <summary>やることリスト（今日 → 3日以内 → 2週間以内 → そのあと）<span class="mk">＋</span></summary>
+    <div class="fold-b" id="todoList"></div>
+  </details>
+
+  <h2 class="sec">もらえる支援 かんたん診断</h2>
+  <p class="lead">5つの質問に答えると、<b>使える可能性がある制度</b>を並べます。結果はあくまで目安です。
+    対象になるかどうかと金額の最終判断は、お住まいの市町村の窓口で確認してください。
+    <b>答えはこの端末の中だけで処理し、どこにも送りません。</b></p>
+  <div id="quiz"></div>
+  <div class="row" style="gap:8px;margin:2px 0 10px">
+    <button type="button" class="chip" id="quizGo" style="font-weight:700;background:var(--accent);color:#fff;border-color:var(--accent)">診断する</button>
+    <button type="button" class="chip" id="quizReset">選び直す</button>
+  </div>
+  <div id="quizOut"></div>
+
+  <h2 class="sec">詐欺・悪質業者に気をつけてください</h2>
   <div class="notice red">
-    <b>災害に便乗した悪質商法が必ず出ます。</b>「今すぐ契約すれば安い」「保険で全額まかなえる」と急かす業者とは、その場で契約しないでください。相談は<b>消費者ホットライン 188</b>（局番なし）へ。
+    <b>災害のあとには、必ず便乗した商法と詐欺が出ます。</b>2016年の熊本地震でも、屋根の修理と保険金の請求代行をめぐる相談が相次ぎました。
+    <b>その場で契約しない・お金を渡さない・書類にサインしない。</b>この3つを守るだけで、ほとんどは防げます。
+  </div>
+  <div id="sagiList"></div>
+  <div class="card" style="margin-top:2px">
+    <h4 style="margin:0 0 8px">相談・通報先</h4>
+    <div>
+      <a class="tel" href="tel:188">消費者ホットライン 188</a>
+      <a class="tel" href="tel:0963861166">熊本県消費生活センター 096-386-1166</a>
+      <a class="tel" href="tel:%239110">警察相談専用電話 #9110</a>
+      <a class="tel" href="tel:110">被害にあった・今まさに来ている 110</a>
+    </div>
+    <p class="stamp" style="margin:8px 0 0">188は局番なしでかけられ、お住まいの地域の消費生活センターにつながります。
+      <b>契約してしまったあとでも、クーリング・オフで取り消せることがあります。</b>あきらめる前に電話してください。</p>
   </div>
 
   <h2 class="sec">被害の全体像（住家被害）</h2>
@@ -1003,6 +1055,76 @@
   </div>
 </section>
 
+<!-- ========== EASY（やさしい日本語） ========== -->
+<section id="p-easy" class="hidden">
+  <h2 class="sec">やさしい<ruby>日本語<rt>にほんご</rt></ruby>の ページ</h2>
+  <p class="lead">
+    <ruby>地震<rt>じしん</rt></ruby>の あとに <ruby>大切<rt>たいせつ</rt></ruby>な ことを、かんたんな <ruby>日本語<rt>にほんご</rt></ruby>で <ruby>書<rt>か</rt></ruby>いて います。<br>
+    This page is written in Easy Japanese. 이 페이지는 쉬운 일본어로 쓰여 있습니다. 本页面使用简单日语书写。
+  </p>
+
+  <div class="notice red">
+    <b>あぶない ときは、<a href="tel:119">119</a>（<ruby>火事<rt>かじ</rt></ruby>・<ruby>救急車<rt>きゅうきゅうしゃ</rt></ruby>）か <a href="tel:110">110</a>（<ruby>警察<rt>けいさつ</rt></ruby>）に <ruby>電話<rt>でんわ</rt></ruby>して ください。</b><br>
+    <ruby>病院<rt>びょういん</rt></ruby>へ <ruby>行<rt>い</rt></ruby>くか まよう ときは <a href="tel:%237119">#7119</a>。
+  </div>
+
+  <div class="card easy">
+    <h3>1. <ruby>水<rt>みず</rt></ruby>を もらう</h3>
+    <p><ruby>水道<rt>すいどう</rt></ruby>の <ruby>水<rt>みず</rt></ruby>が <ruby>出<rt>で</rt></ruby>ない まちが あります。<ruby>水<rt>みず</rt></ruby>を くばる <ruby>場所<rt>ばしょ</rt></ruby>（＝<ruby>給水所<rt>きゅうすいじょ</rt></ruby>）が あります。<b>お<ruby>金<rt>かね</rt></ruby>は いりません。</b></p>
+    <p>ペットボトルや ポリタンク（<ruby>水<rt>みず</rt></ruby>を <ruby>入<rt>い</rt></ruby>れる もの）を <ruby>持<rt>も</rt></ruby>って <ruby>行<rt>い</rt></ruby>って ください。1<ruby>回<rt>かい</rt></ruby> 5リットルぐらい もらえます。</p>
+    <p><b><ruby>茶色<rt>ちゃいろ</rt></ruby>い <ruby>水<rt>みず</rt></ruby>は <ruby>飲<rt>の</rt></ruby>まないで ください。</b>トイレや そうじには <ruby>使<rt>つか</rt></ruby>えます。</p>
+    <p><button type="button" class="chip" data-go="map" style="font-weight:700"><ruby>給水所<rt>きゅうすいじょ</rt></ruby>の <ruby>地図<rt>ちず</rt></ruby>を <ruby>見<rt>み</rt></ruby>る →</button></p>
+  </div>
+
+  <div class="card easy">
+    <h3>2. <ruby>車<rt>くるま</rt></ruby>で <ruby>寝<rt>ね</rt></ruby>る ときは あぶない</h3>
+    <p><ruby>長<rt>なが</rt></ruby>い <ruby>時間<rt>じかん</rt></ruby>、<ruby>同<rt>おな</rt></ruby>じ かっこうで いると、<ruby>足<rt>あし</rt></ruby>の <ruby>中<rt>なか</rt></ruby>で <ruby>血<rt>ち</rt></ruby>が かたまります。<b>とても あぶないです。</b></p>
+    <ul class="steps-easy">
+      <li>ときどき <ruby>車<rt>くるま</rt></ruby>の <ruby>外<rt>そと</rt></ruby>に <ruby>出<rt>で</rt></ruby>て、<ruby>歩<rt>ある</rt></ruby>いて ください。</li>
+      <li><ruby>水<rt>みず</rt></ruby>を たくさん <ruby>飲<rt>の</rt></ruby>んで ください。</li>
+      <li><ruby>足<rt>あし</rt></ruby>くびを ぐるぐる <ruby>回<rt>まわ</rt></ruby>して ください。</li>
+    </ul>
+    <p><b><ruby>足<rt>あし</rt></ruby>が はれる、ふくらはぎが いたい、<ruby>息<rt>いき</rt></ruby>が くるしい</b> ときは、すぐ <ruby>病院<rt>びょういん</rt></ruby>へ <ruby>行<rt>い</rt></ruby>って ください。</p>
+  </div>
+
+  <div class="card easy">
+    <h3>3. <ruby>暑<rt>あつ</rt></ruby>さに <ruby>気<rt>き</rt></ruby>を つけて</h3>
+    <p>とても <ruby>暑<rt>あつ</rt></ruby>い <ruby>日<rt>ひ</rt></ruby>が つづきます。<ruby>水<rt>みず</rt></ruby>と <ruby>塩<rt>しお</rt></ruby>を とって、すずしい ところで <ruby>休<rt>やす</rt></ruby>んで ください。</p>
+    <ul class="steps-easy">
+      <li><ruby>外<rt>そと</rt></ruby>の <ruby>仕事<rt>しごと</rt></ruby>は ぼうしを かぶって、2<ruby>人<rt>にん</rt></ruby><ruby>以上<rt>いじょう</rt></ruby>で して ください。30<ruby>分<rt>ぷん</rt></ruby>ごとに <ruby>休<rt>やす</rt></ruby>んで ください。</li>
+      <li><b><ruby>子<rt>こ</rt></ruby>どもだけを <ruby>車<rt>くるま</rt></ruby>に <ruby>残<rt>のこ</rt></ruby>さないで ください。</b><ruby>車<rt>くるま</rt></ruby>の <ruby>中<rt>なか</rt></ruby>は すぐ あつく なります。</li>
+      <li><ruby>水<rt>みず</rt></ruby>が <ruby>飲<rt>の</rt></ruby>めない ときや、へんじが おかしい ときは <a href="tel:119">119</a>。</li>
+    </ul>
+  </div>
+
+  <div class="card easy">
+    <h3>4. <ruby>家<rt>いえ</rt></ruby>が こわれた ときの <ruby>紙<rt>かみ</rt></ruby>（り<ruby>災証明書<rt>さいしょうめいしょ</rt></ruby>）</h3>
+    <p><b><ruby>片<rt>かた</rt></ruby>づける <ruby>前<rt>まえ</rt></ruby>に、<ruby>写真<rt>しゃしん</rt></ruby>を とって ください。</b><ruby>家<rt>いえ</rt></ruby>の <ruby>外<rt>そと</rt></ruby>を 4つの <ruby>方向<rt>ほうこう</rt></ruby>から、こわれた ところを <ruby>近<rt>ちか</rt></ruby>くから、<ruby>家<rt>いえ</rt></ruby>の <ruby>中<rt>なか</rt></ruby>も。</p>
+    <p>この <ruby>紙<rt>かみ</rt></ruby>が ないと、お<ruby>金<rt>かね</rt></ruby>の たすけが もらえません。<ruby>市役所<rt>しやくしょ</rt></ruby>・<ruby>町役場<rt>まちやくば</rt></ruby>で <ruby>申<rt>もう</rt></ruby>しこんで ください。</p>
+    <p><button type="button" class="chip" data-go="guide" style="font-weight:700">くわしく <ruby>見<rt>み</rt></ruby>る →</button></p>
+  </div>
+
+  <div class="card easy">
+    <h3>5. あやしい <ruby>人<rt>ひと</rt></ruby>に <ruby>気<rt>き</rt></ruby>を つけて</h3>
+    <p><ruby>地震<rt>じしん</rt></ruby>の あとに、うそを <ruby>言<rt>い</rt></ruby>って お<ruby>金<rt>かね</rt></ruby>を とる <ruby>人<rt>ひと</rt></ruby>が <ruby>来<rt>き</rt></ruby>ます。</p>
+    <ul class="steps-easy">
+      <li>「<ruby>今<rt>いま</rt></ruby>すぐ <ruby>契約<rt>けいやく</rt></ruby>すれば <ruby>安<rt>やす</rt></ruby>い」と <ruby>急<rt>いそ</rt></ruby>がせる <ruby>人<rt>ひと</rt></ruby>とは、その<ruby>場<rt>ば</rt></ruby>で <ruby>契約<rt>けいやく</rt></ruby>しないで ください。</li>
+      <li><ruby>役所<rt>やくしょ</rt></ruby>の <ruby>人<rt>ひと</rt></ruby>は、<ruby>電話<rt>でんわ</rt></ruby>で ATMに <ruby>行<rt>い</rt></ruby>くように <ruby>言<rt>い</rt></ruby>いません。</li>
+      <li>こまった ときは <a href="tel:188">188</a>（<ruby>消費者<rt>しょうひしゃ</rt></ruby>ホットライン）。</li>
+    </ul>
+  </div>
+
+  <div class="card easy">
+    <h3>6. ことばが わからない とき</h3>
+    <ul class="links" id="easyLinks"></ul>
+  </div>
+
+  <div class="notice">
+    このページは、<b>やさしい<ruby>日本語<rt>にほんご</rt></ruby></b>で <ruby>書<rt>か</rt></ruby>いた かんたんな せつめいです。
+    くわしい ことは、ほかの ページと、<ruby>市役所<rt>しやくしょ</rt></ruby>・<ruby>町役場<rt>まちやくば</rt></ruby>の ホームページを <ruby>見<rt>み</rt></ruby>て ください。
+  </div>
+</section>
+
 </main>
 
 <!-- ========== このサイトについて（全タブ共通で表示） ========== -->
@@ -1037,7 +1159,8 @@
 
     <div class="about-card">
       <h3>プライバシー</h3>
-      <p><b>アクセス解析・広告・Cookieは使用していません。</b>訪問者の情報を収集・保存していません。</p>
+      <p><b>アクセス解析・広告・Cookieは使用していません。</b>訪問者の情報を収集していません。</p>
+      <p><b>端末に保存するのは、あなたが選んだ市町村の名前ひとつだけ</b>です。次に開いたときにお住まいの市町村を先頭に出すために使っています。この値は端末の中（ブラウザの localStorage）にだけ残り、<b>運営者にも第三者にも送信していません</b>。「市町村別」タブの「記憶をやめる」でいつでも消せます。ほかには何も保存していません。</p>
       <p>配信基盤（Cloudflare）が通信の安定と攻撃防御のために標準的なアクセスログを保持します。<b>運営者が見るのは、そこから作られる合計値だけ</b>です——1日あたりのリクエスト数、国や地域ごとの内訳といった集計で、個人を特定できる情報は見ていません。サイトの終了時期を判断するためと、掲載先の自治体にご報告するために使っています。</p>
       <p><b>現在地は、この端末の中だけで使っています。</b>「近い順」ボタンを押したときだけブラウザに位置情報を尋ね、距離の計算に使ったあと破棄します。運営者にも第三者にも送信していませんし、保存もしていません。ボタンを押さなければ一切取得しません。</p>
       <p class="note">問い合わせメールでいただいた内容は、返信と修正対応にのみ使用します。</p>
@@ -2115,6 +2238,20 @@ $("#soudanLinks").innerHTML = linkList(SOUDAN);
 $("#volLinks").innerHTML = linkList(VOL_LINKS);
 $("#donateLinks").innerHTML = linkList(DONATE);
 
+/* やさしい日本語ページの、言葉に困ったときの窓口 */
+$("#easyLinks").innerHTML = linkList([
+  {t:"熊本県 外国人サポートセンター（多言語相談）", u:"https://www.kikoss.or.jp/",
+   d:"やさしい日本語・英語・中国語・韓国語・ベトナム語・ネパール語など。096-322-6215（平日8:30〜17:15）。"},
+  {t:"外国人在留支援センター｜FRESC ヘルプデスク", u:"https://www.moj.go.jp/isa/support/fresc/fresc01.html",
+   d:"国の窓口。0120-76-2029（平日9:00〜17:00）。在留資格・生活の相談。"},
+  {t:"八代市｜外国人市民のみなさんへ／遠隔手話通訳", u:"https://www.city.yatsushiro.lg.jp/kiji00326780/index.html",
+   d:"八代市のやさしい日本語の案内。手話通訳の案内もあります。"},
+  {t:"NHK NEWS WEB EASY（やさしい日本語のニュース）", u:"https://www3.nhk.or.jp/news/easy/",
+   d:"ふりがな付き・音声つきのニュース。"},
+  {t:"気象庁｜Multilingual Information on Disaster Mitigation", u:"https://www.jma.go.jp/jma/kokusai/multi.html",
+   d:"14言語の防災用語集。避難情報や気象の言葉を調べられます。"}
+]);
+
 /* 市町村へのジャンプ。8つ並ぶと自分の町を探すのにスクロールが要るので、
    先頭にボタンを置いて1タップで開けるようにする。 */
 $("#cityJump").innerHTML = CITIES.map((c,i)=>
@@ -2160,12 +2297,47 @@ function openCity(ci, smooth){
   const y = d.getBoundingClientRect().top + window.scrollY - 110;
   window.scrollTo({top: y, behavior: smooth === false ? "auto" : "smooth"});
 }
+/* お住まいの市町村をひとつだけ覚える。
+   保存するのは市町村名の文字列1つきりで、送信も集計もしない。
+   localStorage が使えない環境（プライベートブラウズなど）では黙って諦める——
+   覚えられないだけで、サイトの機能は何も落ちない。 */
+const CITY_KEY = "kj.city";
+function savedCity(){
+  try { return localStorage.getItem(CITY_KEY) || ""; } catch(e){ return ""; }
+}
+function saveCity(name){
+  try { name ? localStorage.setItem(CITY_KEY, name) : localStorage.removeItem(CITY_KEY); } catch(e){}
+}
+function renderCityMemo(){
+  const el = $("#cityMemo"); if(!el) return;
+  const n = savedCity();
+  el.innerHTML = n
+    ? `<b>${esc(n)}</b>を次回から先頭に出します（この端末の中だけに保存。送信していません）　`
+      + `<button type="button" class="cl-b" id="cityForget" style="color:var(--ink-3)">記憶をやめる</button>`
+    : `市町村を選ぶと、次に開いたときも先頭に出します（端末の中だけに保存します）。`;
+  const f = $("#cityForget");
+  if(f) f.onclick = () => { saveCity(""); applySavedCity(); };
+}
+/* 覚えている市町村を先頭に持ってきて、開いておく */
+function applySavedCity(){
+  const n = savedCity();
+  renderCityMemo();
+  if(!n) return;
+  const i = CITIES.findIndex(c => c.name === n);
+  if(i < 0) return;
+  const jump = $("#cityJump"), list = $("#cityList");
+  const b = jump && jump.querySelector('button[data-jump="' + i + '"]');
+  if(b) jump.insertBefore(b, jump.firstChild);
+  const d = list && list.querySelector('details.acc[data-ci="' + i + '"]');
+  if(d){ list.insertBefore(d, list.firstChild); d.open = true; }
+}
 function wireCityJump(){
   document.querySelectorAll('#cityJump button').forEach(b=>{
-    b.onclick = () => openCity(b.dataset.jump);
+    b.onclick = () => { saveCity(CITIES[b.dataset.jump].name); renderCityMemo(); openCity(b.dataset.jump); };
   });
 }
 wireCityJump();
+applySavedCity();
 
 $("#lifeList").innerHTML = LIFE.map(s=>`
   <h3 style="font-size:1rem;margin:20px 0 8px">${esc(s.h)}</h3>
@@ -2183,6 +2355,263 @@ $("#guideList").innerHTML = PROGRAMS.map(p=>`
     ${p.links.length?`<h4>公式の説明</h4><ul class="links">${linkList(p.links)}</ul>`:""}
   </div>
 </details>`).join("");
+
+/* =========================================================
+   やることリスト（時間の順）
+   「最初にやる4つ」のあとが続かない、という問題への答え。
+   期限のあるものは日付を書く。日が過ぎたものは自動で薄くしない——
+   自治体が延長することがあるので、消さずに残して窓口で確かめてもらう。
+   ========================================================= */
+const TODO = [
+  {h:"今日じゅうに", c:"b-urgent", items:[
+    "<b>片付ける前に写真を撮る。</b>建物の外観を四方向、被害箇所のアップ、室内も。ブルーシートをかける前が理想です。",
+    "<b>家族と連絡がついているか確かめる。</b>電話よりSNS・メッセージアプリのほうがつながります。災害用伝言ダイヤル <a href=\"tel:171\">171</a>。",
+    "<b>ガスのにおいがしないか確かめる。</b>したら火を使わず、電気のスイッチにも触れず、窓を開けて供給会社へ。",
+    "<b>避難するときはブレーカーを落とす。</b>復旧したときの通電火災を防ぎます。",
+    "<b>水を確保する。</b>給水所は日ごとに場所と時間が変わります。容器を持って行ってください。"
+  ]},
+  {h:"3日以内に", c:"b-warn", items:[
+    "<b>罹災証明書を申請する。</b>ほぼすべての支援制度の入口です。窓口が混むときはマイナポータルからの電子申請も使えます。",
+    "<b>保険会社に連絡する。</b>証券をなくしても照会できる制度があります。地震保険は火災保険とセットなので、入っているか分からない人も照会を。",
+    "<b>持病の薬を確保する。</b>お薬手帳がなくても、薬局で相談すれば対応してもらえることがあります。",
+    "<b>片付けの前に、災害ごみの出し方を確認する。</b>市町村ごとに仮置場と受け入れ品目が違い、あとから分別のやり直しになります。",
+    "<b>被害の写真をクラウドか家族に送っておく。</b>端末が壊れると証拠ごと失います。"
+  ]},
+  {h:"2週間以内に", c:"b-info", items:[
+    "<b>被災者生活再建支援金の申請</b>（全壊・大規模半壊など）。罹災証明書が要ります。",
+    "<b>住宅の応急修理を申し込む。</b><span style=\"color:#b3261e;font-weight:700\">先に工事を発注すると対象外になります。</span>必ず市町村に相談してから。",
+    "<b>税・国民健康保険料・介護保険料・水道料金の減免を申請する。</b>見落としがいちばん多いところです。黙っていても減りません。",
+    "<b>応急仮設住宅（みなし仮設を含む）の受付を確認する。</b>民間賃貸を借り上げる方式は、自分で物件を探せる場合があります。",
+    "<b>領収書と契約書を全部とっておく。</b>修理費・宿泊費・移動費も、あとの支援や税の控除で効いてきます。"
+  ]},
+  {h:"そのあと・忘れずに", c:"b-grey", items:[
+    "<b>罹災証明の判定に納得できないときは、再調査を依頼できます。</b>期限があるので早めに。",
+    "<b>住宅ローンが残っている方は「自然災害債務整理ガイドライン」を。</b>自己破産をせずに、一定の財産を手元に残して債務を減免できる制度です。",
+    "<b>こころとからだの不調は、我慢しないで相談する。</b>数週間たってから出てくることのほうが多いです。",
+    "<b>義援金の配分申請を確認する。</b>県や市町村が受け付けた義援金は、罹災証明の区分に応じて配分されます。申請が要ることがあります。"
+  ]}
+];
+function renderTodo(){
+  const box = $("#todoList"); if(!box) return;
+  box.innerHTML = TODO.map(g=>`
+    <h4 style="margin:14px 0 6px;display:flex;align-items:center;gap:8px">
+      <span class="badge ${g.c}">${esc(g.h)}</span></h4>
+    <ul class="steps" style="margin:0">${g.items.map(x=>`<li>${x}</li>`).join("")}</ul>`).join("");
+}
+renderTodo();
+
+/* =========================================================
+   詐欺・悪質業者
+   手口ごとに「何を言われるか」と「どうすればいいか」を対にする。
+   一般論の注意喚起より、実際に言われる台詞を書いたほうが気づける。
+   ========================================================= */
+const SAGI = [
+  {n:"屋根・外壁の応急修理をめぐる訪問",
+   say:"「近くで工事をしていて、お宅の屋根が浮いているのが見えました」「今すぐ契約すれば足場代がタダ」「明日には雨が降るので今日決めてください」",
+   do:"その場で契約しないでください。<b>住宅の応急修理は、先に自分で発注すると災害救助法の対象外になります。</b>まず市町村に相談を。工事は複数の業者から見積もりを取ってからで間に合います。"},
+  {n:"保険金の請求代行をもちかける業者",
+   say:"「保険で全額まかなえます」「手数料は保険金から払えばいいので自己負担ゼロ」「申請の書類はこちらで作ります」",
+   do:"保険金の請求は<b>自分で保険会社に連絡すれば無料</b>です。代行業者は保険金の3〜4割を手数料に取ることがあります。虚偽の申請に加担すると<b>あなたが詐欺に問われます</b>。まず契約している保険会社へ。"},
+  {n:"公的機関をかたる電話・訪問",
+   say:"「市役所の者ですが、支援金の還付があります」「ATMで手続きできます」「罹災証明の調査に来ました、手数料を」",
+   do:"<b>役所がATMへ行くよう電話で指示することはありません。</b>罹災証明の申請も調査も無料です。身分証の提示を求め、それでも不審なら、いったん切ってから役所の代表番号にかけ直してください。"},
+  {n:"義援金・寄付金の名をかたる勧誘",
+   say:"「被災地への義援金をお願いします」（街頭・電話・メール・SNSのDM）",
+   do:"<b>県・市町村・日本赤十字社・共同募金会の公式ページに書かれた口座か、Yahoo!ネット募金などの実名の窓口</b>を使ってください。当サイトの「支援したい方へ」に公式の口座を載せています。SNSで送られてきたリンクからは振り込まないこと。"},
+  {n:"住まい・仕事につけこむ話",
+   say:"「仮設住宅に優先的に入れる」「支援金の申請を代行します（有料）」「高収入の復旧作業員募集」",
+   do:"仮設住宅の入居に優先枠を売る仲介は存在しません。支援金の申請はすべて無料で自分でできます。求人は<b>ハローワーク</b>を通してください。"},
+  {n:"ニセの情報・チェーンメッセージ",
+   say:"「◯◯で断水が復旧したらしい」「この井戸の水は飲める」（出どころの書かれていない転送）",
+   do:"<b>出どころが書かれていない情報は、善意でも転送しないでください。</b>給水所や避難所の情報は日に何度も変わります。市町村の公式発表かどうかを確かめてから。"}
+];
+function renderSagi(){
+  const box = $("#sagiList"); if(!box) return;
+  box.innerHTML = SAGI.map(s=>`
+    <details class="acc">
+      <summary><span>${esc(s.n)}</span><span class="mk">＋</span></summary>
+      <div class="acc-body">
+        <p class="stamp" style="margin:0 0 8px;font-size:.83rem">こう言われます</p>
+        <blockquote class="quote" style="font-size:.86rem">${esc(s.say)}</blockquote>
+        <p class="stamp" style="margin:10px 0 4px;font-size:.83rem">こうしてください</p>
+        <p style="margin:0;font-size:.88rem;color:var(--ink-2);line-height:1.9">${rich(s.do)}</p>
+      </div>
+    </details>`).join("");
+}
+renderSagi();
+
+/* =========================================================
+   もらえる支援 かんたん診断
+
+   考え方:
+   - 判定は「該当する可能性がある」までしか言わない。金額や可否は窓口の仕事。
+   - 迷ったら出す（false negative を避ける）。制度を知らずに取りこぼすほうが損失が大きい。
+   - 出た制度には必ず「誰に聞けばいいか」を添える。一覧を見せて終わりにしない。
+   - 答えは端末の外に出さない。集計もしない。
+   ========================================================= */
+const QUIZ = [
+  {id:"dmg", q:"住まいの被害はどのくらいですか", hint:"罹災証明の区分がまだ分からなければ、見た目の印象で構いません", multi:false, opts:[
+    {v:"zenkai", l:"全壊（住めない）"},
+    {v:"hankai", l:"半壊など大きな被害"},
+    {v:"ichibu", l:"一部損壊（瓦・壁のひびなど）"},
+    {v:"none",   l:"大きな被害はない／分からない"}
+  ]},
+  {id:"home", q:"住まいの形は", hint:"", multi:false, opts:[
+    {v:"own",  l:"持ち家"},
+    {v:"rent", l:"賃貸"},
+    {v:"other",l:"その他（社宅・間借りなど）"}
+  ]},
+  {id:"fam", q:"世帯について（あてはまるものすべて）", hint:"", multi:true, opts:[
+    {v:"child",  l:"小中高・大学生の子どもがいる"},
+    {v:"elder",  l:"65歳以上・介護が必要な家族がいる"},
+    {v:"disab",  l:"障害のある家族がいる"},
+    {v:"lowinc", l:"収入が少ない／収入が途絶えた"}
+  ]},
+  {id:"harm", q:"ご家族のけが（あてはまるものすべて）", hint:"", multi:true, opts:[
+    {v:"death",  l:"亡くなった家族がいる"},
+    {v:"severe", l:"重い障害が残る見込みの家族がいる"},
+    {v:"injury", l:"けがをして治療中の家族がいる"}
+  ]},
+  {id:"work", q:"仕事・お金について（あてはまるものすべて）", hint:"", multi:true, opts:[
+    {v:"emp",   l:"雇われて働いている"},
+    {v:"biz",   l:"自営業・会社を経営している"},
+    {v:"loan",  l:"住宅ローンが残っている"},
+    {v:"ins",   l:"地震保険に入っている／分からない"},
+    {v:"farm",  l:"農林漁業をしている"}
+  ]}
+];
+
+/* m(a) は選んだ答え。true を返した制度が結果に並ぶ。
+   意図的にゆるく判定している——外して知らせないより、余分に出して窓口で外れるほうがよい。 */
+const BENEFITS = [
+  {n:"罹災証明書", who:"お住まいの市町村",
+   d:"すべての入口。これがないと、下のほとんどの制度が使えません。片付ける前の写真を持って申請してください。",
+   f:a=>a.dmg!=="none"},
+  {n:"被災者生活再建支援金", who:"お住まいの市町村（申請は市町村、支給は都道府県）",
+   d:"住宅が全壊・大規模半壊などの世帯に、使いみちを問わずに支給されます。基礎支援金と、住まいを再建したときの加算支援金の2階建て。<b>賃貸でも世帯単位で対象になります。</b>",
+   f:a=>a.dmg==="zenkai"||a.dmg==="hankai"},
+  {n:"住宅の応急修理（災害救助法）", who:"お住まいの市町村",
+   d:"日常生活に必要な最小限の修理を、市町村が業者に頼んで行います。屋根のブルーシート張りなど緊急のものは別枠。<b>自分で先に発注すると対象外になります。必ず相談が先です。</b>",
+   f:a=>(a.dmg==="hankai"||a.dmg==="ichibu")&&a.home!=="rent"},
+  {n:"応急仮設住宅・みなし仮設（民間賃貸の借り上げ）", who:"お住まいの市町村／熊本県",
+   d:"住む場所を失った世帯に、建設した仮設住宅か、県が民間の賃貸を借り上げて提供します。自分で物件を見つけて申し込める方式もあります。",
+   f:a=>a.dmg==="zenkai"||a.dmg==="hankai"},
+  {n:"災害弔慰金", who:"お住まいの市町村",
+   d:"災害で亡くなった方のご遺族へ。生計を維持していた方は500万円、それ以外の方は250万円が上限です。",
+   f:a=>a.harm.includes("death")},
+  {n:"災害障害見舞金", who:"お住まいの市町村",
+   d:"災害で重度の障害が残った方へ。生計を維持していた方は250万円、それ以外の方は125万円が上限です。",
+   f:a=>a.harm.includes("severe")},
+  {n:"災害援護資金（貸付）", who:"お住まいの市町村",
+   d:"世帯主のけが、または住居・家財の損害があるときの貸付。所得の上限があります。据置期間があり、利率は低く設定されています。",
+   f:a=>a.dmg!=="none"||a.harm.includes("injury")||a.harm.includes("severe")},
+  {n:"生活福祉資金（緊急小口資金）", who:"お住まいの市町村の社会福祉協議会",
+   d:"当座の生活費が足りないときの少額の貸付。災害時は特例が設けられることがあります。",
+   f:a=>a.fam.includes("lowinc")||a.dmg==="zenkai"},
+  {n:"所得税の軽減（雑損控除・災害減免法）", who:"税務署",
+   d:"住宅や家財に損害を受けたとき、確定申告で所得税が軽くなります。<b>どちらか有利なほうを選べます。</b>領収書と罹災証明を残しておいてください。",
+   f:a=>a.dmg!=="none"},
+  {n:"住民税・固定資産税の減免", who:"お住まいの市町村の税務担当",
+   d:"被害の程度に応じて減免されることがあります。<b>申請しないと減りません。</b>",
+   f:a=>a.dmg!=="none"},
+  {n:"国民健康保険料・介護保険料・後期高齢者医療の減免", who:"お住まいの市町村",
+   d:"保険料の減免と、医療機関の窓口負担（一部負担金）の免除。<b>これがいちばん見落とされます。</b>",
+   f:a=>a.dmg!=="none"||a.fam.includes("lowinc")},
+  {n:"水道・下水道料金の減免", who:"市町村の上下水道局",
+   d:"断水や損壊にともなう減免。漏水した分の水道料金が請求されないよう、こちらから申し出が必要なことがあります。",
+   f:a=>true},
+  {n:"災害ごみの処理手数料の減免", who:"お住まいの市町村の環境担当",
+   d:"仮置場への搬入は無料か減免になります。<b>市町村によって必要な書類が違います</b>（罹災証明が要る／減免申請書だけでよい）。行く前に確認を。",
+   f:a=>a.dmg!=="none"},
+  {n:"自然災害債務整理ガイドライン（被災ローン減免制度）", who:"お取引の金融機関／弁護士会",
+   d:"<b>自己破産をせずに、手元に一定の財産（最大500万円程度）を残したまま、住宅ローンなどを減免できる制度です。</b>信用情報にも登録されません。ローンが残っている方は必ず確認してください。",
+   f:a=>a.work.includes("loan")},
+  {n:"災害復興住宅融資（住宅金融支援機構）", who:"住宅金融支援機構 0120-086-353",
+   d:"住宅を建て直す・補修するための低利の融資。既存のローンの返済方法の変更（据置・期間延長）の相談もここです。",
+   f:a=>(a.dmg==="zenkai"||a.dmg==="hankai")&&a.home!=="rent"},
+  {n:"地震保険の請求", who:"契約している保険会社",
+   d:"<b>請求は自分で連絡すれば無料です。</b>代行業者に頼む必要はありません。証券をなくしても、日本損害保険協会の照会制度で契約先が分かります。",
+   f:a=>a.work.includes("ins")},
+  {n:"就学援助・奨学金の緊急採用", who:"学校／市町村の教育委員会／日本学生支援機構",
+   d:"学用品費や給食費などの援助と、授業料の減免・徴収猶予。日本学生支援機構には災害時の緊急・応急採用があります。",
+   f:a=>a.fam.includes("child")},
+  {n:"保育料・幼児教育の利用者負担の減免", who:"お住まいの市町村",
+   d:"世帯の状況に応じて減免されることがあります。",
+   f:a=>a.fam.includes("child")},
+  {n:"介護保険・障害福祉サービスの利用者負担の減免", who:"お住まいの市町村",
+   d:"サービスを使うときの自己負担が減免されます。ケアマネジャーにも相談してください。",
+   f:a=>a.fam.includes("elder")||a.fam.includes("disab")},
+  {n:"雇用保険の特例（休業中でも失業給付）", who:"ハローワーク",
+   d:"事業所が災害で休業し、賃金を受け取れない場合、離職していなくても失業給付を受けられる特例があります。未払賃金の立替払制度もあります。",
+   f:a=>a.work.includes("emp")},
+  {n:"事業者向け：災害復旧貸付・セーフティネット保証", who:"日本政策金融公庫／信用保証協会／商工会議所",
+   d:"設備や運転資金の低利融資と、保証枠の別枠化。あわせて、持続化補助金などの災害枠が設けられることがあります。",
+   f:a=>a.work.includes("biz")},
+  {n:"農林漁業者向け：災害資金・共済", who:"JA／県の農林水産部／漁協",
+   d:"農林漁業セーフティネット資金、農業共済・収入保険の請求、施設の復旧事業。",
+   f:a=>a.work.includes("farm")},
+  {n:"こころとからだの相談", who:"熊本県精神保健福祉センター／かかりつけ医",
+   d:"眠れない、落ち着かない、涙が出る——数週間たってから出てくることのほうが多いです。<b>我慢は治療ではありません。</b>",
+   f:a=>true}
+];
+
+const qzAns = {dmg:"", home:"", fam:[], harm:[], work:[]};
+function renderQuiz(){
+  const box = $("#quiz"); if(!box) return;
+  box.innerHTML = QUIZ.map((q,i)=>`
+    <div class="qz" data-q="${q.id}">
+      <h4>Q${i+1}. ${esc(q.q)}${q.multi?'<span class="stamp" style="font-weight:400">（いくつでも）</span>':''}</h4>
+      ${q.hint?`<p class="hint">${esc(q.hint)}</p>`:""}
+      <div class="opts">${q.opts.map(o=>
+        `<button type="button" data-v="${o.v}" aria-pressed="false">${esc(o.l)}</button>`).join("")}</div>
+    </div>`).join("");
+  box.querySelectorAll(".qz").forEach(el=>{
+    const q = QUIZ.find(x=>x.id===el.dataset.q);
+    el.querySelectorAll("button").forEach(b=>{
+      b.onclick = () => {
+        if(q.multi){
+          const on = b.getAttribute("aria-pressed")==="true";
+          b.setAttribute("aria-pressed", String(!on));
+          qzAns[q.id] = [...el.querySelectorAll('button[aria-pressed="true"]')].map(x=>x.dataset.v);
+        } else {
+          el.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed", String(x===b)));
+          qzAns[q.id] = b.dataset.v;
+        }
+      };
+    });
+  });
+}
+function runQuiz(){
+  const out = $("#quizOut");
+  if(!qzAns.dmg){
+    out.innerHTML = `<div class="notice">Q1（住まいの被害）だけは選んでください。ここで結果が大きく変わります。</div>`;
+    return;
+  }
+  const hits = BENEFITS.filter(b=>{ try{ return b.f(qzAns); }catch(e){ return false; } });
+  out.innerHTML = `
+    <div class="notice info"><b>${hits.length}件の制度が、あなたの状況に当てはまる可能性があります。</b>
+      これは目安です。対象になるかどうかと金額は、必ず窓口で確認してください。
+      <b>「自分は対象ではない」と思っていた制度が使えることがよくあります。</b></div>
+    ${hits.map(b=>`
+      <div class="hit">
+        <div class="hn">${esc(b.n)}</div>
+        <p class="hw">${rich(b.d)}</p>
+        <p class="stamp" style="margin:6px 0 0">聞く先：${esc(b.who)}</p>
+      </div>`).join("")}
+    <div class="notice">
+      申請には<b>罹災証明書</b>が要るものがほとんどです。まだなら先に申請してください。
+      制度ごとに<b>期限が違います</b>。窓口で「私が使えるものを全部教えてください」と聞くのがいちばん早いです。
+      <div style="margin-top:8px"><button type="button" class="chip" data-go="city" style="font-weight:700">お住まいの市町村の窓口を見る →</button></div>
+    </div>`;
+  out.scrollIntoView({behavior:"smooth", block:"start"});
+  wireGo(out);
+}
+renderQuiz();
+$("#quizGo").onclick = runQuiz;
+$("#quizReset").onclick = () => {
+  qzAns.dmg=""; qzAns.home=""; qzAns.fam=[]; qzAns.harm=[]; qzAns.work=[];
+  renderQuiz(); $("#quizOut").innerHTML="";
+};
 
 /* ---------- SNS ---------- */
 function acctRow(a, ok){
@@ -3820,7 +4249,7 @@ renderQuakeElapsed();
 setInterval(renderQuakeElapsed, 60000);
 
 /* タブ */
-const PAGES=["home","live","quake","map","city","life","guide","vol","sns"];
+const PAGES=["home","live","quake","map","city","life","guide","vol","sns","easy"];
 function go(tab){
   PAGES.forEach(p=>$("#p-"+p).classList.toggle("hidden",p!==tab));
   document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===tab));
@@ -3831,7 +4260,10 @@ function go(tab){
   else if(tab==="quake") mapMount("quake");
 }
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>go(b.dataset.tab));
-document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
+function wireGo(root){
+  (root||document).querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
+}
+wireGo();
 
 /* 文字サイズ */
 document.querySelectorAll('.fs-ctl button').forEach(b=>{
