@@ -39,6 +39,7 @@ import datetime as dt
 import urllib.request
 import urllib.error
 import xml.etree.ElementTree as ET
+import html as html_mod
 
 # ----------------------------------------------------------------------------
 # 設定
@@ -934,6 +935,131 @@ def fetch_hypocenters(prev, verbose=False):
     }
 
 
+# --- Yahoo!くらし 防災情報（自治体のLINE/防災メールと同じ配信の公開ミラー） -------
+#
+# 自治体が Yahoo! と災害協定を結んで流している「自治体からの緊急情報」が、
+# ログイン不要のウェブページとして残っている。八代市はLINEに流すのと同じ本文を
+# ここにも同時に投げていて、実測ではLINEより早く出た（8/1 給水所追加＝Yahoo 10:56 / LINE 11:09）。
+# 他の自治体はLアラート由来の「避難所開設情報」が中心で、手書きのお知らせは流れてこない。
+YAHOO_BASE = "https://kurashi.yahoo.co.jp"
+YAHOO_MUNI = [
+    ("43202", "八代市"),   # 自由文のお知らせが全文流れてくる。ここが本命
+    ("43468", "氷川町"),
+    ("43211", "宇土市"),
+    ("43213", "宇城市"),
+    ("43100", "熊本市"),
+    ("43443", "益城町"),
+    ("43348", "美里町"),
+]
+YAHOO_KEEP = 120          # 本文の保管件数（自治体ごとではなく全体）
+YAHOO_DETAIL_PER_RUN = 12  # 1回の実行で本文を取りにいく上限。取りこぼしても次回拾う
+
+
+def _yahoo_get(url):
+    req = urllib.request.Request(url, headers={
+        "User-Agent": UA,
+        "Accept": "text/html,application/xhtml+xml",
+        "Accept-Language": "ja",
+    })
+    with urllib.request.urlopen(req, timeout=20) as res:
+        return decode(res.read())
+
+
+def _yahoo_strip(html):
+    """本文だけを抜く。<main> の中の、日時のあとから「共有」までを本文とみなす。"""
+    html = re.sub(r"(?is)<(script|style|noscript)[^>]*>.*?</\1>", " ", html)
+    html = re.sub(r"(?i)<br\s*/?>", "\n", html)
+    html = re.sub(r"(?i)</(p|div|li|h\d)>", "\n", html)
+    text = re.sub(r"(?s)<[^>]+>", "", html)
+    text = html_mod.unescape(text)
+    lines = [l.strip() for l in text.split("\n")]
+    # 「更新:2026/8/1(土) 10:56」の次の行から「共有」の手前まで
+    start = end = None
+    for i, l in enumerate(lines):
+        if start is None and re.match(r"^更新[:：]\s*\d{4}/\d{1,2}/\d{1,2}", l):
+            start = i + 1
+        elif start is not None and l in ("共有", "情報提供", "この情報を共有する"):
+            end = i
+            break
+        elif start is not None and l.startswith("情報提供"):
+            end = i
+            break
+    if start is None:
+        return ""
+    body = [l for l in lines[start:end if end is not None else start + 60] if l]
+    return "\n".join(body).strip()
+
+
+def fetch_yahoo_bousai(prev, verbose=False):
+    """自治体の防災配信（Yahoo!くらし）を集める。
+
+    返すのは {"updated_at":..., "items":[{muni,id,url,title,at,body}, ...]}。
+    一覧は毎回引くが、本文は初めて見たIDのぶんだけ取りにいく。
+    本文が取れなくても見出しと時刻は残す（次回また本文を試す）。
+    """
+    old = prev.get("yahoo") or {}
+    known = {it["id"]: it for it in (old.get("items") or []) if it.get("id")}
+
+    listed, detail_budget = [], YAHOO_DETAIL_PER_RUN
+    for code, name in YAHOO_MUNI:
+        url = f"{YAHOO_BASE}/kumamoto/{code}/incidents/bousai/history"
+        try:
+            html = _yahoo_get(url)
+        except Exception as e:
+            if verbose:
+                print(f"    Yahoo {name} 一覧の取得に失敗 {type(e).__name__}: {e}")
+            continue
+        # <a href="/kumamoto/43202/incidents/bousai/398846">タイトル…2026/8/1(土) 10:56</a>
+        for m in re.finditer(
+                r'href="(/kumamoto/' + code + r'/incidents/bousai/(\d+))"[^>]*>(.*?)</a>',
+                html, re.S):
+            href, iid, inner = m.group(1), m.group(2), m.group(3)
+            txt = html_mod.unescape(re.sub(r"(?s)<[^>]+>", " ", inner))
+            txt = re.sub(r"\s+", " ", txt).strip()
+            dm = re.search(r"(\d{4})/(\d{1,2})/(\d{1,2}).*?(\d{1,2}):(\d{2})", txt)
+            at = ""
+            if dm:
+                y, mo, da, h, mi = (int(x) for x in dm.groups())
+                at = dt.datetime(y, mo, da, h, mi, tzinfo=JST).isoformat()
+                txt = txt[:dm.start()].strip()
+            if not txt:
+                continue
+            listed.append({"muni": name, "id": iid, "url": YAHOO_BASE + href,
+                           "title": txt, "at": at})
+        time.sleep(REQUEST_INTERVAL)
+
+    out = []
+    for it in listed:
+        prev_it = known.get(it["id"])
+        body = (prev_it or {}).get("body", "")
+        if not body and detail_budget > 0:
+            detail_budget -= 1
+            try:
+                body = _yahoo_strip(_yahoo_get(it["url"]))
+            except Exception as e:
+                if verbose:
+                    print(f"    Yahoo 本文の取得に失敗 {it['id']} {type(e).__name__}: {e}")
+                body = ""
+            time.sleep(REQUEST_INTERVAL)
+        it = dict(it)
+        it["body"] = body[:1800]
+        out.append(it)
+
+    # 一覧から消えたものも、本文を持っているぶんは残す（過去分を失わないため）
+    seen = {it["id"] for it in out}
+    for iid, it in known.items():
+        if iid not in seen:
+            out.append(it)
+
+    out.sort(key=lambda x: x.get("at") or "", reverse=True)
+    out = out[:YAHOO_KEEP]
+    if verbose:
+        withbody = sum(1 for x in out if x.get("body"))
+        print(f"  Yahoo!くらし: {len(out)}件（本文あり {withbody}件）")
+    return {"updated_at": dt.datetime.now(JST).isoformat(),
+            "items": out, "count": len(out)}
+
+
 def fetch_cao_gas(prev, verbose=False):
     """内閣府の被害状況PDFから都市ガスの供給停止戸数を読む。
 
@@ -1277,6 +1403,17 @@ def crawl(verbose=False):
                                "status": "取得失敗", "checked_at": now.isoformat()})
 
     try:
+        yahoo = fetch_yahoo_bousai(prev, verbose)
+        sources_status.append({"id": "yahoo_bousai", "label": "Yahoo!くらし 自治体の防災配信",
+                               "status": f"{yahoo['count']}件", "checked_at": now.isoformat()})
+    except Exception as e:
+        yahoo = prev.get("yahoo") or {"items": [], "count": 0}
+        errors.append({"id": "yahoo_bousai", "label": "Yahoo!くらし 自治体の防災配信",
+                       "error": str(e), "at": now.isoformat()})
+        sources_status.append({"id": "yahoo_bousai", "label": "Yahoo!くらし 自治体の防災配信",
+                               "status": "取得失敗", "checked_at": now.isoformat()})
+
+    try:
         hypo = fetch_hypocenters(prev, verbose)
         sources_status.append({"id": "p2p_hypo", "label": "P2P地震情報（震源の位置）",
                                "status": f"{hypo['count']}件", "checked_at": now.isoformat()})
@@ -1297,6 +1434,7 @@ def crawl(verbose=False):
         "gas": gas,
         "quake_hours": quake_hours,
         "hypo": hypo,
+        "yahoo": yahoo,
         "quake_max_eid": quake_max_eid,
         "stats": stats,
         "updates": picked[:KEEP_UPDATES],
