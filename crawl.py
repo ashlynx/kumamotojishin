@@ -757,6 +757,11 @@ def parse_kyuden_power(xml_text, src, verbose=False):
     return out
 
 
+# 断水PDFのパーサーを直したら必ず増やす。増やさないと、同じ報がキャッシュから
+# そのまま返り続けて修正が効かない（実際に「8月1日」を「8月10日」と読む不具合で踏んだ）。
+WATER_PARSER = 2
+
+
 def parse_mlit_water(html, src, state_entry, verbose=False):
     """国土交通省の被害状況PDFから断水戸数を取り出す。
 
@@ -789,16 +794,19 @@ def parse_mlit_water(html, src, state_entry, verbose=False):
     no, url, label = max(reports, key=lambda x: x[0])
 
     # 同じ報を何度も落とさない（気象庁と同様、無駄な再取得を避ける）
-    if state_entry.get("water_pdf_url") == url and state_entry.get("stat"):
+    cached = state_entry.get("stat") or {}
+    if (state_entry.get("water_pdf_url") == url
+            and cached and cached.get("parser") == WATER_PARSER):
         if verbose:
             print(f"    第{no}報は取得済み")
-        return state_entry["stat"]
+        return cached
 
     pdf_bytes = fetch_bytes(url)
     stat = extract_water_from_pdf(pdf_bytes)
     if not stat.get("current") and not stat.get("peak"):
         raise ValueError(f"第{no}報のPDFから断水戸数を抽出できませんでした")
 
+    stat["parser"] = WATER_PARSER
     stat["report_no"] = no
     stat["source_url"] = url
     stat["source_page"] = src["url"]
@@ -836,7 +844,17 @@ def extract_water_from_pdf(pdf_bytes):
     out = {}
     m = re.search(r"■\s*水道\s*（\s*(\d{1,2})\s*/\s*(\d{1,2})\s+(\d{1,2}):(\d{2})\s*時点\s*）", spaced)
     if m:
-        out["as_of"] = f"{int(m.group(1))}月{int(m.group(2))}日 {int(m.group(3))}:{m.group(4)}"
+        mo, da, h, mi = int(m.group(1)), int(m.group(2)), int(m.group(3)), m.group(4)
+        # 読み違えて未来の日付になっていないか確かめる。
+        # 「◯日時点」が明日以降を指していたら、間違った時刻を出すより出さないほうがよい。
+        now = dt.datetime.now(JST)
+        try:
+            when = dt.datetime(now.year, mo, da, h, int(mi), tzinfo=JST)
+            ok = when <= now + dt.timedelta(hours=6)
+        except ValueError:
+            ok = False
+        if ok:
+            out["as_of"] = f"{mo}月{da}日 {h}:{mi}"
     m = re.search(r"(\d+)\s*県\s*（\s*(\d+)\s*自治体\s*）\s*において\s*約?\s*([\d,]+)\s*戸が断水中", joined)
     if m:
         out["current"] = int(m.group(3).replace(",", ""))
