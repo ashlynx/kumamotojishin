@@ -1136,6 +1136,16 @@
 
 <!-- ========== このサイトについて（全タブ共通で表示） ========== -->
 <section class="about"><div class="in">
+  <h2>ページの入口</h2>
+  <p style="font-size:.85rem;margin:0 0 10px">
+    検索から直接たどれるよう、テーマごとの入口を用意しています。
+    どれも変わらないことだけを書いた案内で、日ごとに変わる情報はこのサイト本体にあります。</p>
+  <p class="linkrow" style="margin:0 0 22px;line-height:2.6">
+    <a href="/mizu">給水所と断水</a>　<a href="/furo">お風呂に入れる場所</a>　<a href="/risai">り災証明書</a>　
+    <a href="/shien">使える支援制度</a>　<a href="/checklist">やることリスト</a>　<a href="/sagi">詐欺への注意</a>　
+    <a href="/volunteer">ボランティア</a>　<a href="/yasashii">やさしい日本語</a>
+  </p>
+
   <h2>このサイトについて</h2>
 
   <div class="about-grid">
@@ -4389,6 +4399,15 @@ function wireGo(root){
   (root||document).querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
 }
 wireGo();
+
+/* 入口ページ（/mizu など）からタブを直接開けるようにする。
+   #mizu のような素のハッシュだけを見て、知らない値は無視する。 */
+function goFromHash(){
+  const h = (location.hash || "").replace(/^#/, "");
+  if(PAGES.includes(h)) go(h);
+}
+goFromHash();
+window.addEventListener("hashchange", goFromHash);
 
 /* 文字サイズ */
 document.querySelectorAll('.fs-ctl button').forEach(b=>{
