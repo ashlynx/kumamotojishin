@@ -331,6 +331,7 @@ SOURCES = [
         "id": "mlit_water",
         "label": "国土交通省 被害状況（断水）",
         "kind": "mlit_water",
+        "parser_ver": 2,   # WATER_PARSER と合わせる。上げると条件付きGETのキャッシュも捨てる
         "url": "https://www.mlit.go.jp/saigai/saigai_260728.html",
         "group": "stat",
         "note": "断水戸数はPDFでしか公表されないため、最新報のPDFを取得して数値を抜き出す。"
@@ -1290,6 +1291,14 @@ def crawl(verbose=False):
         sid = src["id"]
         entry = state.get(sid, {})
 
+        # パーサーを直したときは、条件付きGETが304を返して前回の解析結果が
+        # そのまま生き残ってしまう。ETagごと捨てて必ず取り直す。
+        pv = src.get("parser_ver")
+        if pv is not None and entry.get("parser_ver") != pv:
+            if verbose and entry:
+                print(f"    [{sid}] パーサー更新のため前回の状態を破棄")
+            entry = {}
+
         # 予算を使い切ったら、残りは前回値を持ち越して打ち切る。
         # 全部を諦めるより、取れたところまで出して更新を止めないほうがよい。
         if time.time() - started > TIME_BUDGET:
@@ -1327,6 +1336,8 @@ def crawl(verbose=False):
             changed = body_hash != entry.get("hash")
             new_entry["hash"] = body_hash
             new_entry["last_ok"] = now.isoformat()
+            if pv is not None:
+                new_entry["parser_ver"] = pv
             state[sid] = new_entry
 
             kind = src["kind"]
