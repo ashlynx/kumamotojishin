@@ -168,6 +168,13 @@
   details.fold[open]>summary{border-bottom:1px solid var(--line)}
   details.fold .fold-b{padding:10px 13px 12px}
   details.fold .fold-b>p:first-child{margin-top:0}
+  /* 長い注記は2行だけ見せる。全部隠すと大事な一言まで埋もれるので、頭は残す。 */
+  .clamp .cl-t{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .clamp.open .cl-t{display:block}
+  .clamp .cl-b{border:0;background:none;padding:3px 0 0;margin:0;font:inherit;
+    font-size:.73rem;font-weight:700;color:var(--accent);cursor:pointer}
+  .clamp .cl-b::after{content:" ▼";font-size:.62rem}
+  .clamp.open .cl-b::after{content:" ▲"}
   .qfacts{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px 18px}
   .qfacts .k{display:block;font-size:.73rem;color:var(--ink-3);margin-bottom:2px}
   .qfacts b{font-size:1rem;line-height:1.5}
@@ -2045,16 +2052,38 @@ const FAKE_LINKS = [
 const $ = s => document.querySelector(s);
 const esc = s => String(s==null?"":s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
+/* 本文の強調に使う <b> と <br> だけを通す。それ以外は今までどおりエスケープする。
+   ここを素通しにすると、取り込んだ発表文にタグが混ざったときに崩れるので、2つに限る。 */
+const rich = s => esc(s)
+  .replace(/&lt;(\/?)(b|br)\s*\/?&gt;/g, (m, sl, tag) => "<" + sl + tag + ">")
+  .replace(/\n/g, "<br>");   /* 取り込んだ発表文に改行が入っていたときに詰まらないように */
+
+/* 長い注記は最初の2行だけ見せて、残りは「続きを読む」で開く。
+   全部たたむと大事な一言まで隠れるので、頭は必ず見えるようにする。 */
+const CLAMP_LEN = 84;
+function clampHTML(html){
+  const plain = String(html).replace(/<br>/g, " ").replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
+  if(plain.length <= CLAMP_LEN) return html;
+  return `<div class="clamp"><div class="cl-t">${html}</div>
+    <button type="button" class="cl-b">続きを読む</button></div>`;
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest(".cl-b");
+  if(!b) return;
+  const w = b.parentNode;
+  b.textContent = w.classList.toggle("open") ? "閉じる" : "続きを読む";
+});
+
 function linkList(arr){
   return arr.map(l=>`<li><a href="${l.u}" target="_blank" rel="noopener">
-    <span class="t">${esc(l.t)}</span>${l.d?`<span class="d">${esc(l.d)}</span>`:""}</a></li>`).join("");
+    <span class="t">${esc(l.t)}</span>${l.d?`<span class="d">${rich(l.d)}</span>`:""}</a></li>`).join("");
 }
 function placeList(items){
   return items.map(p=>{
     const q = p.q || (p.a ? p.a : p.n);
     return `<div class="place">
       <div class="info">
-        <div class="nm">${esc(p.n)}${p.note?` <span class="badge b-grey">${esc(p.note)}</span>`:""}</div>
+        <div class="nm">${esc(p.n)}${p.note?` <span class="badge b-grey">${rich(p.note)}</span>`:""}</div>
         ${p.a?`<div class="ad">${esc(p.a)}</div>`:`<div class="ad">住所は公式資料に記載なし（施設名で検索します）</div>`}
       </div>
       <a class="gmap" href="${G(q)}" target="_blank" rel="noopener">地図 ↗</a>
@@ -2080,18 +2109,18 @@ $("#cityList").innerHTML = CITIES.map((c,i)=>`
     <span class="mk">＋</span>
   </summary>
   <div class="acc-body">
-    ${c.status?`<div class="notice info" style="margin-top:0">${esc(c.status)}</div>`:""}
-    ${c.warn?`<div class="notice">${esc(c.warn)}</div>`:""}
+    ${c.status?`<div class="notice info" style="margin-top:0">${clampHTML(rich(c.status))}</div>`:""}
+    ${c.warn?`<div class="notice">${clampHTML(rich(c.warn))}</div>`:""}
 
     <h4>公式ページ</h4>
     <ul class="links">${linkList(c.links)}</ul>
 
     ${c.shelter?`<h4>${esc(c.shelter.title)}</h4>
-      ${c.shelter.note?`<p class="stamp" style="margin:0 0 6px">${esc(c.shelter.note)}</p>`:""}
+      ${c.shelter.note?`<div class="stamp" style="margin:0 0 6px">${clampHTML(rich(c.shelter.note))}</div>`:""}
       ${c.shelter.items.length?placeList(c.shelter.items):""}`:""}
 
     ${c.water?`<h4>${esc(c.water.title)}</h4>
-      ${c.water.note?`<p class="stamp" style="margin:0 0 6px">${esc(c.water.note)}</p>`:""}
+      ${c.water.note?`<div class="stamp" style="margin:0 0 6px">${clampHTML(rich(c.water.note))}</div>`:""}
       ${c.water.items.length?placeList(c.water.items):""}`:""}
 
     <h4>電話</h4>
@@ -2122,14 +2151,14 @@ wireCityJump();
 $("#lifeList").innerHTML = LIFE.map(s=>`
   <h3 style="font-size:1rem;margin:20px 0 8px">${esc(s.h)}</h3>
   <div class="card"><ul class="links">${linkList(s.links)}</ul></div>
-  ${s.note?`<p class="stamp" style="margin:-6px 0 0">${esc(s.note)}</p>`:""}
+  ${s.note?`<div class="stamp" style="margin:-6px 0 0">${clampHTML(rich(s.note))}</div>`:""}
 `).join("");
 
 $("#guideList").innerHTML = PROGRAMS.map(p=>`
 <details class="acc">
   <summary><span>${esc(p.t)}</span>${p.tag?`<span class="badge ${p.tagc}">${esc(p.tag)}</span>`:""}<span class="mk">＋</span></summary>
   <div class="acc-body">
-    <p style="margin:0;font-size:.88rem;color:var(--ink-2)">${esc(p.lead)}</p>
+    <div style="margin:0;font-size:.88rem;color:var(--ink-2)">${clampHTML(rich(p.lead))}</div>
     ${p.steps.length?`<h4>進め方</h4><ol class="steps">${p.steps.map(s=>`<li>${s}</li>`).join("")}</ol>`:""}
     ${p.warn?`<div class="notice">${p.warn}</div>`:""}
     ${p.links.length?`<h4>公式の説明</h4><ul class="links">${linkList(p.links)}</ul>`:""}
