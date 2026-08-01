@@ -160,6 +160,14 @@
   .si.s5{background:#fbe7d8;color:#a5490d}
   .si.s6{background:#fdecea;color:#b3261e}
   .si.s7{background:#b3261e;color:#fff}
+  details.fold{border:1px solid var(--line);border-radius:10px;background:var(--surface);margin:10px 0 0}
+  details.fold>summary{list-style:none;cursor:pointer;padding:9px 13px;font-size:.8rem;font-weight:700;
+    color:var(--ink-2);display:flex;align-items:center;gap:8px}
+  details.fold>summary::-webkit-details-marker{display:none}
+  details.fold>summary .mk{margin-left:auto;font-weight:800;color:var(--ink-3)}
+  details.fold[open]>summary{border-bottom:1px solid var(--line)}
+  details.fold .fold-b{padding:10px 13px 12px}
+  details.fold .fold-b>p:first-child{margin-top:0}
   .qfacts{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px 18px}
   .qfacts .k{display:block;font-size:.73rem;color:var(--ink-3);margin-bottom:2px}
   .qfacts b{font-size:1rem;line-height:1.5}
@@ -422,18 +430,23 @@
     <button type="button" class="stat go" data-go="map" id="statWaterPt"><div class="v">—</div><div class="l">給水所（当サイト掲載）→ 地図</div></button>
     <button type="button" class="stat go" data-go="city" id="statShelter"><div class="v">—</div><div class="l">開設中の避難所（市町村の発表の合計）→ 市町村別</div></button>
   </div>
-  <p class="stamp">
-    断水と停電は当サイトが国土交通省・九州電力送配電から自動取得しています。<b>解消したものはこの欄から消え、また発生すれば戻ります。</b>都市ガスは内閣府の被害状況資料（経済産業省情報）から自動取得しています。<b>住家被害だけは自動取得ではなく、熊本県の発表を手作業で書き写した数値です。</b>機械で読める国の集計は市町村からの報告を待つ仕組みで、県が自ら発表している数と桁が違うためです（7/30時点で内閣府2棟に対し、県は7/31時点で1,507戸）。小さいほうを載せると被害を過小に見せてしまいます。
-    住家被害は熊本県が7月31日15時時点として発表したもので（全壊179戸・大規模半壊20戸・半壊220戸ほか）、<b>調査が進むにつれて増えます。</b>
-   
-    給水所と避難所の数は、各市町村の発表を当サイトが数えたものです（熊本市の避難所は市が公表している180か所を使っています）。開設場所は日ごとに変わるので、押して一覧をご確認ください。<br>
-    最新は <a href="https://www.pref.kumamoto.jp/soshiki/222/274487.html" target="_blank" rel="noopener">熊本県の災害対策本部会議資料</a>、
-    <a href="https://www.fdma.go.jp/disaster/info/" target="_blank" rel="noopener">消防庁の被害報</a>、
-    <a href="https://www.kyugas.co.jp/r8_kumamoto_info/" target="_blank" rel="noopener">九州ガスの関連情報</a> をご確認ください。
-  </p>
-  <div id="waterDetail"></div>
-  <div id="powerDetail"></div>
-  <div id="gasDetail"></div>
+  <details class="fold">
+    <summary>数字の内訳と出どころ<span class="mk">＋</span></summary>
+    <div class="fold-b">
+    <p class="stamp">
+      断水と停電は当サイトが国土交通省・九州電力送配電から自動取得しています。<b>解消したものはこの欄から消え、また発生すれば戻ります。</b>都市ガスは内閣府の被害状況資料（経済産業省情報）から自動取得しています。<b>住家被害だけは自動取得ではなく、熊本県の発表を手作業で書き写した数値です。</b>機械で読める国の集計は市町村からの報告を待つ仕組みで、県が自ら発表している数と桁が違うためです（7/30時点で内閣府2棟に対し、県は7/31時点で1,507戸）。小さいほうを載せると被害を過小に見せてしまいます。
+      住家被害は熊本県が7月31日15時時点として発表したもので（全壊179戸・大規模半壊20戸・半壊220戸ほか）、<b>調査が進むにつれて増えます。</b>
+     
+      給水所と避難所の数は、各市町村の発表を当サイトが数えたものです（熊本市の避難所は市が公表している180か所を使っています）。開設場所は日ごとに変わるので、押して一覧をご確認ください。<br>
+      最新は <a href="https://www.pref.kumamoto.jp/soshiki/222/274487.html" target="_blank" rel="noopener">熊本県の災害対策本部会議資料</a>、
+      <a href="https://www.fdma.go.jp/disaster/info/" target="_blank" rel="noopener">消防庁の被害報</a>、
+      <a href="https://www.kyugas.co.jp/r8_kumamoto_info/" target="_blank" rel="noopener">九州ガスの関連情報</a> をご確認ください。
+    </p>
+    <div id="waterDetail"></div>
+    <div id="powerDetail"></div>
+    <div id="gasDetail"></div>
+    </div>
+  </details>
   <p class="stamp" style="margin-top:10px">
     本震は2026年7月28日16時27分ごろ、熊本県熊本地方、深さ16km、M7.1（暫定値）。最大震度7を宇城市と氷川町で観測。震度6強は熊本市・八代市・宇土市・美里町・益城町ほか。日奈久断層帯の活動と推定されています。
     <button type="button" class="chip" data-go="quake" style="margin-left:6px">本震と余震の詳しい情報 →</button>
