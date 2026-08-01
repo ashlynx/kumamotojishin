@@ -205,6 +205,68 @@ SOURCES = [
         "note": "新着一覧がJavaScriptで描画されるため、描画元のJSONを直接読む。",
     },
     {
+        "id": "kamiamakusa",
+        "label": "上天草市",
+        "kind": "rss",
+        "url": "https://www.city.kamiamakusa.kumamoto.jp/rss/rc/999.xml",
+        "group": "city",
+        "area": "上天草市",
+        "filter": "disaster",
+        "note": "新着情報。カテゴリ別のフィードは 999 と 400 の2本しか存在しない（他の番号は404）。",
+    },
+    {
+        "id": "kamiamakusa_shien",
+        "label": "上天草市 支援情報",
+        "kind": "rss",
+        "url": "https://www.city.kamiamakusa.kumamoto.jp/rss/rc/400.xml",
+        "group": "city",
+        "area": "上天草市",
+    },
+    {
+        "id": "amakusa_bousai",
+        "label": "天草市 防災サイト",
+        "kind": "rss",
+        "url": "https://www.city.amakusa.kumamoto.jp/bousai/new_list.xml",
+        "group": "city",
+        "area": "天草市",
+        "note": "防災サイト専用のフィード。地震関連がほぼ全件なので絞り込みはかけない。",
+    },
+    {
+        "id": "amakusa",
+        "label": "天草市",
+        "kind": "rss",
+        "url": "https://www.city.amakusa.kumamoto.jp/new_list.xml",
+        "group": "city",
+        "area": "天草市",
+        "filter": "disaster",
+    },
+    {
+        "id": "mifune",
+        "label": "御船町",
+        "kind": "rss",
+        "url": "https://www.town.mifune.kumamoto.jp/new_list/pub/rss.aspx",
+        "group": "city",
+        "area": "御船町",
+        "filter": "disaster",
+    },
+    {
+        "id": "kosa_oshirase",
+        "label": "甲佐町 お知らせ",
+        "kind": "rss",
+        "url": "https://www.town.kosa.lg.jp/rss/rc/101.xml",
+        "group": "city",
+        "area": "甲佐町",
+        "note": "新着情報の 999.xml は更新が数週間遅れることがあるため、こちらを主に使う。",
+    },
+    {
+        "id": "kosa_topics",
+        "label": "甲佐町 トピックス",
+        "kind": "rss",
+        "url": "https://www.town.kosa.lg.jp/rss/rc/1.xml",
+        "group": "city",
+        "area": "甲佐町",
+    },
+    {
         "id": "hikawa_kinkyu",
         "label": "氷川町 緊急情報",
         "kind": "kinkyu_html",
@@ -765,12 +827,16 @@ def extract_water_from_pdf(pdf_bytes):
             txt += (page.extract_text() or "") + "\n"
 
     rows = [re.sub(r"[ \t　]+", " ", l.strip()) for l in txt.split("\n")]
-    joined = re.sub(r"(?<=[0-9])\s+(?=[0-9,])", "", " ".join(rows))
+    spaced = " ".join(rows)
+    # 表の桁が空白で割れる（「84, 000 戸」）ので数字のあいだの空白だけ詰める。
+    # ただし日付は詰めると「8/1 09:30」が「8/109:30」になって 8/10 と読めてしまうため、
+    # 時点の取り出しだけは詰める前の spaced を使う。
+    joined = re.sub(r"(?<=[0-9])\s+(?=[0-9,])", "", spaced)
 
     out = {}
-    m = re.search(r"■\s*水道\s*（\s*(\d{1,2})/(\d{1,2})\s*(\d{1,2}):(\d{2})\s*時点\s*）", joined)
+    m = re.search(r"■\s*水道\s*（\s*(\d{1,2})\s*/\s*(\d{1,2})\s+(\d{1,2}):(\d{2})\s*時点\s*）", spaced)
     if m:
-        out["as_of"] = f"{int(m.group(1))}月{int(m.group(2))}日 {m.group(3)}:{m.group(4)}"
+        out["as_of"] = f"{int(m.group(1))}月{int(m.group(2))}日 {int(m.group(3))}:{m.group(4)}"
     m = re.search(r"(\d+)\s*県\s*（\s*(\d+)\s*自治体\s*）\s*において\s*約?\s*([\d,]+)\s*戸が断水中", joined)
     if m:
         out["current"] = int(m.group(3).replace(",", ""))
@@ -950,9 +1016,14 @@ YAHOO_MUNI = [
     ("43100", "熊本市"),
     ("43443", "益城町"),
     ("43348", "美里町"),
+    ("43212", "上天草市"),
+    ("43215", "天草市"),
+    ("43441", "御船町"),
+    ("43444", "甲佐町"),
 ]
 YAHOO_KEEP = 120          # 本文の保管件数（自治体ごとではなく全体）
 YAHOO_DETAIL_PER_RUN = 12  # 1回の実行で本文を取りにいく上限。取りこぼしても次回拾う
+YAHOO_INTERVAL = 1.2       # 同一ホストへの間隔。自治体ごとに1回ずつ引くので短めにする
 
 
 def _yahoo_get(url):
@@ -1026,7 +1097,7 @@ def fetch_yahoo_bousai(prev, verbose=False):
                 continue
             listed.append({"muni": name, "id": iid, "url": YAHOO_BASE + href,
                            "title": txt, "at": at})
-        time.sleep(REQUEST_INTERVAL)
+        time.sleep(YAHOO_INTERVAL)
 
     out = []
     for it in listed:
@@ -1040,7 +1111,7 @@ def fetch_yahoo_bousai(prev, verbose=False):
                 if verbose:
                     print(f"    Yahoo 本文の取得に失敗 {it['id']} {type(e).__name__}: {e}")
                 body = ""
-            time.sleep(REQUEST_INTERVAL)
+            time.sleep(YAHOO_INTERVAL)
         it = dict(it)
         it["body"] = body[:1800]
         out.append(it)
