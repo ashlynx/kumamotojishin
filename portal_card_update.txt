@@ -1,0 +1,5 @@
+■ いま公開中のカードの desc と tags だけを差し替える案
+  （セクション名「災害情報」／note「Cloudflare · 独自ドメイン」はそのままでいいと思います）
+
+<div class="desc">給水所・避難所・給油所を現在地から近い順に地図で表示。断水・停電・都市ガスの戸数を自動取得。り災証明と支援制度、災害ボランティアの受入状況、入浴・洗濯支援、やさしい日本語まで。国・県・各市町村など29の一次情報源を10分おきに巡回する非公式サイト。</div>
+<div class="tags"><span class="tag">災害情報</span><span class="tag">29ソース巡回</span><span class="tag">10分毎巡回</span><span class="tag">独自ドメイン</span><span class="tag">Cloudflare</span></div>
