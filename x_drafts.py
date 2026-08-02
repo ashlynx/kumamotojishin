@@ -92,6 +92,10 @@ MAX_AGE_H = 30                     # これより古い発表は出さない（1
 # 「どこで」「いつ」に当たる部分。削った結果これが消えたら、その投稿は捨てる。
 DETAIL = re.compile(r"[・○●]|\d{1,2}[:：]\d{2}|\d{1,2}時|\d+丁目|\d+番地|[市町村]\S*\d")
 TRUNCATED = re.compile(r"(…|\.\.\.)\s*$")
+# 挨拶だけの文。これしか残らなかった候補は捨てる——
+# 「心より感謝申し上げます」だけを流しても、読んだ人は何もできない。
+GREETING = re.compile(r"お見舞い|感謝申し上げ|御礼|お礼申し上げ|ご協力(を)?(お願い|賜り)|"
+                      r"心より|謹んで|ご迷惑をおかけ|ご理解とご協力")
 
 
 # 落としてはいけない行。箇条書き（場所の一覧）と、
@@ -139,6 +143,9 @@ def fit(head, body, tail):
         return None, 0, total
     # 「いつ」も「どこ」も残っていない投稿は出さない
     if any(DETAIL.search(x) for x in ss) and not any(DETAIL.search(x) for x in keep):
+        return None, 0, total
+    # 挨拶しか残らなかった投稿も出さない
+    if not any(not GREETING.search(x) for x in keep):
         return None, 0, total
     return text, len(keep), total
 
@@ -261,6 +268,32 @@ def summary_posts(data):
     return [o for o in out if weighted(o["text"]) <= LIMIT]
 
 
+# 公式Xアカウントのある自治体。ここの発表は**リポストか引用リポストで済ませられる**。
+# 自分で書き直すより安全で速く、なりすましにもならない。
+# 逆にここに無い自治体（氷川町・益城町・美里町・上天草市・天草市・御船町・甲佐町）は、
+# X上に発表そのものが存在しない。「氷川町 給水」で検索しても何も出てこない。
+# **リポストできない自治体の情報こそ、当サイトが出す価値がある。**
+OFFICIAL_X = {
+    "八代市": "@yatsushiro0801",
+    "熊本市": "@kumamotocity_",
+    "宇土市": "@uto_city（未確認）",
+    "宇城市": "@uki_bousai（宇城市防災・未確認）",
+}
+
+
+def how_to_post(muni):
+    """その市町村の発表を、どう出すのがいいかを返す。"""
+    acct = OFFICIAL_X.get(muni)
+    if acct:
+        return ("引用リポスト", f"{acct} に同じ発表が流れているはずです。"
+                f"**まず {acct} を開いて、該当の投稿を引用リポストしてください。**"
+                "元投稿が埋め込まれるので出典の問題が消えます。下の本文は、"
+                "公式Xに見つからなかったときの代替です。")
+    return ("独自に出す", "この市町村に公式Xアカウントはありません。"
+            "**X上にこの発表は存在しないので、当サイトが出す価値があります。** "
+            "下の本文をそのまま使えます（出典のリンク付き）。")
+
+
 def load_state():
     try:
         with open(STATE_PATH, encoding="utf-8") as f:
@@ -367,9 +400,12 @@ def render(picked, data):
     for i, c in enumerate(picked, 1):
         w = weighted(c["text"])
         cut = "" if c["kept"] >= c["total"] else f"／元の本文{c['total']}文のうち{c['kept']}文"
-        out += [f"## {i}. {c['muni']}（{c['kind']}）",
-                f"**{w} / 280**　発表 {c['at'][:16].replace('T',' ')}{cut}", "",
-                "```", c["text"], "```", "",
+        way, note = ("独自に出す", "") if c["kind"] == "当サイトのまとめ" else how_to_post(c["muni"])
+        out += [f"## {i}. {c['muni']}（{c['kind']}）　→ **{way}**",
+                f"**{w} / 280**　発表 {c['at'][:16].replace('T',' ')}{cut}", ""]
+        if note:
+            out += [note, ""]
+        out += ["```", c["text"], "```", "",
                 f"出典: {c['src']}", ""]
         if c.get("reply"):
             out += ["**スレッドの2本目（リプライ）に添える案。1本目は公式リンクのままにしてください。**", "",
