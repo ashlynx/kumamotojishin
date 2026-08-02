@@ -885,7 +885,7 @@
       <li><a href="https://www.pref.kumamoto.jp/soshiki/222/274487.html" target="_blank" rel="noopener">熊本県｜災害対策本部会議の資料</a><span class="d">会議ごとに「人的被害等の状況」が公開されます。県内の市町村別を見るならこちら。</span></li>
     </ul>
     <p class="stamp" style="margin:10px 0 0">
-      <b>熊本県は7月31日15時時点で、住家被害を1,507戸と発表しました（全壊179戸・大規模半壊20戸・半壊220戸ほか）。</b>
+      <b>熊本県は8月2日14時時点で、住家被害を4,042戸と発表しました。内訳は全壊181戸・大規模半壊20戸・半壊225戸・一部破損1,720戸、そして<b>分類未確定が1,896戸</b>です。</b><b>分類未確定が半分近くを占めているのは、調査がまだ途中だからです。</b>ここが判定されていくにつれて、全壊・半壊の数は増えます。7月31日15時時点は1,507戸（全壊179戸）でした。
       7月29日14時時点の県資料では住家被害の内訳がまだ公表されておらず、そこから数日で一気に積み上がっています。
       <b>この数字はこれからも増えます。</b>当サイトの数値は手作業での書き写しなので、上のリンク先の時点表記と突き合わせてご覧ください。
       <b>自分の家の判定は、報道や国の集計ではなく、市町村の被害認定調査で決まります。</b>
@@ -2293,7 +2293,7 @@ const SNS_OK = [
 ];
 /* X上に実在はするが、運営元サイトからの相互リンクを確認できなかったもの */
 const SNS_CHECK = [
-  {n:"宇土市（と思われるアカウント）", h:"uto_city", d:"市サイトに掲載なし。市の公式SNSはLINE・Instagram・Facebook"},
+  {n:"宇土市公式", h:"uto_city", d:"市サイトに掲載なし。市の公式SNSはLINE・Instagram・Facebook"},
   {n:"宇城市防災（と思われるアカウント）", h:"uki_bousai", d:"市サイト・宇城市防災ポータルのいずれにも掲載なし"},
   {n:"国土交通省 九州地方整備局", h:"mlit_Kyushu", d:"局サイトにアカウント一覧の掲載を確認できず"},
   {n:"NHK熊本放送局", h:"nhk_kumamoto", d:"NHK側サイトで確認できず"},
@@ -2888,9 +2888,13 @@ let mapMode = "facility", hyFitted = false;
    （7/30時点で内閣府2棟に対し、熊本県は7/31時点で1,507戸）。
    小さいほうを載せると被害を過小に見せるので、県の発表を手で書き写しています。
    古くなりやすいので、時点から一定時間たつと画面に警告を出します。 */
+/* 住家被害。熊本県の災害対策本部会議資料（PDF）の合計行から、手作業で書き写しています。
+   自動取得していない理由は、機械可読な国の集計（内閣府）が県の数字より桁違いに小さく、
+   自動化すると被害を過小に見せてしまうためです。
+   undecided（分類未確定）が半分近くを占めることがあるので、内訳ごと出しています。 */
 const HOUSE = {
-  total: 1507, zenkai: 179, daikibo: 20, hankai: 220,
-  at: "2026-07-31T15:00:00+09:00", by: "熊本県",
+  total: 4042, zenkai: 181, daikibo: 20, hankai: 225, ichibu: 1720, undecided: 1896,
+  at: "2026-08-02T14:00:00+09:00", by: "熊本県",
   url: "https://www.pref.kumamoto.jp/soshiki/222/274487.html"
 };
 /* 都市圏活断層図（地理院タイル afm）と、震源マップの暗い表示。
@@ -3475,7 +3479,8 @@ function renderHouse(){
   if(!tile) return;
   const hrs = (Date.now() - new Date(HOUSE.at).getTime()) / 3600000;
   tile.innerHTML = `<div class="v">${HOUSE.total.toLocaleString("ja-JP")}戸</div>
-    <div class="l">住家被害（うち全壊${HOUSE.zenkai}戸）${fmtDT(HOUSE.at)}時点${
+    <div class="l">住家被害（全壊${HOUSE.zenkai}・大規模半壊${HOUSE.daikibo}・半壊${HOUSE.hankai}${
+      HOUSE.undecided ? `・分類未確定${HOUSE.undecided.toLocaleString("ja-JP")}` : ""}戸）${fmtDT(HOUSE.at)}時点${
       hrs > 30 ? `<br><b style="color:var(--urgent)">この数値は${Math.floor(hrs/24)}日前のものです</b>` : ""}</div>`;
 }
 

@@ -276,7 +276,7 @@ def summary_posts(data):
 OFFICIAL_X = {
     "八代市": "@yatsushiro0801",
     "熊本市": "@kumamotocity_",
-    "宇土市": "@uto_city（未確認）",
+    "宇土市": "@uto_city（宇土市公式・稼働を確認済み）",
     "宇城市": "@uki_bousai（宇城市防災・未確認）",
 }
 
