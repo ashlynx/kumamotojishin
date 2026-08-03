@@ -3718,7 +3718,7 @@ function renderWater(){
   box.innerHTML = `
     <p class="stamp" style="margin:0">
       国土交通省 第${esc(w.report_no || "?")}報（${esc(w.as_of || "")}時点）で
-      ${w.current_pref ? w.current_pref + "県" : ""}${w.current_muni ? w.current_muni + "自治体" : ""}・約${n(w.current)}戸が断水中。主因は管の破損による漏水。
+      ${w.current_pref_name ? esc(w.current_pref_name) + "の" : (w.current_pref ? w.current_pref + "県" : "")}${w.current_muni ? w.current_muni + "自治体" : ""}・約${n(w.current)}戸が断水中。主因は管の破損による漏水。
       ${w.peak && w.peak !== w.current ? `ピーク時 約${n(w.peak)}戸。` : ""}
       <a href="${esc(w.source_url || "https://www.mlit.go.jp/saigai/saigai_260728.html")}" target="_blank" rel="noopener">原資料 ↗</a>
     </p>

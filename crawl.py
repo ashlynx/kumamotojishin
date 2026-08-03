@@ -331,7 +331,7 @@ SOURCES = [
         "id": "mlit_water",
         "label": "国土交通省 被害状況（断水）",
         "kind": "mlit_water",
-        "parser_ver": 2,   # WATER_PARSER と合わせる。上げると条件付きGETのキャッシュも捨てる
+        "parser_ver": 3,   # WATER_PARSER と合わせる。上げると条件付きGETのキャッシュも捨てる
         "url": "https://www.mlit.go.jp/saigai/saigai_260728.html",
         "group": "stat",
         "note": "断水戸数はPDFでしか公表されないため、最新報のPDFを取得して数値を抜き出す。"
@@ -760,7 +760,7 @@ def parse_kyuden_power(xml_text, src, verbose=False):
 
 # 断水PDFのパーサーを直したら必ず増やす。増やさないと、同じ報がキャッシュから
 # そのまま返り続けて修正が効かない（実際に「8月1日」を「8月10日」と読む不具合で踏んだ）。
-WATER_PARSER = 2
+WATER_PARSER = 3
 
 
 def parse_mlit_water(html, src, state_entry, verbose=False):
@@ -804,8 +804,12 @@ def parse_mlit_water(html, src, state_entry, verbose=False):
 
     pdf_bytes = fetch_bytes(url)
     stat = extract_water_from_pdf(pdf_bytes)
-    if not stat.get("current") and not stat.get("peak"):
-        raise ValueError(f"第{no}報のPDFから断水戸数を抽出できませんでした")
+    # 「いま何戸が断水しているか」が取れなければ失敗として扱う。
+    # ピーク値だけ取れても、サイトの数字は現在戸数なので出せるものがない。
+    # 以前ここを peak との or 条件にしていたため、第22報で文面が変わって
+    # current だけ落ちたのに成功扱いになり、タイルが「確認中」のまま固まった。
+    if not stat.get("current"):
+        raise ValueError(f"第{no}報のPDFから現在の断水戸数を抽出できませんでした")
 
     stat["parser"] = WATER_PARSER
     stat["report_no"] = no
@@ -835,6 +839,11 @@ def extract_water_from_pdf(pdf_bytes):
         for page in pdf.pages:
             txt += (page.extract_text() or "") + "\n"
 
+    # 全角数字を半角に寄せる。第22報から要約文の数だけが全角（「４県」「５自治体」）に
+    # 変わっていて、半角前提の正規表現がまるごと外れた。括弧や波ダッシュは
+    # 既存の正規表現が全角のまま書かれているので、ここでは触らない。
+    txt = txt.translate(str.maketrans("０１２３４５６７８９", "0123456789"))
+
     rows = [re.sub(r"[ \t　]+", " ", l.strip()) for l in txt.split("\n")]
     spaced = " ".join(rows)
     # 表の桁が空白で割れる（「84, 000 戸」）ので数字のあいだの空白だけ詰める。
@@ -856,10 +865,18 @@ def extract_water_from_pdf(pdf_bytes):
             ok = False
         if ok:
             out["as_of"] = f"{mo}月{da}日 {h}:{mi}"
+    # 現在の断水戸数。復旧が進むにつれて文面が変わるので、見た形をすべて残しておく。
+    #   第18報まで … 「４県（15自治体）において約47,000戸が断水中」
+    #   第22報から … 「熊本県の５自治体において約45,000戸が断水中」（県が1つに絞られた）
     m = re.search(r"(\d+)\s*県\s*（\s*(\d+)\s*自治体\s*）\s*において\s*約?\s*([\d,]+)\s*戸が断水中", joined)
     if m:
         out["current"] = int(m.group(3).replace(",", ""))
         out["current_pref"], out["current_muni"] = int(m.group(1)), int(m.group(2))
+    else:
+        m = re.search(r"([^\s○●・、。（）]{2,4}県)の\s*(\d+)\s*自治体において\s*約?\s*([\d,]+)\s*戸が断水中", joined)
+        if m:
+            out["current"] = int(m.group(3).replace(",", ""))
+            out["current_pref_name"], out["current_muni"] = m.group(1), int(m.group(2))
     m = re.search(r"最大断水戸数\s*約?\s*([\d,]+)\s*戸", joined)
     if m:
         out["peak"] = int(m.group(1).replace(",", ""))
@@ -884,13 +901,27 @@ def extract_water_from_pdf(pdf_bytes):
             continue
         if not in_kumamoto:
             continue
-        mm = re.match(r"^([^\s0-9]{1,7}[市町村])\s+約?([\d,]+)\s+約?([\d,]+)(?:\s|$)", l)
+        # 「0※（給水時間の制限あり）」のように数字のうしろに注記が付く行がある。
+        mm = re.match(r"^([^\s0-9]{1,7}[市町村])\s+(?:約?([\d,]+)|不明)\s*※?\s+約?([\d,]+)\s*※?(?:\s|$)", l)
         if mm:
             muni.append({"name": mm.group(1),
-                         "max": int(mm.group(2).replace(",", "")),
+                         "max": int(mm.group(2).replace(",", "")) if mm.group(2) else None,
                          "now": int(mm.group(3).replace(",", ""))})
     if muni:
         out["municipalities"] = sorted(muni, key=lambda x: -x["now"])
+
+    # 表の「合計」行。要約文の言い回しが変わっても、この行の並び（最大・現在）は
+    # 第1報から変わっていない。要約文から取れなかったときの保険にする。
+    for l in rows[t0:t1]:
+        tm = re.match(r"^合\s*計\s+約?([\d,]+)\s+約?([\d,]+)\s*$", l)
+        if tm:
+            peak_t, cur_t = (int(tm.group(i).replace(",", "")) for i in (1, 2))
+            out.setdefault("peak", peak_t)
+            out.setdefault("current", cur_t)
+            # 要約文と合計行が食い違ったら、あとで気づけるように記録だけ残す。
+            if out.get("current") != cur_t or out.get("peak") != peak_t:
+                out["total_row"] = {"peak": peak_t, "current": cur_t}
+            break
     return out
 
 
