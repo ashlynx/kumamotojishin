@@ -38,6 +38,7 @@ import argparse
 import datetime as dt
 import urllib.request
 import urllib.error
+import urllib.parse
 import xml.etree.ElementTree as ET
 import html as html_mod
 
@@ -83,7 +84,7 @@ CAO_INDEX = "https://www.bousai.go.jp/updates/r8kumamoto_jishin/index.html"
 CAO_PDF = "https://www.bousai.go.jp/updates/r8kumamoto_jishin/pdf/r8kumamoto_jishin_%s.pdf"
 # パーサーを直したら必ず増やすこと。前回の結果をそのまま使い回して、
 # 直したはずの誤りが残り続けるのを防ぐための番号。
-CAO_PARSER = 2
+CAO_PARSER = 3
 
 HERE = os.path.dirname(os.path.abspath(__file__)) or "."
 OUT_DIR = os.path.join(HERE, "out")
@@ -267,6 +268,37 @@ SOURCES = [
         "area": "甲佐町",
     },
     {
+        "id": "kosa_kinkyu",
+        "label": "甲佐町 緊急情報",
+        "kind": "cms_list_html",
+        "url": "https://www.town.kosa.lg.jp/q/list/51.html",
+        "group": "city",
+        "area": "甲佐町",
+        "note": "断水・一時給水・避難所・通行止めは「緊急情報」カテゴリにしか載らないのに、"
+                "このカテゴリだけRSSが用意されていない（/rss/rc/51.xml は404）。"
+                "お知らせ・トピックスのRSSだけを見ていると、いちばん切実な発表を取り逃す。",
+    },
+    {
+        "id": "kashima",
+        "label": "嘉島町",
+        "kind": "rss",
+        "url": "https://www.town.kumamoto-kashima.lg.jp/rss/rc/999.xml",
+        "group": "city",
+        "area": "嘉島町",
+        "filter": "disaster",
+        "note": "新着情報。防災行政無線の放送内容（給水など）もここに流れてくる。"
+                "サイトはEUC-JPなので、文字コードの判定を誤ると全文が化ける。",
+    },
+    {
+        "id": "kashima_kinkyu",
+        "label": "嘉島町 緊急情報",
+        "kind": "cms_list_html",
+        "url": "https://www.town.kumamoto-kashima.lg.jp/q/list/51.html",
+        "group": "city",
+        "area": "嘉島町",
+        "note": "甲佐町と同じCMS。緊急情報カテゴリのRSSは無い。",
+    },
+    {
         "id": "hikawa_kinkyu",
         "label": "氷川町 緊急情報",
         "kind": "kinkyu_html",
@@ -412,9 +444,15 @@ def fetch(url, state_entry, verbose=False):
 
 
 def decode(raw):
-    """文字コードを推定してデコード。自治体サイトにShift_JISが残っていることがある。"""
-    head = raw[:200].decode("ascii", errors="ignore").lower()
-    m = re.search(r'encoding=["\']([\w-]+)["\']', head)
+    """文字コードを推定してデコード。自治体サイトにShift_JISやEUC-JPが残っていることがある。
+
+    XML宣言だけを見ていると、HTMLの <meta charset> を取りこぼす。EUC-JPのページは
+    cp932 としても「例外を出さずに」デコードできてしまい、文字化けに気づけないので、
+    宣言があるときはそれを最優先する（嘉島町のサイトがEUC-JP）。
+    """
+    head = raw[:2048].decode("ascii", errors="ignore").lower()
+    m = (re.search(r'encoding=["\']([\w-]+)["\']', head)
+         or re.search(r'charset=["\']?([\w-]+)', head))
     enc = m.group(1) if m else None
     for cand in [enc, "utf-8", "cp932", "euc-jp"]:
         if not cand:
@@ -655,6 +693,43 @@ def parse_kinkyu_html(html, src):
         uniq.append(i)
     uniq.sort(key=lambda x: x["published"] or "", reverse=True)
     return uniq[:MAX_ITEMS_PER_SOURCE]
+
+
+def parse_cms_list_html(html, src):
+    """甲佐町・嘉島町の「記事一覧」ページ（同一CMS）。
+
+      <h3><span class="listDate">[2026年8月2日]&nbsp;</span>
+          <span class="listTitle"><a href="…">…見出し…</a></span></h3>
+      <div class="archive-content"><p class="clearfix">…要約…</p>
+
+    この2町は、いちばん切実な発表（断水・一時給水・避難所・通行止め）を
+    「緊急情報」カテゴリに置いているのに、そのカテゴリだけRSSが無い
+    （/rss/rc/51.xml は404）。一覧ページを直接読むしかない。
+    """
+    items = []
+    for b in re.split(r'<div class=["\']?archive["\']?[ >]', html)[1:]:
+        am = re.search(r'<span class=["\']?listTitle["\']?[^>]*>\s*<a[^>]*href=["\']([^"\']+)["\'][^>]*>(.*?)</a>',
+                       b, re.S)
+        if not am:
+            continue
+        url = urllib.parse.urljoin(src["url"], am.group(1))
+        title = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", am.group(2))).strip()
+        title = html_mod.unescape(title)
+        if not title:
+            continue
+        dm = re.search(r'<span class=["\']?listDate["\']?[^>]*>\s*\[?([^\]<]+?)\]?\s*(?:&nbsp;)?\s*</span>', b)
+        pm = re.search(r'<p class=["\']?clearfix["\']?[^>]*>(.*?)</p>', b, re.S)
+        desc = ""
+        if pm:
+            desc = html_mod.unescape(re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", pm.group(1)))).strip()
+        items.append({
+            "title": title,
+            "url": url,
+            # 一覧の日付は「[2026年8月2日]」だけで時刻がない。時刻は0時として扱う。
+            "published": parse_date_loose(dm.group(1)) if dm else None,
+            "desc": desc[:160],
+        })
+    return items[:MAX_ITEMS_PER_SOURCE]
 
 
 def parse_kvc_html(html, src):
@@ -1069,6 +1144,7 @@ YAHOO_MUNI = [
     ("43212", "上天草市"),
     ("43215", "天草市"),
     ("43441", "御船町"),
+    ("43442", "嘉島町"),
     ("43444", "甲佐町"),
 ]
 YAHOO_KEEP = 120          # 本文の保管件数（自治体ごとではなく全体）
@@ -1234,7 +1310,21 @@ def fetch_cao_gas(prev, verbose=False):
 
     # 「約8,892戸供給停止」「8,892戸供給停止」どちらの書き方もある（7/31に書式が変わった）
     stops = re.findall(r"約?([\d,]+)戸供給停止", seg)
-    if stops:
+    # 8/3から書き方がまた変わり、いま止まっている戸数を直接書かなくなった。
+    #   「8,892戸の供給を停止したが、現在867戸で供給再開。」
+    # 止めた戸数から再開した戸数を引くしかないので、引き算したことを derived に残して
+    # サイト側でも「8,892戸のうち867戸再開」と根拠を並べて出す。
+    resumed = re.search(r"約?([\d,]+)戸の供給を停止した[^。]*?現在\s*約?([\d,]+)\s*戸で供給再開", seg)
+    if resumed:
+        a = int(resumed.group(1).replace(",", ""))
+        b = int(resumed.group(2).replace(",", ""))
+        if 0 <= b <= a:
+            out["stopped"], out["resumed"] = a, b
+            out["current"] = a - b
+            out["derived"] = True
+    if out.get("current") is not None:
+        pass
+    elif stops:
         out["current"] = int(stops[0].replace(",", ""))
     else:
         # 読み取れなかったときは0にしない。0にすると「解消した」と表示され、
@@ -1422,6 +1512,8 @@ def crawl(verbose=False):
                 items = parse_kvc_html(body_text, src)
             elif kind == "kinkyu_html":
                 items = parse_kinkyu_html(body_text, src)
+            elif kind == "cms_list_html":
+                items = parse_cms_list_html(body_text, src)
             else:
                 items = parse_rss(body_text, src)
 
@@ -1525,7 +1617,9 @@ def crawl(verbose=False):
     try:
         gas = fetch_cao_gas(prev, verbose)
         sources_status.append({"id": "cao_gas", "label": "内閣府 被害状況（都市ガス）",
-                               "status": f"{gas.get('current', 0):,}戸", "checked_at": now.isoformat()})
+                               "status": (f"{gas['current']:,}戸"
+                                          if gas.get("current") is not None else "戸数を読み取れず"),
+                               "checked_at": now.isoformat()})
     except Exception as e:
         gas = prev.get("gas") or {}
         errors.append({"id": "cao_gas", "label": "内閣府 被害状況（都市ガス）",
