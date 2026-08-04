@@ -372,6 +372,17 @@ SOURCES = [
 
     # --- 報道（一次情報ではないので区別して扱う） ---------------------------
     {
+        "id": "pref_house",
+        "label": "熊本県 住家被害（本部会議資料）",
+        "kind": "pref_house",
+        "parser_ver": 1,   # PREF_HOUSE_PARSER と合わせる
+        "url": "https://www.pref.kumamoto.jp/soshiki/222/274487.html",
+        "group": "stat",
+        "note": "住家被害は国の集計が県に数日遅れるため、長らく手作業で書き写していた。"
+                "県の本部会議資料には市町村別の表と「合計」行があり、そこを読めば県の発表その"
+                "ものになるので自動化した。同じ表にある人的被害（死者・負傷者）は保存しない。",
+    },
+    {
         "id": "kvc_kumamoto",
         "label": "熊本県災害ボランティアセンター",
         "kind": "kvc_html",
@@ -835,6 +846,141 @@ def parse_kyuden_power(xml_text, src, verbose=False):
 
 # 断水PDFのパーサーを直したら必ず増やす。増やさないと、同じ報がキャッシュから
 # そのまま返り続けて修正が効かない（実際に「8月1日」を「8月10日」と読む不具合で踏んだ）。
+# 熊本県の「人的被害等の状況」PDFのパーサー。直したら必ず増やすこと。
+PREF_HOUSE_PARSER = 1
+
+
+def parse_pref_house(html, src, state_entry, verbose=False):
+    """熊本県の災害対策本部会議ページから、住家被害の合計を読む。
+
+    なぜ国ではなく県なのか
+    ----------------------
+    住家被害は長らく手作業で書き写していました。国（内閣府・消防庁）の集計は
+    市町村からの報告が上がるまで数日かかり、県が自分で出している数字と桁が
+    違ったからです（7/30時点で内閣府2棟に対し、県は7/31時点で1,507戸）。
+    小さいほうの数字を自動で載せると、被害を過小に見せてしまいます。
+
+    県の会議資料は市町村別の表で、いちばん下に「合計」行があります。ここを
+    読めば県の発表そのままになるので、ようやく自動化できるようになりました。
+
+    列の位置は決め打ちにしない
+    --------------------------
+    表の並びは途中で変わります。8月2日版は15列でしたが、8月3日版から住家被害に
+    「計」の列が増えて16列になりました。何列目、と決め打ちにしていたら、この日を
+    境に断水戸数を全壊数として出していたはずです。そこで、見出し行
+
+      避難所 避難者 軽症 中等症 重症 心肺停止 死亡 分類未確定
+      全壊 大規模半壊 半壊 一部破損 分類未確定 計 （戸） （箇所数）
+
+    を空白で割って「全壊」が何番目かを数え、その位置から読みます。見出しの数と
+    「合計」行の数字の数が合わないときは、何も返さずに前回値を残します。
+
+    「分類未確定」は人的被害にも住家被害にもあるので、**全壊より後ろにあるほう**を
+    住家被害の分類未確定として扱います。
+
+    **人的被害（死者・負傷者）は読み取っても保存しません。**
+    亡くなった方の人数を速報として掲げるサイトにはしない、という方針です。
+    ここで拾うのは住家被害と避難状況だけにしています。
+
+    県の資料には「推計値を含み、今後修正が入る可能性がある」と注記があるため、
+    数が減ること自体は異常としては扱いません。
+    """
+    import io
+    import pdfplumber
+
+    # 「令和8年熊本地震による人的被害等の状況（８月３日１４：００時点）」のリンクを全部拾って、
+    # 時点がいちばん新しいものを選ぶ。会議は1日2回あり、掲載順が前後することがある。
+    z = str.maketrans("０１２３４５６７８９：", "0123456789:")
+    cands = []
+    for m in re.finditer(r'href="([^"]*?/uploaded/attachment/\d+\.pdf)"[^>]*>(.*?)</a>',
+                         html, re.S):
+        label = html_mod.unescape(re.sub(r"<[^>]+>", "", m.group(2))).translate(z)
+        label = re.sub(r"\s+", "", label)
+        if "人的被害等の状況" not in label:
+            continue
+        # 「7月29日7時30分時点」「8月3日14:00時点」の両方の書き方が出てくる
+        dm = re.search(r"(\d{1,2})月(\d{1,2})日(\d{1,2})[:時](\d{2})分?時点", label)
+        if not dm:
+            continue
+        key = (int(dm.group(1)), int(dm.group(2)), int(dm.group(3)), int(dm.group(4) or 0))
+        cands.append((key, urllib.parse.urljoin(src["url"], m.group(1)), label))
+    if not cands:
+        raise ValueError("県の「人的被害等の状況」PDFが一覧に見つかりません")
+
+    key, url, label = max(cands, key=lambda x: x[0])
+
+    cached = state_entry.get("stat") or {}
+    if (state_entry.get("house_pdf_url") == url
+            and cached and cached.get("parser") == PREF_HOUSE_PARSER):
+        if verbose:
+            print(f"    {label} は取得済み")
+        return cached
+
+    with pdfplumber.open(io.BytesIO(fetch_bytes(url))) as pdf:
+        txt = "\n".join((pg.extract_text() or "") for pg in pdf.pages[:3])
+
+    lines = [l.translate(z) for l in txt.split("\n")]
+
+    # 「一部破損」と「一部損壊」の両方の表記が出てくる（8/2朝は損壊、8/2午後から破損）。
+    ICHIBU = ("一部破損", "一部損壊")
+    head = next((l.split() for l in lines
+                 if "全壊" in l and "大規模半壊" in l and any(k in l for k in ICHIBU)), None)
+    if not head:
+        # 7月31日以前の様式には住家被害の欄そのものが無い。異常ではなく「まだ無い」。
+        raise ValueError(f"{label} のPDFに住家被害の見出し行が見つかりません")
+
+    row = None
+    for l in lines:
+        s = l.strip()
+        if not re.match(r"^合\s*計(\s|$)", s):
+            continue
+        nums = [int(n.replace(",", "")) for n in re.findall(r"[\d,]+", s)]
+        if len(nums) == len(head):
+            row = nums
+            break
+    if row is None:
+        raise ValueError(f"{label} のPDFの「合計」行が見出し（{len(head)}列）と対応しません")
+
+    at = head.index("全壊")
+
+    def col(name, after=None):
+        """見出しの名前から値を取る。after を指定すると、その位置より後ろの同名を探す。"""
+        start = (after + 1) if after is not None else 0
+        try:
+            return row[head.index(name, start)]
+        except ValueError:
+            return None
+
+    zenkai = row[at]
+    daikibo = col("大規模半壊", at)
+    hankai = col("半壊", at)          # 「大規模半壊」の後ろにある「半壊」
+    ichibu = next((v for v in (col(k, at) for k in ICHIBU) if v is not None), None)
+    undecided = col("分類未確定", at)  # 人的被害側ではなく住家被害側
+    if None in (daikibo, hankai, ichibu):
+        raise ValueError(f"{label} の住家被害の見出しが揃っていません: {head}")
+
+    parts = [zenkai, daikibo, hankai, ichibu] + ([undecided] if undecided is not None else [])
+    total = col("計", at)
+    if total is None:
+        # 「計」の列が無かった時期の様式。内訳から足し上げる。
+        total = sum(parts)
+    elif total != sum(parts):
+        # 列がずれている（様式が変わった）とき。誤った内訳を出すより黙るほうがよい。
+        raise ValueError(f"{label} の住家被害の内訳{parts}が計{total}と一致しません")
+
+    mo, da, h, mi = key
+    return {
+        "parser": PREF_HOUSE_PARSER,
+        "total": total, "zenkai": zenkai, "daikibo": daikibo,
+        "hankai": hankai, "ichibu": ichibu, "undecided": undecided or 0,
+        "shelters": row[0], "evacuees": row[1],
+        "at": f"{mo}月{da}日 {h}:{mi:02d}",
+        "at_iso": f"2026-{mo:02d}-{da:02d}T{h:02d}:{mi:02d}:00+09:00",
+        "by": "熊本県", "estimate": True,
+        "source_url": url, "source_page": src["url"], "source_label": label,
+    }
+
+
 WATER_PARSER = 3
 
 
@@ -1482,6 +1628,32 @@ def crawl(verbose=False):
                                        "status": label, "checked_at": now.isoformat()})
                 if verbose:
                     print(f"    停電 {label}")
+                continue
+            elif kind == "pref_house":
+                try:
+                    stat = parse_pref_house(body_text, src, entry, verbose)
+                    stat["fetched_at"] = now.isoformat()
+                    stats[sid] = stat
+                    new_entry["stat"] = stat
+                    new_entry["house_pdf_url"] = stat.get("source_url")
+                    label = f"{stat['total']:,}戸（{stat['at']}時点）"
+                except Exception as e:
+                    # 読めなかったときは前回値を残す。サイト側にも手書きの控えがあるので、
+                    # ここで空にするより古い数字を時点つきで出し続けるほうが安全。
+                    if entry.get("stat"):
+                        stats[sid] = entry["stat"]
+                        new_entry["stat"] = entry["stat"]
+                        new_entry["house_pdf_url"] = entry.get("house_pdf_url")
+                        label = "前回値を保持"
+                    else:
+                        label = "取得できず"
+                    errors.append({"id": sid, "label": src["label"],
+                                   "error": f"{type(e).__name__}: {e}", "at": now.isoformat()})
+                state[sid] = new_entry
+                sources_status.append({"id": sid, "label": src["label"],
+                                       "status": label, "checked_at": now.isoformat()})
+                if verbose:
+                    print(f"    住家被害 {label}")
                 continue
             elif kind == "mlit_water":
                 stat = parse_mlit_water(body_text, src, entry, verbose)
