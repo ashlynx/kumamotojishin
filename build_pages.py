@@ -295,7 +295,7 @@ def build(out_dir):
             f'  <h2>{h}</h2>\n  <div class="card">{t}</div>' for h, t in blocks
         )
         others = "".join(
-            f'<a href="/{s}">{ti.split("｜")[0].split("｜")[0]}</a>'
+            f'<a href="/{s}/">{ti.split("｜")[0].split("｜")[0]}</a>'
             for s, _, ti, _, _, _ in PAGES if s != slug
         )
         html = TMPL.format(site=SITE, slug=slug, title=title, desc=desc, h1=h1,
