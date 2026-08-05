@@ -279,6 +279,16 @@ SOURCES = [
                 "お知らせ・トピックスのRSSだけを見ていると、いちばん切実な発表を取り逃す。",
     },
     {
+        "id": "nishihara_bousai",
+        "label": "西原村 防災サイト",
+        "kind": "rss",
+        "url": "https://www.vill.nishihara.kumamoto.jp/bousai/new_list.xml",
+        "group": "city",
+        "area": "西原村",
+        "note": "西原村は行政サイトとは別に防災サイトを持っていて、地震関連はほぼこちらにしか出ない。"
+                "本体の新着（/new_list.xml）には数日遅れて一部しか載らないため、防災サイト側を見る。",
+    },
+    {
         "id": "kashima",
         "label": "嘉島町",
         "kind": "rss",
