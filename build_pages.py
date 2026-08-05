@@ -208,11 +208,11 @@ TMPL = """<!doctype html>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>{title}｜令和8年熊本地震 情報まとめ</title>
 <meta name="description" content="{desc}">
-<link rel="canonical" href="{site}/{slug}">
+<link rel="canonical" href="{site}/{slug}/">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <meta name="theme-color" content="#a62018">
 <meta property="og:type" content="article">
-<meta property="og:url" content="{site}/{slug}">
+<meta property="og:url" content="{site}/{slug}/">
 <meta property="og:site_name" content="令和8年熊本地震 情報まとめ（非公式）">
 <meta property="og:title" content="{title}">
 <meta property="og:description" content="{desc}">
@@ -309,7 +309,7 @@ def build(out_dir):
 
     today = dt.datetime.now(JST).strftime("%Y-%m-%d")
     urls = "".join(
-        f"  <url>\n    <loc>{SITE}/{s}</loc>\n    <lastmod>{today}</lastmod>\n"
+        f"  <url>\n    <loc>{SITE}/{s}/</loc>\n    <lastmod>{today}</lastmod>\n"
         f"    <changefreq>weekly</changefreq>\n    <priority>0.7</priority>\n  </url>\n"
         for s in made)
     sitemap = ('<?xml version="1.0" encoding="UTF-8"?>\n'
