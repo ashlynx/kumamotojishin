@@ -321,14 +321,26 @@
   .map img.mt{position:absolute;left:0;top:0;transform-origin:0 0;user-select:none;-webkit-user-drag:none;pointer-events:none}
   .map .pn{position:absolute;left:0;top:0;transform-origin:0 0;pointer-events:none}
   .mpin{position:absolute;transform:translate(-50%,-100%);border:0;background:none;padding:0;pointer-events:auto;
-    width:30px;height:38px;line-height:1;display:grid;place-items:start center}
+    width:30px;height:38px;line-height:1;display:grid;place-items:start center;z-index:2}
   .mpin i{display:grid;place-items:center;width:27px;height:27px;border-radius:50% 50% 50% 6px;transform:rotate(-45deg);
     font-size:.82rem;font-style:normal;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35)}
   .mpin i span{transform:rotate(45deg)}
   .mpin.k-water i{background:#1a4f8a;color:#fff}
   .mpin.k-shelter i{background:#1f6d3a;color:#fff}
   .mpin.k-office i{background:#6d7484;color:#fff}
-  .mpin.k-fuel i{background:#a5490d;color:#fff}
+  /* 給油所は313か所ある。しずく型のまま同じ大きさで出すと、急いで探す給水所・避難所が
+     オレンジの海に沈む。小さい丸にして下の層に敷き、押せることと色は変えない。 */
+  /* 見た目の丸は16pxだが、指で押せるように当たり判定は30px角のまま（下の層なので、
+     重なったときは給水所・避難所のほうが優先して押される） */
+  .mpin.k-fuel{z-index:1;width:30px;height:30px;place-items:center}
+  .mpin.k-fuel i{background:#a5490d;color:#fff;width:16px;height:16px;border-radius:50%;
+    transform:none;font-size:.55rem;border-width:1.5px;box-shadow:0 1px 2px rgba(0,0,0,.3)}
+  .mpin.k-fuel i span{transform:none}
+  /* 丸が小さく、点線にすると歯車のように見えて数だけが目立つ。給油所は実線にして、
+     町名までの概略位置かどうかは一覧とピンを押したときの「概略位置」で示す。 */
+  .mpin.k-fuel.approx i{border-style:solid}
+  .mpin.k-fuel[aria-pressed="true"]{z-index:3}
+  .mpin.k-fuel[aria-pressed="true"] i{width:22px;height:22px;font-size:.72rem}
   .mpin[aria-pressed="true"] i{outline:3px solid var(--urgent);outline-offset:1px}
   .mpin.approx i{border-style:dashed;border-color:#fff}
   .mk-me{position:absolute;transform:translate(-50%,-50%);width:16px;height:16px;border-radius:50%;
@@ -497,7 +509,8 @@
   </p>
 
   <h2 class="sec">給水所・避難所の地図</h2>
-  <p class="lead">公式に発表された給水所・避難所・役所です。ピンを押すと住所と電話が出ます。</p>
+  <p class="lead">公式に発表された給水所・避難所・役所と、停電しても給油できる<b>住民拠点SS</b>です。ピンを押すと住所と電話が出ます。
+    <span class="muted">給油所はいま営業しているとは限りません。</span></p>
   <div id="mapHostHome"></div>
 
   <h2 class="sec">まず見るところ</h2>
@@ -517,7 +530,7 @@
     <button class="home-card" data-go="map">
       <div class="k">ちず</div>
       <h3>給水所・避難所の地図</h3>
-      <p>公式に発表された給水所・避難所・役所を地図に置いています。現在地から近い順にも並べられます。</p>
+      <p>公式に発表された給水所・避難所・役所と、停電しても給油できる住民拠点SS（313か所）を地図に置いています。現在地から近い順にも並べられます。</p>
       <div class="prev" id="prev-map"></div>
     </button>
     <button class="home-card" data-go="city">
@@ -698,7 +711,7 @@
 <!-- ========== MAP ========== -->
 <section id="p-map" class="hidden">
   <h2 class="sec">給水所・避難所の地図</h2>
-  <p class="lead">公式に発表された給水所・避難所・役所です。ピンを押すと住所と電話が出ます。</p>
+  <p class="lead">公式に発表された給水所・避難所・役所と、停電しても給油できる<b>住民拠点SS</b>です。ピンを押すと住所と電話が出ます。</p>
 
   <div class="notice info" style="margin-top:0">
     <b>開設状況と給水の時間は毎日変わります。</b>出かける前に公式ページか電話で確認してください。
@@ -760,10 +773,10 @@
   </div>
 
   <div class="chiprow"><span class="lb">出すもの</span><span id="mapKinds" style="display:flex;gap:6px"></span></div>
-  <p class="stamp hidden" id="mapFuelNote" style="margin:2px 0 0">
+  <p class="stamp" id="mapFuelNote" style="margin:2px 0 0">
     給油所は<b>住民拠点SS</b>（停電しても給油を続けられる設備がある店舗として国が指定したもの・熊本県内313か所）です。
     いま営業しているとは限りません。<a href="https://www.enecho-ss.meti.go.jp/b/enecho/" target="_blank" rel="noopener">資源エネルギー庁の営業状況検索 ↗</a>で確認してください。
-    出典：資源エネルギー庁「住民拠点SS等の一覧」2026年3月31日時点。
+    出典：資源エネルギー庁「住民拠点SS等の一覧」2026年3月31日時点。一部は番地が分からず、町名までの概略位置に置いています（一覧とピンに「概略位置」と出ます）。
   </p>
   <div class="chiprow"><span class="lb">市町村でしぼる</span><span id="mapCities" style="display:flex;gap:6px"></span></div>
 
@@ -3238,7 +3251,7 @@ function buildPins(){
       if(!dup) add("office", {n:c.office.n, a:c.office.a}, "役所の場所");
     }
   });
-  /* 給油所（住民拠点SS）。数が多いので既定では非表示にし、必要な人だけ表示する。 */
+  /* 給油所（住民拠点SS）。最後に積むが、CSSで下の層に回して給水所・避難所を隠さないようにしている。 */
   SS.forEach(r => {
     out.push({kind:"fuel", ci:99, city:r[0], ck:r[1], comp:r[2], n:r[3], a:r[4],
               note:"", group:"住民拠点SS（自家発電設備あり）",
@@ -3263,9 +3276,11 @@ function buildPins(){
 }
 const PINS = buildPins();
 
-/* 種別は「押されている＝出ている」。給油所だけ既定でオフ（313件あり、給水所と避難所が埋もれる）。
+/* 種別は「押されている＝出ている」。最初から4種類とも出す。
+   給油所は313件あって数で押し切ってしまうので、ピンを小さく下の層に敷き（CSS .mpin.k-fuel）、
+   地図の初期表示は給油所を除いた範囲に合わせ（mFit）、一覧では件数を絞る（FUEL_LIST_MAX）。
    市町村は「どれも押していない＝ぜんぶ出る」。用途が違うので見出しを分けている。 */
-const mapKindOn = new Set(["water","shelter","office"]);
+const mapKindOn = new Set(["water","shelter","office","fuel"]);
 const mapCitySel = new Set();
 let mSel = -1;          // 選択中のピン
 let mapReady = false;
@@ -3418,7 +3433,9 @@ function mRenderPins(v){
     b.setAttribute("aria-pressed", mSel === i);
     const s = mToScreen(p.lat, p.lon, v);
     b.style.transform = "translate(" + Math.round(s.x) + "px," + Math.round(s.y) + "px)";
-    b.style.marginLeft = "-15px"; b.style.marginTop = "-38px";
+    /* しずく型は先端が座標。給油所は小さい丸なので中心を座標に合わせる（CSSの大きさと対応） */
+    if(p.kind === "fuel"){ b.style.marginLeft = "-15px"; b.style.marginTop = "-15px"; }
+    else                 { b.style.marginLeft = "-15px"; b.style.marginTop = "-38px"; }
     b.style.left = "0"; b.style.top = "0";
   });
   mPinEls.forEach((b, k) => { if(!keep.has(k)){ b.remove(); mPinEls.delete(k); } });
@@ -3434,7 +3451,14 @@ function mRenderPins(v){
 }
 
 function mFit(pts){
-  const list = (pts && pts.length) ? pts : mVisiblePins();
+  let list = (pts && pts.length) ? pts : mVisiblePins();
+  /* 給油所は県内全域（天草から人吉まで）にあるので、これに合わせると熊本県まるごとの縮尺になり、
+     急いで探す給水所・避難所が豆粒になる。指定がないときは給油所を外した範囲に合わせる。
+     給油所のピンは範囲の外にも描かれるので、指で動かせば見える。 */
+  if(!(pts && pts.length)){
+    const core = list.filter(p => p.kind !== "fuel");
+    if(core.length) list = core;
+  }
   if(!list.length) return;
   let la1 = 90, la2 = -90, lo1 = 180, lo2 = -180;
   list.forEach(p => {
@@ -3610,18 +3634,25 @@ function mChips(){
 
 /* ---- 一覧（現在地があれば近い順） ---- */
 const LIST_MAX = 60;
+const FUEL_LIST_MAX = 12;
 function mList(){
   const all = mVisiblePins().slice();
   if(ME) all.forEach(p => p.km = distKm(ME.lat, ME.lon, p.lat, p.lon));
   if(ME) all.sort((a,b) => a.km - b.km);
   else   all.sort((a,b) => a.ci - b.ci || a.kind.localeCompare(b.kind));
   // 全部並べると数百行になり、探すのがかえって遅くなる。切ったことは必ず書く
-  const vis = all.slice(0, LIST_MAX);
+  /* 給油所313か所をそのまま並べると、給水所・避難所が一覧から押し出される。
+     一覧に出す給油所は（現在地があれば近い順に）FUEL_LIST_MAX 件までにして、
+     残りは地図のピンで見てもらう。地図には最初から全部出ている。 */
+  let nf = 0;
+  const rows = all.filter(p => p.kind !== "fuel" || ++nf <= FUEL_LIST_MAX);
+
+  const vis = rows.slice(0, LIST_MAX);
   const cut = all.length - vis.length;
 
   $("#mapListNote").textContent = all.length
     ? (ME ? "現在地から近い順に " : "") + vis.length + "件を表示" +
-      (cut ? "（該当 " + all.length + "件のうち" + (ME ? "近い" : "はじめの") + LIST_MAX + "件。残り" + cut + "件は地図のピンで見られます）"
+      (cut ? "（該当 " + all.length + "件のうち" + (ME ? "近い" : "はじめの") + vis.length + "件。残り" + cut + "件は地図のピンで見られます）"
            : "（全" + PINS.length + "件のうち該当 " + all.length + "件）")
     : "絞り込みに合うものがありません。上のボタンを押して表示する種類を選んでください。";
 
@@ -3988,7 +4019,7 @@ function renderHomePreviews(){
   put("map",
     row("給水所", byKind("water") + "か所") +
     row("避難所", byKind("shelter") + "か所") +
-    row("給油所", byKind("fuel") + "か所（住民拠点SS・要表示切替）"),
+    row("給油所", byKind("fuel") + "か所（住民拠点SS）"),
     "現在地から近い順に並べる");
 
   // ライフライン：各分野の代表的な確認先
