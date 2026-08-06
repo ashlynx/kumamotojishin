@@ -1860,6 +1860,42 @@ MARK_START = "/*__CRAWLED_DATA_START__*/"
 MARK_END = "/*__CRAWLED_DATA_END__*/"
 
 
+# HTMLに埋め込む控えの件数。
+#
+# 埋め込みは「data.json が取れなかったときでも、必ず何か出す」ための保険であって、
+# ふだんはページを開いた直後に data.json（完全版）で丸ごと置き換わる。
+# それなのに全件を入れると約190KBになり、HTML1ファイルの4分の1を占めていた。
+#
+# 実測（Cloudflare Web Analytics・8月6日の24時間）で、トップの表示完了（LCP）は
+# P75で16.0秒、P90で21.8秒だった。原因の大半は「巨大なHTMLを読み終えるまで
+# 何も描けない」時間で、給水所を探しに来た人がその間ずっと白い画面を見ている。
+#
+# そこで控えは「取れなかったときに、それでも役に立つ最小限」に絞る。
+# data.json 側は今までどおり全件のままなので、ふだんの表示は何も変わらない。
+EMBED_UPDATES = 20        # 最新情報（通常は200件）
+EMBED_QUAKES = 12         # 地震の一覧（通常は40件）
+EMBED_YAHOO = 8           # Yahoo!くらし の本文（通常は120件・本文が長い）
+
+
+def slim_for_embed(data):
+    """HTMLに埋め込む用に、件数の多いものだけ切り詰めた控えを作る。
+
+    震源マップ（hypo・434件）は、地図を動かして初めて意味を持つもので、
+    data.json が取れていない状況で見せる価値が薄いので空にする。
+    描画側は items が無い場合を想定してあり（HY.length のガード）、
+    空でも画面は壊れない。
+    """
+    y = data.get("yahoo") or {}
+    hy = data.get("hypo") or {}
+    slim = dict(data)
+    slim["updates"] = list(data.get("updates") or [])[:EMBED_UPDATES]
+    slim["quakes"] = list(data.get("quakes") or [])[:EMBED_QUAKES]
+    slim["yahoo"] = dict(y, items=list(y.get("items") or [])[:EMBED_YAHOO])
+    slim["hypo"] = dict(hy, items=[])
+    slim["embed_slim"] = True      # 画面に出している数字が控えかどうかの判別用
+    return slim
+
+
 def inject(html_path, data):
     """HTMLのマーカー間にデータを埋め込み、単一ファイルのまま最新化する。"""
     with open(html_path, encoding="utf-8") as f:
@@ -1868,7 +1904,7 @@ def inject(html_path, data):
         print(f"警告: {html_path} にマーカーが見つかりません。埋め込みをスキップします。",
               file=sys.stderr)
         return False
-    payload = "window.__CRAWLED__ = " + json.dumps(data, ensure_ascii=False) + ";"
+    payload = "window.__CRAWLED__ = " + json.dumps(slim_for_embed(data), ensure_ascii=False) + ";"
     start = html.index(MARK_START) + len(MARK_START)
     end = html.index(MARK_END)
     html = html[:start] + "\n" + payload + "\n" + html[end:]

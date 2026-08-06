@@ -117,7 +117,12 @@
   ul.checks li::before{content:"✓";position:absolute;left:3px;color:var(--accent);font-weight:800}
 
   .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:9px;margin:12px 0}
-  .stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 13px}
+  /* 「—」から実際の数字に入れ替わるとき、行数が増えてカードの高さが変わり、
+     読んでいる途中のページがガタつく（実測CLS 0.299）。
+     いちばん行数が多くなる住家被害（数値＋内訳＋時点）に合わせて先に場所を確保する。 */
+  .stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 13px;
+    min-height:84px}
+  @media (max-width:430px){ .stat{min-height:96px} }
   .stat .v{font-size:1.3rem;font-weight:800;line-height:1.25;letter-spacing:-.01em}
   .stat .l{font-size:.73rem;color:var(--ink-3)}
   button.stat.go{cursor:pointer;text-align:left;width:100%;font:inherit;display:block}
@@ -466,9 +471,14 @@
   </details>
 
   <!-- 気象庁の「1週間程度」は8月4日16時27分で満了する。過ぎたあとも同じ文面を出し続けると、
-       いま出ていない呼びかけを出ているように見せてしまうので、時刻で書き分ける。 -->
+       いま出ていない呼びかけを出ているように見せてしまうので、時刻で書き分ける。
+       ここに書いておく初期値は「満了後」のほう。理由は2つある。
+         1) 満了はもう過ぎているので、これが事実。JSが動かない環境でも正しい。
+         2) 短い文を先に出してからJSで長い文に差し替えると、その分だけ下が押し下げられ、
+            読んでいる最中のページがガタつく（実測CLS 0.09〜0.30の主因がこれだった）。
+       期限内に戻ることはないが、ロジックはそのまま残してある。 -->
   <div class="notice red" style="margin-top:10px" id="homeWatch">
-    <b>気象庁は「1週間程度は最大震度7程度の地震に注意」</b>と呼びかけています。倒れかけた建物や塀には近づかないでください。
+    <b>気象庁が呼びかけた「1週間程度」（8月4日16時27分まで）は過ぎました。</b>呼びかけの期間は終わりましたが、地震活動が続いているあいだは揺れ返しがあります。<b>倒れかけた建物や塀には近づかないでください。</b>本震で傷んだ家は、同じ震度でも次にもちません。
   </div>
 
   <!-- 8月2日に県内で最初の災害関連死の疑い（車中泊・熱中症）。余震よりこちらのほうが差し迫っている。 -->
@@ -4436,7 +4446,7 @@ function hyStats(){
     ? (hyCur >= 1
         ? `<b>現在まで全部を表示しています</b>（${fmtDT(HY[0].t.toISOString())} 〜 ${fmtDT(HY[HY.length-1].t.toISOString())}）`
         : `<b>${fmtDT(new Date(now).toISOString())} まで</b>を表示しています　<span class="qhrel">本震から ${rel()}</span>`)
-    : "震源のデータをまだ取得していません。";
+    : "震源の地図は、最新データの読み込みが終わってから表示します。しばらくたっても出ないときは、通信を確かめてページを開き直してください。";
 }
 
 function hyLegend(){
