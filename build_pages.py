@@ -5,201 +5,71 @@
 なぜ作るか
 ----------
 本体（site/index.html）は1ファイルにタブを詰めた作りで、Googleから見ると
-「1ページのサイト」でしかない。実際 site: 検索でトップページ1件しか出てこない。
-人が打つのは「熊本地震 罹災証明」「熊本地震 詐欺」のような具体的な語なので、
-それに対応するURLが無いと土俵に上がれない。
+「1ページのサイト」でしかない。人が打つのは「熊本地震 罹災証明」「熊本地震 詐欺」
+のような具体的な語なので、それに対応するURLが無いと土俵に上がれない。
 
-何を載せて、何を載せないか
---------------------------
-**変わらないことだけ**を書く。給水所の場所、避難所の数、開設状況といった
-日ごとに変わる値は**一切入れない**。入れた瞬間に、更新の止まった古いページが
-検索結果に残って人を誤らせる。動く情報は本体側の該当タブへ送る。
+2026年8月9日の書き直し
+----------------------
+初版（8/5）は8ページとも「クロール済み - インデックス未登録」のまま4日間動かなかった。
+本番を調べたところ canonical・title・description はすべて正しく noindex も無い。
+技術的な問題ではなく、**本文が薄すぎた**（/mizu/ で953文字）。
+しかも「日ごとに変わる情報は本体サイトで」と外へ送る構成で、
+単体で読む価値のないページとGoogleに判定されていた。
 
-つまりこの生成物は「本体の要約」ではなく「本体への正しい入口」。
-staleness を構造的に持たないので、毎回作り直さなくても壊れない。
+そこで、
+  * 本文をページあたり3,000〜5,000字に増やした（中身は pages_content.py）
+  * よくある質問を各ページに置き、FAQPage の構造化データにも出した
+  * 目次を付けた
+  * 関連ページのリンクに、何が書いてあるかの一文を添えた
+  * パンくずと Article の構造化データを入れた
+
+方針は変えていない。**日ごとに変わる値（給水所の場所、避難所の数、待ち時間）は
+一切書かない。** 古い数字が検索結果に残って人を誤らせるのを避けるため。
+書くのは「制度のしくみ」「順番を間違えると損すること」「当分変わらないこと」。
 """
 
 import os
-import re
 import sys
+import json
 import datetime as dt
+
+from pages_content import PAGES
 
 JST = dt.timezone(dt.timedelta(hours=9))
 SITE = "https://kumamotojishin.jp"
-
-# slug, タブID, タイトル, description, 見出し, 本文（変わらないことだけ）
-PAGES = [
-    ("mizu", "life", "熊本地震の給水所・断水情報の探し方",
-     "令和8年熊本地震の給水所と断水の情報を、市町村の公式発表から集めています。給水所は日ごとに場所と時間が変わるため、当日分の確認先をまとめました。",
-     "給水所と断水の情報を探す", [
-         ("給水所は毎日変わります",
-          "給水所の場所と時間は<b>日ごとに変わります</b>。前の日に行った場所が今日も開いているとは限りません。"
-          "市町村が朝に当日分を発表するので、出かける前に必ず当日の発表を見てください。"),
-         ("持って行くもの",
-          "<b>給水容器（ポリタンク・ペットボトルなど）を必ず持参してください。</b>"
-          "配布量は1回あたり5リットル程度が目安です。給水袋を配る市町村もありますが、数に限りがあります。"
-          "水は重く、20リットルで20kgになります。台車やキャリーカートがあると運びやすくなります。"),
-         ("濁った水は飲まないでください",
-          "水道から茶色い水が出るときは飲まないでください。トイレや掃除には使えます。"
-          "断水が復旧した直後は、しばらく水を流してから使ってください。"),
-         ("生活用水と飲み水は別です",
-          "「生活用水」と書かれた配布は<b>飲み水ではありません</b>。洗濯やトイレに使うためのものです。"
-          "手押しポンプの水、井戸水、プールの水も同じです。飲めるかどうかは必ず表示を確かめてください。"),
-     ]),
-    ("risai", "guide", "り災証明書の申請と、写真の撮り方",
-     "り災証明書はほぼすべての被災者支援制度の入口です。申請の手順、片付ける前の写真の撮り方、マイナポータルで申請するときの注意点をまとめています。",
-     "り災証明書の申請", [
-         ("片付ける前に、写真を撮ってください",
-          "これがいちばん大事です。<b>建物の外観を四方向から、被害箇所を近くから、室内も。</b>"
-          "ブルーシートをかける前、家具を起こす前に撮ってください。"
-          "あとから撮り直すことはできません。撮った写真は、端末が壊れても残るようにクラウドか家族に送っておいてください。"),
-         ("マイナポータルで申請するときの注意",
-          "申請画面の同意確認に、<b>「被害が軽微で明らかに『半壊に至らない』物件は、現地での調査を省略し、"
-          "被害状況の写真等を基に判定する自己判定方式により、迅速にり災証明書を交付することに同意します」</b>"
-          "という項目があります。"
-          "<b>ここにチェックを入れると、職員が見に来ないまま、写真だけで「一部損壊」として証明書が出ます。</b>"
-          "職員に現地を見てもらいたい場合は、<b>チェックを入れずに「次へすすむ」</b>を選んでください。"
-          "自己判定方式を選ぶ場合は、必ず被害状況の写真を添付してください。"),
-         ("なぜ急ぐ必要があるのか",
-          "り災証明書は、被災者生活再建支援金、住宅の応急修理、税や保険料の減免、災害ごみの処理手数料の減免など、"
-          "<b>ほとんどの支援制度の入口</b>になります。区分（全壊・大規模半壊・中規模半壊・半壊・準半壊・一部損壊）によって"
-          "使える制度と金額が変わります。申請期限が設けられることがあるので、市町村の告知を確認してください。"),
-         ("判定に納得できないとき",
-          "<b>再調査を依頼できます。</b>期限があるので早めに市町村へ申し出てください。"),
-     ]),
-    ("sagi", "guide", "災害に便乗した詐欺・悪質業者への注意",
-     "地震のあとに必ず出る、屋根の修理をめぐる訪問販売、保険金請求代行、公的機関をかたる電話への対処法。相談先もまとめています。",
-     "詐欺・悪質業者に気をつけてください", [
-         ("守るのは3つだけです",
-          "<b>その場で契約しない。お金を渡さない。書類にサインしない。</b>"
-          "この3つを守るだけで、ほとんどは防げます。急かす相手は、それだけで疑ってかまいません。"),
-         ("屋根の修理をもちかける訪問",
-          "「近くで工事をしていて、お宅の屋根が浮いているのが見えました」「今すぐ契約すれば足場代がタダ」——"
-          "この言い回しが出たら、まず断ってください。"
-          "<b>住宅の応急修理は、先に自分で発注すると災害救助法の対象外になります。</b>まず市町村に相談を。"),
-         ("保険金の請求代行",
-          "「保険で全額まかなえます」「自己負担ゼロ」と言われても、"
-          "<b>保険金の請求は自分で保険会社に連絡すれば無料です。</b>"
-          "代行業者が保険金の3〜4割を手数料に取る例があります。"
-          "虚偽の申請に加担すると<b>あなたが詐欺に問われます</b>。"),
-         ("役所をかたる電話",
-          "<b>役所が電話でATMへ行くよう指示することはありません。</b>"
-          "り災証明の申請も調査も無料です。不審に思ったらいったん切って、役所の代表番号にかけ直してください。"),
-         ("相談先",
-          "<b>消費者ホットライン 188</b>（局番なし・お住まいの地域の消費生活センターにつながります）／"
-          "熊本県消費生活センター 096-386-1166／警察相談専用電話 #9110／"
-          "被害にあった・今まさに来ているときは 110。"
-          "<b>契約してしまったあとでも、クーリング・オフで取り消せることがあります。</b>あきらめる前に電話してください。"),
-     ]),
-    ("volunteer", "vol", "熊本地震の災害ボランティア｜行く前に確認すること",
-     "令和8年熊本地震の災害ボランティアセンターの受入状況。市町村ごとに募集範囲も申し込み方法も締切も違います。行く前に確認すべきことをまとめています。",
-     "ボランティアに行く前に", [
-         ("当日いきなり行っても活動できません",
-          "<b>どのセンターも事前の申し込みが必要です。</b>定員に達して締め切られている日があります。"
-          "受入人数は1日20〜30人程度と限られていて、飛び込みを受ける余裕はありません。"),
-         ("活動保険への加入が要ります",
-          "<b>出発する前に、お住まいの市区町村の社会福祉協議会の窓口か、WEBで加入してください。</b>"
-          "現地の窓口は混みます。予期せぬけがや、他人に損害を与えたときの賠償に備えるためのものです。"),
-         ("募集の範囲は市町村ごとに違います",
-          "「九州各県にお住まいの高校生以上」のように範囲を決めているセンターがあります。"
-          "高校生は保護者の参加同意書が要ることが多いです。"
-          "<b>行こうとしている市町村の条件を、必ず個別に確認してください。</b>"),
-         ("持ち物と現地の事情",
-          "断水が続いている地域では、<b>センターや活動先のトイレが使えないことがあります。</b>"
-          "水・食べ物・タオル・軍手・厚底の靴・帽子は自分で用意してください。"
-          "駐車場がないセンターもあります。猛暑なので、こまめな休憩と水分を。"),
-         ("渋滞と物流への配慮",
-          "熊本県警察本部は、被災地方面への不要不急の外出を控えるよう呼びかけています。"
-          "支援物資の運送や救助活動に支障が出るためです。"
-          "<b>センターが受け入れると言っている人数と日程の範囲で動いてください。</b>"),
-     ]),
-    ("furo", "life", "熊本地震の入浴支援・お風呂に入れる場所",
-     "令和8年熊本地震の入浴支援。自治体が無料開放している銭湯・温泉、自衛隊と海上保安庁による入浴支援の探し方をまとめています。",
-     "お風呂に入れる場所を探す", [
-         ("3つの種類があります",
-          "<b>①市町村が銭湯や温泉を無料開放しているもの</b>（身分証を持って行き、受付票に記入すれば無料）、"
-          "<b>②自衛隊・海上保安庁による入浴支援</b>（港や駐屯地に設けられた仮設の浴場）、"
-          "<b>③近隣の市町村が被災者向けに開放しているもの</b>。"
-          "自分の市町村だけでなく、隣の市町村の案内も見てください。"),
-         ("持ち物",
-          "<b>タオル・シャンプー・石鹸などの入浴道具は、原則すべて持参です。</b>貸し出しはないと思ってください。"),
-         ("行く前に必ず確かめること",
-          "<b>時間が日ごとに変わります。</b>自衛隊や海上保安庁の支援は、その日の運用で受付時間が変わり、"
-          "同じ日に訂正が出ることもあります。"
-          "また<b>集合場所からバスでしか行けない</b>方式のところがあり、自家用車で直接行っても入れません。"
-          "銭湯や旅館は定休日があります。"),
-         ("市外の方も使えることがあります",
-          "「市外の県内被災地で被災された方も利用できます」と明記している市町村があります。"
-          "自分の町に支援がなくても、あきらめずに近隣を探してください。"),
-     ]),
-    ("shien", "guide", "熊本地震で使える支援制度の一覧",
-     "令和8年熊本地震の被災者が使える公的支援制度。被災者生活再建支援金、住宅の応急修理、災害弔慰金、税と保険料の減免、被災ローン減免制度まで。",
-     "使える支援制度", [
-         ("「自分は対象ではない」と思わないでください",
-          "熊本市長も「『自分は対象ではない』と思われている方も、利用できる制度があるかもしれません」と呼びかけています。"
-          "<b>制度は申請しないと使えません。黙っていても何も来ません。</b>"
-          "窓口では「私が使えるものを全部教えてください」と聞くのがいちばん早いです。"),
-         ("見落とされやすいもの",
-          "<b>税・国民健康保険料・介護保険料・後期高齢者医療の減免</b>と、"
-          "<b>医療機関の窓口負担（一部負担金）の免除</b>。ここがいちばん取りこぼされます。"
-          "水道・下水道料金の減免、災害ごみの処理手数料の減免も申請が要ります。"),
-         ("住宅ローンが残っている方へ",
-          "<b>自然災害債務整理ガイドライン（被災ローン減免制度）</b>があります。"
-          "自己破産をせずに、手元に一定の財産を残したままローンを減免でき、信用情報にも登録されません。"
-          "知られていない制度なので、金融機関か弁護士会に相談してください。"),
-         ("領収書と契約書を全部とっておいてください",
-          "修理費、宿泊費、移動費も、あとの支援金や税の控除（雑損控除・災害減免法）で必要になります。"),
-     ]),
-    ("yasashii", "easy", "やさしい にほんごの ページ｜くまもと じしん",
-     "令和8年熊本地震について、かんたんな日本語（やさしい日本語）で書いたページです。水のもらいかた、車で寝るときの注意、暑さ、り災証明、詐欺への注意。",
-     "やさしい 日本語の ページ", [
-         ("水を もらう",
-          "水道の 水が 出ない まちが あります。水を くばる 場所（給水所）が あります。<b>お金は いりません。</b>"
-          "ペットボトルや ポリタンクを 持って 行って ください。1回 5リットルぐらい もらえます。<br>"
-          "<b>茶色い 水は 飲まないで ください。</b>トイレや そうじには 使えます。"),
-         ("車で 寝る ときは あぶない",
-          "長い 時間、同じ かっこうで いると、足の 中で 血が かたまります。<b>とても あぶないです。</b><br>"
-          "ときどき 車の 外に 出て、歩いて ください。水を たくさん 飲んで ください。足くびを ぐるぐる 回して ください。<br>"
-          "足が はれる、ふくらはぎが いたい、息が くるしい ときは、すぐ 病院へ 行って ください。"),
-         ("暑さに 気を つけて",
-          "とても 暑い 日が つづきます。水と 塩を とって、すずしい ところで 休んで ください。<br>"
-          "外の 仕事は ぼうしを かぶって、2人以上で して ください。30分ごとに 休んで ください。<br>"
-          "<b>子どもだけを 車に 残さないで ください。</b>車の 中は すぐ あつく なります。"),
-         ("家が こわれた ときの 紙（り災証明書）",
-          "<b>片づける 前に、写真を とって ください。</b>家の 外を 4つの 方向から、こわれた ところを 近くから、家の 中も。<br>"
-          "この 紙が ないと、お金の たすけが もらえません。市役所・町役場で 申しこんで ください。"),
-         ("あやしい 人に 気を つけて",
-          "うそを 言って お金を とる 人が 来ます。「今すぐ 契約すれば 安い」と 急がせる 人とは、その場で 契約しないで ください。<br>"
-          "役所の 人は、電話で ATMに 行くように 言いません。こまった ときは 188（消費者ホットライン）。"),
-         ("あぶない ときは",
-          "<b>119</b>（火事・救急車）か <b>110</b>（警察）に 電話して ください。"
-          "病院へ 行くか まよう ときは <b>#7119</b>。"),
-     ]),
-    ("checklist", "guide", "熊本地震のあとに、やること（時系列のチェックリスト）",
-     "被災したあと、今日じゅうに・3日以内に・2週間以内に・そのあとに何をすればいいか。令和8年熊本地震の被災者向けに、時間の順に並べたチェックリストです。",
-     "やること（時間の順）", [
-         ("今日じゅうに",
-          "<b>片付ける前に写真を撮る</b>（外観を四方向・被害箇所のアップ・室内）／家族の安否を確かめる（電話よりSNS、災害用伝言ダイヤル171）／"
-          "<b>ガスのにおいがしないか確かめる</b>（したら火も電気のスイッチも使わず、窓を開けて供給会社へ）／"
-          "<b>避難するときはブレーカーを落とす</b>（通電火災を防ぎます）／水を確保する。"),
-         ("3日以内に",
-          "<b>り災証明書を申請する</b>／<b>保険会社に連絡する</b>（証券をなくしても照会できます）／持病の薬を確保する／"
-          "災害ごみの出し方を市町村で確認してから片付ける／被害の写真をクラウドか家族に送っておく。"),
-         ("2週間以内に",
-          "被災者生活再建支援金の申請／<b>住宅の応急修理を申し込む（先に工事を発注すると対象外になります）</b>／"
-          "<b>税・国民健康保険料・介護保険料・水道料金の減免を申請する</b>／応急仮設住宅の受付を確認する／"
-          "領収書と契約書を全部とっておく。"),
-         ("そのあと・忘れずに",
-          "り災証明の判定に納得できないときは<b>再調査を依頼できます</b>／"
-          "住宅ローンが残っている方は<b>自然災害債務整理ガイドライン</b>を／"
-          "こころとからだの不調は我慢しない（数週間たってから出てくることのほうが多いです）／義援金の配分申請を確認する。"),
-     ]),
-]
+SITE_NAME = "令和8年熊本地震 情報まとめ（非公式）"
 
 TAB_LABEL = {
     "life": "ライフライン", "guide": "手続き・支援制度", "vol": "支援したい方へ",
     "easy": "やさしい日本語", "city": "市町村別", "map": "地図",
 }
+
+# 関連ページのリンクに添える一文。チップだけだと何のページか分からなかった。
+NAV_NOTE = {
+    "mizu":      ("給水所と断水", "持ち物、生活用水と飲み水の違い、家の中だけ水が出ないとき"),
+    "risai":     ("り災証明書", "写真の撮り方、被害認定調査、判定に納得できないとき"),
+    "sagi":      ("詐欺・悪質商法", "屋根の訪問販売、保険金請求代行、クーリング・オフ"),
+    "volunteer": ("ボランティア", "申し込み、保険、募集範囲、持ち物"),
+    "furo":      ("お風呂・入浴支援", "4つの種類、持ち物、市外の方も使えること"),
+    "shien":     ("使える支援制度", "支援金、応急修理、税と医療費、被災ローン減免"),
+    "checklist": ("やることリスト", "今日じゅうに・3日以内に・2週間以内に"),
+    "yasashii":  ("やさしい にほんご", "かんたんな 日本語の ページ"),
+}
+
+
+def esc(s):
+    """構造化データに入れる前にタグと引用符を落とす。"""
+    out = []
+    skip = False
+    for ch in s:
+        if ch == "<":
+            skip = True
+        elif ch == ">":
+            skip = False
+        elif not skip:
+            out.append(ch)
+    return "".join(out).replace("　", " ").strip()
+
 
 TMPL = """<!doctype html>
 <html lang="ja">
@@ -211,9 +81,10 @@ TMPL = """<!doctype html>
 <link rel="canonical" href="{site}/{slug}/">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <meta name="theme-color" content="#a62018">
+<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1">
 <meta property="og:type" content="article">
 <meta property="og:url" content="{site}/{slug}/">
-<meta property="og:site_name" content="令和8年熊本地震 情報まとめ（非公式）">
+<meta property="og:site_name" content="{sitename}">
 <meta property="og:title" content="{title}">
 <meta property="og:description" content="{desc}">
 <meta property="og:image" content="{site}/og.png">
@@ -223,7 +94,7 @@ TMPL = """<!doctype html>
 <meta name="twitter:description" content="{desc}">
 <meta name="twitter:image" content="{site}/og.png">
 <style>
-  :root{{--ink:#1c1f23;--ink-2:#41474e;--ink-3:#6b7480;--line:#e2e6ea;
+  :root{{--ink:#1c1f23;--ink-2:#3d434a;--ink-3:#6b7480;--line:#e2e6ea;
     --bg:#f6f7f9;--surface:#fff;--accent:#0d6b52;--accent-soft:#e8f3ef;--red:#b3261e}}
   *{{box-sizing:border-box}}
   body{{margin:0;background:var(--bg);color:var(--ink);line-height:1.95;
@@ -235,22 +106,39 @@ TMPL = """<!doctype html>
   header.hd a.home{{color:var(--accent);font-weight:700;text-decoration:none;font-size:.9rem}}
   .warn{{background:#fdecea;border-bottom:1px solid #f5c6c2;color:#8c1d18;font-size:.84rem;padding:10px 0}}
   .warn .in{{max-width:720px;margin:0 auto;padding:0 16px}}
-  h1{{font-size:1.42rem;line-height:1.65;margin:24px 0 6px}}
-  .lead{{color:var(--ink-2);font-size:.93rem;margin:0 0 20px}}
-  h2{{font-size:1.06rem;margin:26px 0 8px;padding-left:11px;border-left:4px solid var(--accent)}}
+  h1{{font-size:1.42rem;line-height:1.65;margin:24px 0 8px}}
+  .lead{{color:var(--ink-2);font-size:.95rem;margin:0 0 6px}}
+  .stamp{{color:var(--ink-3);font-size:.78rem;margin:0 0 18px}}
+  h2{{font-size:1.07rem;line-height:1.6;margin:30px 0 8px;padding-left:11px;
+    border-left:4px solid var(--accent);scroll-margin-top:12px}}
+  h3{{font-size:.97rem;margin:20px 0 6px}}
   .card{{background:var(--surface);border:1px solid var(--line);border-radius:12px;
     padding:14px 16px;margin:0 0 14px;font-size:.93rem;color:var(--ink-2)}}
+  .toc{{background:var(--surface);border:1px solid var(--line);border-radius:12px;
+    padding:14px 16px;margin:0 0 20px;font-size:.9rem}}
+  .toc b{{display:block;margin-bottom:6px;font-size:.88rem}}
+  .toc ol{{margin:0;padding-left:1.3em;color:var(--ink-2)}}
+  .toc li{{margin:3px 0}}
+  .toc a{{color:var(--ink-2)}}
   .cta{{display:block;background:var(--accent);color:#fff;text-align:center;font-weight:700;
-    text-decoration:none;border-radius:12px;padding:15px;margin:22px 0;font-size:1rem}}
-  .cta span{{display:block;font-weight:400;font-size:.79rem;opacity:.9;margin-top:3px}}
-  nav.other{{margin:26px 0 0}}
-  nav.other a{{display:inline-block;border:1px solid var(--line);background:#fff;border-radius:999px;
-    padding:7px 14px;margin:0 6px 8px 0;font-size:.84rem;color:var(--ink-2);text-decoration:none}}
+    text-decoration:none;border-radius:12px;padding:15px;margin:24px 0;font-size:1rem}}
+  .cta span{{display:block;font-weight:400;font-size:.79rem;opacity:.92;margin-top:3px}}
+  .faq{{background:var(--surface);border:1px solid var(--line);border-radius:12px;
+    padding:4px 16px;margin:0 0 14px}}
+  .faq dt{{font-weight:700;font-size:.93rem;margin:14px 0 4px}}
+  .faq dd{{margin:0 0 14px;font-size:.91rem;color:var(--ink-2)}}
+  nav.other{{margin:28px 0 0}}
+  nav.other ul{{list-style:none;padding:0;margin:0}}
+  nav.other li{{border-top:1px solid var(--line)}}
+  nav.other a{{display:block;padding:11px 2px;text-decoration:none;color:var(--accent);
+    font-weight:700;font-size:.93rem}}
+  nav.other a small{{display:block;color:var(--ink-3);font-weight:400;font-size:.8rem;margin-top:1px}}
   footer{{border-top:1px solid var(--line);margin-top:30px;padding:18px 0 0;
     font-size:.78rem;color:var(--ink-3)}}
   footer a{{color:var(--ink-3)}}
   b{{color:var(--ink)}}
 </style>
+<script type="application/ld+json">{jsonld}</script>
 </head>
 <body>
 <div class="warn"><div class="in">
@@ -262,23 +150,41 @@ TMPL = """<!doctype html>
 
 <main class="wrap">
   <h1>{h1}</h1>
-  <p class="lead">{desc}</p>
+  <p class="lead">{lead}</p>
+  <p class="stamp">最終更新：{today}／令和8年熊本地震（2026年7月28日）</p>
 
   <a class="cta" href="/#{tab}">最新の情報を見る（{tablabel}）
-    <span>給水所の場所、開設状況、受付の締切など、日ごとに変わる情報はこちらです</span></a>
+    <span>{ctanote}</span></a>
+
+  <div class="toc"><b>このページの内容</b>
+    <ol>
+{toc}
+    </ol>
+  </div>
 
 {body}
 
-  <a class="cta" href="/#{tab}">最新の情報を見る（{tablabel}）
-    <span>このページには、変わらないことだけを書いています</span></a>
+  <h2 id="faq">よくある質問</h2>
+  <dl class="faq">
+{faqhtml}
+  </dl>
 
-  <nav class="other">{others}</nav>
+  <a class="cta" href="/#{tab}">最新の情報を見る（{tablabel}）
+    <span>{ctanote}</span></a>
+
+  <nav class="other">
+    <h2>ほかのページ</h2>
+    <ul>
+{others}
+    </ul>
+  </nav>
 
   <footer>
-    <p><b>このページには、日ごとに変わる情報を載せていません。</b>
-      給水所の場所と時間、避難所の開設状況、ボランティアの受入状況は毎日変わるため、
-      本体サイトの該当タブでご確認ください。古い数字が検索結果に残らないようにするためです。</p>
-    <p>令和8年熊本地震 情報まとめ（非公式）／
+    <p><b>このページには、日ごとに変わる数字を載せていません。</b>
+      給水所の場所と時間、避難所の開設状況、仮置場の待ち時間、ボランティアの受入状況は毎日変わるため、
+      本体サイトの該当タブでご確認ください。古い数字が検索結果に残って、
+      読んだ方を誤らせないようにするためです。</p>
+    <p>{sitename}／
       <a href="/">kumamotojishin.jp</a>　運営とお問い合わせ：info@kumamotojishin.jp</p>
   </footer>
 </main>
@@ -289,28 +195,71 @@ TMPL = """<!doctype html>
 
 def build(out_dir):
     os.makedirs(out_dir, exist_ok=True)
-    made = []
-    for slug, tab, title, desc, h1, blocks in PAGES:
-        body = "\n".join(
-            f'  <h2>{h}</h2>\n  <div class="card">{t}</div>' for h, t in blocks
+    today = dt.datetime.now(JST).strftime("%Y-%m-%d")
+    made, stats = [], []
+
+    for slug, tab, title, desc, h1, lead, ctanote, blocks, faqs in PAGES:
+        # 本文
+        body_parts, toc_parts = [], []
+        for i, (h, t) in enumerate(blocks, 1):
+            aid = f"s{i}"
+            body_parts.append(f'  <h2 id="{aid}">{h}</h2>\n  <div class="card">{t}</div>')
+            toc_parts.append(f'      <li><a href="#{aid}">{esc(h)}</a></li>')
+        toc_parts.append('      <li><a href="#faq">よくある質問</a></li>')
+
+        faq_parts = [f"    <dt>{q}</dt>\n    <dd>{a}</dd>" for q, a in faqs]
+
+        others = []
+        for s2, _, _, _, _, _, _, _, _ in PAGES:
+            if s2 == slug:
+                continue
+            lbl, note = NAV_NOTE[s2]
+            others.append(f'      <li><a href="/{s2}/">{lbl}<small>{note}</small></a></li>')
+
+        # 構造化データ：パンくず・記事・FAQ
+        url = f"{SITE}/{slug}/"
+        jsonld = [
+            {"@context": "https://schema.org", "@type": "BreadcrumbList",
+             "itemListElement": [
+                 {"@type": "ListItem", "position": 1, "name": "令和8年熊本地震 情報まとめ", "item": SITE + "/"},
+                 {"@type": "ListItem", "position": 2, "name": esc(title), "item": url},
+             ]},
+            {"@context": "https://schema.org", "@type": "Article",
+             "headline": esc(title), "description": esc(desc),
+             "inLanguage": "ja", "datePublished": "2026-08-05", "dateModified": today,
+             "mainEntityOfPage": {"@type": "WebPage", "@id": url},
+             "isPartOf": {"@type": "WebSite", "name": SITE_NAME, "url": SITE + "/"},
+             "about": {"@type": "Event", "name": "令和8年熊本地震", "startDate": "2026-07-28"},
+             "publisher": {"@type": "Organization", "name": SITE_NAME, "url": SITE + "/"}},
+            {"@context": "https://schema.org", "@type": "FAQPage",
+             "mainEntity": [
+                 {"@type": "Question", "name": esc(q),
+                  "acceptedAnswer": {"@type": "Answer", "text": esc(a)}}
+                 for q, a in faqs]},
+        ]
+
+        html = TMPL.format(
+            site=SITE, sitename=SITE_NAME, slug=slug, title=title, desc=desc,
+            h1=h1, lead=lead, ctanote=ctanote, today=today,
+            tab=tab, tablabel=TAB_LABEL.get(tab, "本体サイト"),
+            toc="\n".join(toc_parts), body="\n".join(body_parts),
+            faqhtml="\n".join(faq_parts), others="\n".join(others),
+            jsonld=json.dumps(jsonld, ensure_ascii=False, separators=(",", ":")),
         )
-        others = "".join(
-            f'<a href="/{s}/">{ti.split("｜")[0].split("｜")[0]}</a>'
-            for s, _, ti, _, _, _ in PAGES if s != slug
-        )
-        html = TMPL.format(site=SITE, slug=slug, title=title, desc=desc, h1=h1,
-                           tab=tab, tablabel=TAB_LABEL.get(tab, "本体サイト"),
-                           body=body, others=others)
+
         d = os.path.join(out_dir, slug)
         os.makedirs(d, exist_ok=True)
         with open(os.path.join(d, "index.html"), "w", encoding="utf-8") as f:
             f.write(html)
         made.append(slug)
 
-    today = dt.datetime.now(JST).strftime("%Y-%m-%d")
+        chars = sum(len(esc(h)) + len(esc(t)) for h, t in blocks)
+        chars += sum(len(esc(q)) + len(esc(a)) for q, a in faqs)
+        stats.append((slug, len(blocks), len(faqs), chars, len(html)))
+
     urls = "".join(
         f"  <url>\n    <loc>{SITE}/{s}/</loc>\n    <lastmod>{today}</lastmod>\n"
-        f"    <changefreq>weekly</changefreq>\n    <priority>0.7</priority>\n  </url>\n"
+        f"    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>\n"
         for s in made)
     sitemap = ('<?xml version="1.0" encoding="UTF-8"?>\n'
                '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
@@ -319,11 +268,14 @@ def build(out_dir):
                f'{urls}</urlset>\n')
     with open(os.path.join(out_dir, "sitemap.xml"), "w", encoding="utf-8") as f:
         f.write(sitemap)
-    return made
+    return made, stats
 
 
 if __name__ == "__main__":
     out = sys.argv[1] if len(sys.argv) > 1 else "site"
-    made = build(out)
-    print(f"{len(made)}ページ生成: " + "、".join(made))
-    print(f"sitemap.xml に {len(made)+1} URL")
+    made, stats = build(out)
+    print(f"{len(made)}ページ生成、sitemap.xml に {len(made)+1} URL\n")
+    print(f"{'slug':<11}{'節':>4}{'Q&A':>5}{'本文字数':>10}{'HTML':>9}")
+    for s, nb, nf, ch, hb in stats:
+        print(f"{s:<11}{nb:>4}{nf:>5}{ch:>10,}{hb:>9,}")
+    print(f"\n合計 本文 {sum(x[3] for x in stats):,} 字")

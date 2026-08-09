@@ -8,6 +8,7 @@
 <link rel="canonical" href="https://kumamotojishin.jp/checklist/">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <meta name="theme-color" content="#a62018">
+<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://kumamotojishin.jp/checklist/">
 <meta property="og:site_name" content="令和8年熊本地震 情報まとめ（非公式）">
@@ -20,7 +21,7 @@
 <meta name="twitter:description" content="被災したあと、今日じゅうに・3日以内に・2週間以内に・そのあとに何をすればいいか。令和8年熊本地震の被災者向けに、時間の順に並べたチェックリストです。">
 <meta name="twitter:image" content="https://kumamotojishin.jp/og.png">
 <style>
-  :root{--ink:#1c1f23;--ink-2:#41474e;--ink-3:#6b7480;--line:#e2e6ea;
+  :root{--ink:#1c1f23;--ink-2:#3d434a;--ink-3:#6b7480;--line:#e2e6ea;
     --bg:#f6f7f9;--surface:#fff;--accent:#0d6b52;--accent-soft:#e8f3ef;--red:#b3261e}
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);line-height:1.95;
@@ -32,22 +33,39 @@
   header.hd a.home{color:var(--accent);font-weight:700;text-decoration:none;font-size:.9rem}
   .warn{background:#fdecea;border-bottom:1px solid #f5c6c2;color:#8c1d18;font-size:.84rem;padding:10px 0}
   .warn .in{max-width:720px;margin:0 auto;padding:0 16px}
-  h1{font-size:1.42rem;line-height:1.65;margin:24px 0 6px}
-  .lead{color:var(--ink-2);font-size:.93rem;margin:0 0 20px}
-  h2{font-size:1.06rem;margin:26px 0 8px;padding-left:11px;border-left:4px solid var(--accent)}
+  h1{font-size:1.42rem;line-height:1.65;margin:24px 0 8px}
+  .lead{color:var(--ink-2);font-size:.95rem;margin:0 0 6px}
+  .stamp{color:var(--ink-3);font-size:.78rem;margin:0 0 18px}
+  h2{font-size:1.07rem;line-height:1.6;margin:30px 0 8px;padding-left:11px;
+    border-left:4px solid var(--accent);scroll-margin-top:12px}
+  h3{font-size:.97rem;margin:20px 0 6px}
   .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;
     padding:14px 16px;margin:0 0 14px;font-size:.93rem;color:var(--ink-2)}
+  .toc{background:var(--surface);border:1px solid var(--line);border-radius:12px;
+    padding:14px 16px;margin:0 0 20px;font-size:.9rem}
+  .toc b{display:block;margin-bottom:6px;font-size:.88rem}
+  .toc ol{margin:0;padding-left:1.3em;color:var(--ink-2)}
+  .toc li{margin:3px 0}
+  .toc a{color:var(--ink-2)}
   .cta{display:block;background:var(--accent);color:#fff;text-align:center;font-weight:700;
-    text-decoration:none;border-radius:12px;padding:15px;margin:22px 0;font-size:1rem}
-  .cta span{display:block;font-weight:400;font-size:.79rem;opacity:.9;margin-top:3px}
-  nav.other{margin:26px 0 0}
-  nav.other a{display:inline-block;border:1px solid var(--line);background:#fff;border-radius:999px;
-    padding:7px 14px;margin:0 6px 8px 0;font-size:.84rem;color:var(--ink-2);text-decoration:none}
+    text-decoration:none;border-radius:12px;padding:15px;margin:24px 0;font-size:1rem}
+  .cta span{display:block;font-weight:400;font-size:.79rem;opacity:.92;margin-top:3px}
+  .faq{background:var(--surface);border:1px solid var(--line);border-radius:12px;
+    padding:4px 16px;margin:0 0 14px}
+  .faq dt{font-weight:700;font-size:.93rem;margin:14px 0 4px}
+  .faq dd{margin:0 0 14px;font-size:.91rem;color:var(--ink-2)}
+  nav.other{margin:28px 0 0}
+  nav.other ul{list-style:none;padding:0;margin:0}
+  nav.other li{border-top:1px solid var(--line)}
+  nav.other a{display:block;padding:11px 2px;text-decoration:none;color:var(--accent);
+    font-weight:700;font-size:.93rem}
+  nav.other a small{display:block;color:var(--ink-3);font-weight:400;font-size:.8rem;margin-top:1px}
   footer{border-top:1px solid var(--line);margin-top:30px;padding:18px 0 0;
     font-size:.78rem;color:var(--ink-3)}
   footer a{color:var(--ink-3)}
   b{color:var(--ink)}
 </style>
+<script type="application/ld+json">[{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"令和8年熊本地震 情報まとめ","item":"https://kumamotojishin.jp/"},{"@type":"ListItem","position":2,"name":"熊本地震のあとに、やること（時系列のチェックリスト）","item":"https://kumamotojishin.jp/checklist/"}]},{"@context":"https://schema.org","@type":"Article","headline":"熊本地震のあとに、やること（時系列のチェックリスト）","description":"被災したあと、今日じゅうに・3日以内に・2週間以内に・そのあとに何をすればいいか。令和8年熊本地震の被災者向けに、時間の順に並べたチェックリストです。","inLanguage":"ja","datePublished":"2026-08-05","dateModified":"2026-08-09","mainEntityOfPage":{"@type":"WebPage","@id":"https://kumamotojishin.jp/checklist/"},"isPartOf":{"@type":"WebSite","name":"令和8年熊本地震 情報まとめ（非公式）","url":"https://kumamotojishin.jp/"},"about":{"@type":"Event","name":"令和8年熊本地震","startDate":"2026-07-28"},"publisher":{"@type":"Organization","name":"令和8年熊本地震 情報まとめ（非公式）","url":"https://kumamotojishin.jp/"}},{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"まず何から始めればいいですか。","acceptedAnswer":{"@type":"Answer","text":"片付ける前に写真を撮ることです。これだけはあとから取り返せません。そのうえで、り災証明書の申請に進んでください。"}},{"@type":"Question","name":"写真は何枚くらい撮ればいいですか。","acceptedAnswer":{"@type":"Answer","text":"多いほうがいいです。外観を四方向、被害箇所のアップ、室内の各部屋、家全体の引き。同じ場所を角度を変えて何枚も撮ってかまいません。撮りすぎて困ることはありません。"}},{"@type":"Question","name":"災害ごみはいつ出せばいいですか。","acceptedAnswer":{"@type":"Answer","text":"仮置場の場所・受入時間・必要な書類・持ち込めない品目を確かめてからにしてください。混雑して午前中に受付が締め切られることがあります。急がないなら日を改めるほうが待ちません。"}},{"@type":"Question","name":"避難所に行くほどではないのですが、支援は受けられますか。","acceptedAnswer":{"@type":"Answer","text":"受けられます。在宅で避難している方も、給水・入浴支援・物資の配布・支援制度の対象です。「避難所にいる人だけ」と思い込まないでください。"}},{"@type":"Question","name":"何も手につきません。","acceptedAnswer":{"@type":"Answer","text":"自然な反応です。全部を今日やる必要はありません。写真だけ撮っておけば、あとの手続きは間に合います。眠れない、食べられないが続くときは、保健所や避難所の相談窓口に声をかけてください。"}}]}]</script>
 </head>
 <body>
 <div class="warn"><div class="in">
@@ -59,29 +77,72 @@
 
 <main class="wrap">
   <h1>やること（時間の順）</h1>
-  <p class="lead">被災したあと、今日じゅうに・3日以内に・2週間以内に・そのあとに何をすればいいか。令和8年熊本地震の被災者向けに、時間の順に並べたチェックリストです。</p>
+  <p class="lead">何から手をつければいいか分からないときのための一覧です。上から順に見てください。とくに「今日じゅうに」の写真だけは、あとから取り返せません。</p>
+  <p class="stamp">最終更新：2026-08-09／令和8年熊本地震（2026年7月28日）</p>
 
   <a class="cta" href="/#guide">最新の情報を見る（手続き・支援制度）
-    <span>給水所の場所、開設状況、受付の締切など、日ごとに変わる情報はこちらです</span></a>
+    <span>お住まいの市町村の受付状況は、本体サイトの市町村別のタブにあります</span></a>
 
-  <h2>今日じゅうに</h2>
-  <div class="card"><b>片付ける前に写真を撮る</b>（外観を四方向・被害箇所のアップ・室内）／家族の安否を確かめる（電話よりSNS、災害用伝言ダイヤル171）／<b>ガスのにおいがしないか確かめる</b>（したら火も電気のスイッチも使わず、窓を開けて供給会社へ）／<b>避難するときはブレーカーを落とす</b>（通電火災を防ぎます）／水を確保する。</div>
-  <h2>3日以内に</h2>
-  <div class="card"><b>り災証明書を申請する</b>／<b>保険会社に連絡する</b>（証券をなくしても照会できます）／持病の薬を確保する／災害ごみの出し方を市町村で確認してから片付ける／被害の写真をクラウドか家族に送っておく。</div>
-  <h2>2週間以内に</h2>
-  <div class="card">被災者生活再建支援金の申請／<b>住宅の応急修理を申し込む（先に工事を発注すると対象外になります）</b>／<b>税・国民健康保険料・介護保険料・水道料金の減免を申請する</b>／応急仮設住宅の受付を確認する／領収書と契約書を全部とっておく。</div>
-  <h2>そのあと・忘れずに</h2>
-  <div class="card">り災証明の判定に納得できないときは<b>再調査を依頼できます</b>／住宅ローンが残っている方は<b>自然災害債務整理ガイドライン</b>を／こころとからだの不調は我慢しない（数週間たってから出てくることのほうが多いです）／義援金の配分申請を確認する。</div>
+  <div class="toc"><b>このページの内容</b>
+    <ol>
+      <li><a href="#s1">今日じゅうに</a></li>
+      <li><a href="#s2">3日以内に</a></li>
+      <li><a href="#s3">2週間以内に</a></li>
+      <li><a href="#s4">そのあと・忘れずに</a></li>
+      <li><a href="#s5">避難生活が続くときに、命に関わること</a></li>
+      <li><a href="#s6">片付けるときの安全</a></li>
+      <li><a href="#faq">よくある質問</a></li>
+    </ol>
+  </div>
+
+  <h2 id="s1">今日じゅうに</h2>
+  <div class="card"><b>□ 片付ける前に写真を撮る</b>——外観を四方向、被害箇所のアップ、室内、家全体の引き。ブルーシートをかける前、家具を起こす前に。<b>これだけは取り返しがつきません。</b><br><b>□ 家族の安否を確かめる</b>——電話はつながりにくいので、SNSや災害用伝言ダイヤル171を。<br><b>□ ガスのにおいがしないか確かめる</b>——したら、火も電気のスイッチも使わず、窓を開けて供給会社へ連絡。<br><b>□ 避難するときはブレーカーを落とす</b>——通電火災を防ぎます。地震の火災で最も多い原因です。<br><b>□ 水を確保する</b>——浴槽に水をためる、給水所を確認する。<br><b>□ 倒れかけた塀や建物に近づかない</b>——本震で傷んだ家は、同じ震度でも次にもちません。</div>
+  <h2 id="s2">3日以内に</h2>
+  <div class="card"><b>□ り災証明書を申請する</b>——ほとんどの支援制度の入口です。整理券制のところは早朝から並ぶことがあります。<br><b>□ 保険会社に連絡する</b>——証券をなくしても、日本損害保険協会の照会制度（0120-501331）で契約を確認できます。<b>保険金の請求は自分でできます。代行業者は要りません。</b><br><b>□ 持病の薬を確保する</b>——お薬手帳がなくても、避難所の救護所や薬局で相談できます。<br><b>□ 災害ごみの出し方を確かめてから片付ける</b>——仮置場の場所、受入時間、必要な書類、持ち込めない品目が市町村ごとに違います。<b>行ってから断られると往復が無駄になります。</b><br><b>□ 写真をクラウドか家族に送る</b>——端末が壊れても残るように。<br><b>□ 屋根に自分でのぼらない</b>——瓦がずれた屋根は、見た目より足がかりがありません。転落は、それだけで命に関わります。市町村か社会福祉協議会に相談してください。</div>
+  <h2 id="s3">2週間以内に</h2>
+  <div class="card"><b>□ 被災者生活再建支援金を申請する</b><br><b>□ 住宅の応急修理を申し込む</b>——<b>先に工事を発注して払うと対象外になります。</b>必ず先に市町村へ。<br><b>□ 税・国民健康保険料・介護保険料・水道料金の減免を申請する</b>——申請しないと減りません。<br><b>□ 医療機関の窓口負担の免除を確認する</b>——国保・後期高齢者医療の加入者で条件に当てはまる方。<br><b>□ 応急仮設住宅・みなし仮設の受付を確認する</b>——「住まいに関する意向調査」があれば必ず回答を。<br><b>□ 証明書の手数料免除を使う</b>——り災証明を提示して<b>窓口で</b>申請（コンビニ交付は対象外）。<br><b>□ 領収書と契約書を全部とっておく</b></div>
+  <h2 id="s4">そのあと・忘れずに</h2>
+  <div class="card"><b>□ 判定に納得できないときは再調査を依頼する</b>——期限があります。内部の被害の写真を用意して。<br><b>□ 住宅ローンが残っているなら、自然災害債務整理ガイドラインを調べる</b>——自己破産せずに減免でき、信用情報にも載りません。<br><b>□ 義援金の配分申請を確認する</b>——市町村が受け付けた義援金は、被害の程度に応じて分配されます。こちらから申請が要ることがあります。<br><b>□ こころとからだの不調を我慢しない</b>——数週間から数か月たってから出てくることのほうが多いです。眠れない、食べられない、涙が出る、といったことは、異常ではなく自然な反応です。保健所や避難所の相談窓口へ。<br><b>□ 高速道路の無料措置を確認する</b>——期限があります。</div>
+  <h2 id="s5">避難生活が続くときに、命に関わること</h2>
+  <div class="card"><b>車中泊のエコノミークラス症候群。</b>長時間同じ姿勢でいると、足の静脈に血のかたまりができ、肺に詰まると命に関わります。<b>ときどき車の外に出て歩く、水分をとる、足首を回す、ふくらはぎをもむ。</b>足が腫れる、痛い、息が苦しいときは、すぐ医療機関へ。<br><b>熱中症。</b>夏の車内は短時間で危険な温度になります。<b>昼のあいだは車から出て、涼しい場所へ移ってください。</b>実際に、車中泊をされていた方が熱中症で亡くなっています。<br><b>感染症。</b>手洗いができないときは、アルコールの手指消毒を。避難所ではマスクを。体調が悪くなったら、我慢せずスタッフに伝えてください。</div>
+  <h2 id="s6">片付けるときの安全</h2>
+  <div class="card"><b>厚底の靴を履いてください。</b>スニーカーは釘やガラスを踏み抜きます。軍手ではなく、できればゴム引きの手袋を。<b>粉じん用のマスクとゴーグル。</b>崩れた壁や天井には、断熱材やアスベストが含まれていることがあります。<br><b>ひとりで作業しないでください。</b>倒れたとき、誰も気づきません。重いものは無理に動かさず、ボランティアや業者に頼んでください。</div>
+
+  <h2 id="faq">よくある質問</h2>
+  <dl class="faq">
+    <dt>まず何から始めればいいですか。</dt>
+    <dd>片付ける前に写真を撮ることです。これだけはあとから取り返せません。そのうえで、り災証明書の申請に進んでください。</dd>
+    <dt>写真は何枚くらい撮ればいいですか。</dt>
+    <dd>多いほうがいいです。外観を四方向、被害箇所のアップ、室内の各部屋、家全体の引き。同じ場所を角度を変えて何枚も撮ってかまいません。撮りすぎて困ることはありません。</dd>
+    <dt>災害ごみはいつ出せばいいですか。</dt>
+    <dd>仮置場の場所・受入時間・必要な書類・持ち込めない品目を確かめてからにしてください。混雑して午前中に受付が締め切られることがあります。急がないなら日を改めるほうが待ちません。</dd>
+    <dt>避難所に行くほどではないのですが、支援は受けられますか。</dt>
+    <dd>受けられます。在宅で避難している方も、給水・入浴支援・物資の配布・支援制度の対象です。「避難所にいる人だけ」と思い込まないでください。</dd>
+    <dt>何も手につきません。</dt>
+    <dd>自然な反応です。全部を今日やる必要はありません。写真だけ撮っておけば、あとの手続きは間に合います。眠れない、食べられないが続くときは、保健所や避難所の相談窓口に声をかけてください。</dd>
+  </dl>
 
   <a class="cta" href="/#guide">最新の情報を見る（手続き・支援制度）
-    <span>このページには、変わらないことだけを書いています</span></a>
+    <span>お住まいの市町村の受付状況は、本体サイトの市町村別のタブにあります</span></a>
 
-  <nav class="other"><a href="/mizu/">熊本地震の給水所・断水情報の探し方</a><a href="/risai/">り災証明書の申請と、写真の撮り方</a><a href="/sagi/">災害に便乗した詐欺・悪質業者への注意</a><a href="/volunteer/">熊本地震の災害ボランティア</a><a href="/furo/">熊本地震の入浴支援・お風呂に入れる場所</a><a href="/shien/">熊本地震で使える支援制度の一覧</a><a href="/yasashii/">やさしい にほんごの ページ</a></nav>
+  <nav class="other">
+    <h2>ほかのページ</h2>
+    <ul>
+      <li><a href="/mizu/">給水所と断水<small>持ち物、生活用水と飲み水の違い、家の中だけ水が出ないとき</small></a></li>
+      <li><a href="/risai/">り災証明書<small>写真の撮り方、被害認定調査、判定に納得できないとき</small></a></li>
+      <li><a href="/sagi/">詐欺・悪質商法<small>屋根の訪問販売、保険金請求代行、クーリング・オフ</small></a></li>
+      <li><a href="/volunteer/">ボランティア<small>申し込み、保険、募集範囲、持ち物</small></a></li>
+      <li><a href="/furo/">お風呂・入浴支援<small>4つの種類、持ち物、市外の方も使えること</small></a></li>
+      <li><a href="/shien/">使える支援制度<small>支援金、応急修理、税と医療費、被災ローン減免</small></a></li>
+      <li><a href="/yasashii/">やさしい にほんご<small>かんたんな 日本語の ページ</small></a></li>
+    </ul>
+  </nav>
 
   <footer>
-    <p><b>このページには、日ごとに変わる情報を載せていません。</b>
-      給水所の場所と時間、避難所の開設状況、ボランティアの受入状況は毎日変わるため、
-      本体サイトの該当タブでご確認ください。古い数字が検索結果に残らないようにするためです。</p>
+    <p><b>このページには、日ごとに変わる数字を載せていません。</b>
+      給水所の場所と時間、避難所の開設状況、仮置場の待ち時間、ボランティアの受入状況は毎日変わるため、
+      本体サイトの該当タブでご確認ください。古い数字が検索結果に残って、
+      読んだ方を誤らせないようにするためです。</p>
     <p>令和8年熊本地震 情報まとめ（非公式）／
       <a href="/">kumamotojishin.jp</a>　運営とお問い合わせ：info@kumamotojishin.jp</p>
   </footer>

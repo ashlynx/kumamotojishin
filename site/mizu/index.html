@@ -4,23 +4,24 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>熊本地震の給水所・断水情報の探し方｜令和8年熊本地震 情報まとめ</title>
-<meta name="description" content="令和8年熊本地震の給水所と断水の情報を、市町村の公式発表から集めています。給水所は日ごとに場所と時間が変わるため、当日分の確認先をまとめました。">
+<meta name="description" content="令和8年熊本地震の給水と断水。給水所は日ごとに場所も時間も変わります。持ち物、生活用水と飲み水の違い、家の中だけ水が出ないときの確認手順、断水が解消したあとの注意をまとめています。">
 <link rel="canonical" href="https://kumamotojishin.jp/mizu/">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <meta name="theme-color" content="#a62018">
+<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://kumamotojishin.jp/mizu/">
 <meta property="og:site_name" content="令和8年熊本地震 情報まとめ（非公式）">
 <meta property="og:title" content="熊本地震の給水所・断水情報の探し方">
-<meta property="og:description" content="令和8年熊本地震の給水所と断水の情報を、市町村の公式発表から集めています。給水所は日ごとに場所と時間が変わるため、当日分の確認先をまとめました。">
+<meta property="og:description" content="令和8年熊本地震の給水と断水。給水所は日ごとに場所も時間も変わります。持ち物、生活用水と飲み水の違い、家の中だけ水が出ないときの確認手順、断水が解消したあとの注意をまとめています。">
 <meta property="og:image" content="https://kumamotojishin.jp/og.png">
 <meta property="og:locale" content="ja_JP">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="熊本地震の給水所・断水情報の探し方">
-<meta name="twitter:description" content="令和8年熊本地震の給水所と断水の情報を、市町村の公式発表から集めています。給水所は日ごとに場所と時間が変わるため、当日分の確認先をまとめました。">
+<meta name="twitter:description" content="令和8年熊本地震の給水と断水。給水所は日ごとに場所も時間も変わります。持ち物、生活用水と飲み水の違い、家の中だけ水が出ないときの確認手順、断水が解消したあとの注意をまとめています。">
 <meta name="twitter:image" content="https://kumamotojishin.jp/og.png">
 <style>
-  :root{--ink:#1c1f23;--ink-2:#41474e;--ink-3:#6b7480;--line:#e2e6ea;
+  :root{--ink:#1c1f23;--ink-2:#3d434a;--ink-3:#6b7480;--line:#e2e6ea;
     --bg:#f6f7f9;--surface:#fff;--accent:#0d6b52;--accent-soft:#e8f3ef;--red:#b3261e}
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);line-height:1.95;
@@ -32,22 +33,39 @@
   header.hd a.home{color:var(--accent);font-weight:700;text-decoration:none;font-size:.9rem}
   .warn{background:#fdecea;border-bottom:1px solid #f5c6c2;color:#8c1d18;font-size:.84rem;padding:10px 0}
   .warn .in{max-width:720px;margin:0 auto;padding:0 16px}
-  h1{font-size:1.42rem;line-height:1.65;margin:24px 0 6px}
-  .lead{color:var(--ink-2);font-size:.93rem;margin:0 0 20px}
-  h2{font-size:1.06rem;margin:26px 0 8px;padding-left:11px;border-left:4px solid var(--accent)}
+  h1{font-size:1.42rem;line-height:1.65;margin:24px 0 8px}
+  .lead{color:var(--ink-2);font-size:.95rem;margin:0 0 6px}
+  .stamp{color:var(--ink-3);font-size:.78rem;margin:0 0 18px}
+  h2{font-size:1.07rem;line-height:1.6;margin:30px 0 8px;padding-left:11px;
+    border-left:4px solid var(--accent);scroll-margin-top:12px}
+  h3{font-size:.97rem;margin:20px 0 6px}
   .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;
     padding:14px 16px;margin:0 0 14px;font-size:.93rem;color:var(--ink-2)}
+  .toc{background:var(--surface);border:1px solid var(--line);border-radius:12px;
+    padding:14px 16px;margin:0 0 20px;font-size:.9rem}
+  .toc b{display:block;margin-bottom:6px;font-size:.88rem}
+  .toc ol{margin:0;padding-left:1.3em;color:var(--ink-2)}
+  .toc li{margin:3px 0}
+  .toc a{color:var(--ink-2)}
   .cta{display:block;background:var(--accent);color:#fff;text-align:center;font-weight:700;
-    text-decoration:none;border-radius:12px;padding:15px;margin:22px 0;font-size:1rem}
-  .cta span{display:block;font-weight:400;font-size:.79rem;opacity:.9;margin-top:3px}
-  nav.other{margin:26px 0 0}
-  nav.other a{display:inline-block;border:1px solid var(--line);background:#fff;border-radius:999px;
-    padding:7px 14px;margin:0 6px 8px 0;font-size:.84rem;color:var(--ink-2);text-decoration:none}
+    text-decoration:none;border-radius:12px;padding:15px;margin:24px 0;font-size:1rem}
+  .cta span{display:block;font-weight:400;font-size:.79rem;opacity:.92;margin-top:3px}
+  .faq{background:var(--surface);border:1px solid var(--line);border-radius:12px;
+    padding:4px 16px;margin:0 0 14px}
+  .faq dt{font-weight:700;font-size:.93rem;margin:14px 0 4px}
+  .faq dd{margin:0 0 14px;font-size:.91rem;color:var(--ink-2)}
+  nav.other{margin:28px 0 0}
+  nav.other ul{list-style:none;padding:0;margin:0}
+  nav.other li{border-top:1px solid var(--line)}
+  nav.other a{display:block;padding:11px 2px;text-decoration:none;color:var(--accent);
+    font-weight:700;font-size:.93rem}
+  nav.other a small{display:block;color:var(--ink-3);font-weight:400;font-size:.8rem;margin-top:1px}
   footer{border-top:1px solid var(--line);margin-top:30px;padding:18px 0 0;
     font-size:.78rem;color:var(--ink-3)}
   footer a{color:var(--ink-3)}
   b{color:var(--ink)}
 </style>
+<script type="application/ld+json">[{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"令和8年熊本地震 情報まとめ","item":"https://kumamotojishin.jp/"},{"@type":"ListItem","position":2,"name":"熊本地震の給水所・断水情報の探し方","item":"https://kumamotojishin.jp/mizu/"}]},{"@context":"https://schema.org","@type":"Article","headline":"熊本地震の給水所・断水情報の探し方","description":"令和8年熊本地震の給水と断水。給水所は日ごとに場所も時間も変わります。持ち物、生活用水と飲み水の違い、家の中だけ水が出ないときの確認手順、断水が解消したあとの注意をまとめています。","inLanguage":"ja","datePublished":"2026-08-05","dateModified":"2026-08-09","mainEntityOfPage":{"@type":"WebPage","@id":"https://kumamotojishin.jp/mizu/"},"isPartOf":{"@type":"WebSite","name":"令和8年熊本地震 情報まとめ（非公式）","url":"https://kumamotojishin.jp/"},"about":{"@type":"Event","name":"令和8年熊本地震","startDate":"2026-07-28"},"publisher":{"@type":"Organization","name":"令和8年熊本地震 情報まとめ（非公式）","url":"https://kumamotojishin.jp/"}},{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"給水は有料ですか。","acceptedAnswer":{"@type":"Answer","text":"無料です。市町村や自衛隊、海上保安庁が行う応急給水で、お金はかかりません。給水に来た人から料金を求められることはありません。"}},{"@type":"Question","name":"1回にどれくらいもらえますか。","acceptedAnswer":{"@type":"Answer","text":"1回あたり5リットルから10リットル程度が目安です。市町村によって違い、水の確保が進むにつれて上限が引き上げられることがあります。当日の発表で確かめてください。"}},{"@type":"Question","name":"容器がありません。どうすればいいですか。","acceptedAnswer":{"@type":"Answer","text":"給水袋を配っている市町村がありますが、数に限りがあります。空のペットボトル、ふた付きのバケツ、クーラーボックスでも代用できます。清潔なものを使ってください。"}},{"@type":"Question","name":"断水が解消したら、すぐ飲めますか。","acceptedAnswer":{"@type":"Answer","text":"市町村が水質検査を行い、水道法の基準に適合したと発表するまでは、案内に従ってください。解消直後は濁りが出るので、濁りが取れるまで流してから使います。「沸かしてから飲んでください」と案内されることもあります。"}},{"@type":"Question","name":"隣の市町村の給水所を使ってもいいですか。","acceptedAnswer":{"@type":"Answer","text":"「市外の被災された方も利用できます」と明記している場合は使えます。明記がないときは、まず自分の市町村の発表を確認してください。"}},{"@type":"Question","name":"井戸の水や手押しポンプの水は飲めますか。","acceptedAnswer":{"@type":"Answer","text":"断りがなければ飲用ではないと考えてください。地震のあとは地下水の水質が変わることがあります。トイレや掃除など、生活用水として使ってください。"}}]}]</script>
 </head>
 <body>
 <div class="warn"><div class="in">
@@ -59,29 +77,89 @@
 
 <main class="wrap">
   <h1>給水所と断水の情報を探す</h1>
-  <p class="lead">令和8年熊本地震の給水所と断水の情報を、市町村の公式発表から集めています。給水所は日ごとに場所と時間が変わるため、当日分の確認先をまとめました。</p>
+  <p class="lead">給水所の場所と時間は毎日変わります。このページには、日によって変わらないこと——持ち物、水の種類の見分け方、家の中だけ水が出ないときにまず確かめること、断水が解消したあとの注意——を書いています。</p>
+  <p class="stamp">最終更新：2026-08-09／令和8年熊本地震（2026年7月28日）</p>
 
   <a class="cta" href="/#life">最新の情報を見る（ライフライン）
-    <span>給水所の場所、開設状況、受付の締切など、日ごとに変わる情報はこちらです</span></a>
+    <span>給水所の当日の場所と時間は、本体サイトのライフラインのタブにあります</span></a>
 
-  <h2>給水所は毎日変わります</h2>
-  <div class="card">給水所の場所と時間は<b>日ごとに変わります</b>。前の日に行った場所が今日も開いているとは限りません。市町村が朝に当日分を発表するので、出かける前に必ず当日の発表を見てください。</div>
-  <h2>持って行くもの</h2>
-  <div class="card"><b>給水容器（ポリタンク・ペットボトルなど）を必ず持参してください。</b>配布量は1回あたり5リットル程度が目安です。給水袋を配る市町村もありますが、数に限りがあります。水は重く、20リットルで20kgになります。台車やキャリーカートがあると運びやすくなります。</div>
-  <h2>濁った水は飲まないでください</h2>
-  <div class="card">水道から茶色い水が出るときは飲まないでください。トイレや掃除には使えます。断水が復旧した直後は、しばらく水を流してから使ってください。</div>
-  <h2>生活用水と飲み水は別です</h2>
-  <div class="card">「生活用水」と書かれた配布は<b>飲み水ではありません</b>。洗濯やトイレに使うためのものです。手押しポンプの水、井戸水、プールの水も同じです。飲めるかどうかは必ず表示を確かめてください。</div>
+  <div class="toc"><b>このページの内容</b>
+    <ol>
+      <li><a href="#s1">給水所は毎日変わります。前日と同じとは限りません</a></li>
+      <li><a href="#s2">持って行くもの</a></li>
+      <li><a href="#s3">給水車が一時的にいないことがあります</a></li>
+      <li><a href="#s4">「生活用水」と「飲み水」は別のものです</a></li>
+      <li><a href="#s5">茶色い水・濁った水は飲まないでください</a></li>
+      <li><a href="#s6">トイレの水が正常に流れないときは、流さないでください</a></li>
+      <li><a href="#s7">断水が解消しても、水が出ないことがあります（減圧給水）</a></li>
+      <li><a href="#s8">家の中だけ水が出ないときは、まず元栓を見てください</a></li>
+      <li><a href="#s9">漏水を見つけたら通報してください。復旧が早くなります</a></li>
+      <li><a href="#s10">ペットボトルの配布は、給水車とは別です</a></li>
+      <li><a href="#s11">断水中のトイレ</a></li>
+      <li><a href="#faq">よくある質問</a></li>
+    </ol>
+  </div>
+
+  <h2 id="s1">給水所は毎日変わります。前日と同じとは限りません</h2>
+  <div class="card">給水所の場所も時間も、<b>日ごとに変わります。</b>市町村は前日の夕方から当日の朝にかけて、その日の分を発表します。前の日に行った場所が今日も開いているとは限りません。<br><b>同じ日でも、場所によって開く時間が違うことがあります。</b>大半が8時30分開始で、7時から開くのは数か所だけ、という発表のしかたをする市町村があります。早い時間に行くつもりなら、時間の内訳まで見てください。「今日は28か所」という数字だけを見て出かけると、着いてから待つことになります。</div>
+  <h2 id="s2">持って行くもの</h2>
+  <div class="card"><b>給水容器を必ず持参してください。</b>ポリタンク、ペットボトル、清潔なバケツでもかまいません。容器を配る市町村もありますが、数に限りがあり、「配った袋は繰り返し使ってください」と呼びかけている町もあります。<br>配布量は<b>1回あたり5リットルから10リットル程度</b>が目安です。市町村によって違い、同じ市町村でも途中で上限が変わります。<br><b>水は重いです。20リットルで20キロあります。</b>満杯にすると持ち上げられないことがあるので、小さめの容器を複数に分けるか、台車やキャリーカートを用意してください。車のトランクに積むときは、口が上を向くように固定してください。</div>
+  <h2 id="s3">給水車が一時的にいないことがあります</h2>
+  <div class="card">給水車は水がなくなると補給に戻ります。<b>その間、給水所には誰もいません。</b>「行ったのにいなかった」のは終了ではなく、多くの場合は補給中です。少し待つか、時間を置いて出直してください。給水タンクが据え置かれている場所なら、車がいなくても水は出ます。</div>
+  <h2 id="s4">「生活用水」と「飲み水」は別のものです</h2>
+  <div class="card"><b>「生活用水」と書かれた配布は、飲み水ではありません。</b>洗濯・トイレ・掃除に使うためのものです。<br>手押しポンプの水、井戸水、プールの水、船から配られる水も、断りがなければ飲用ではないと考えてください。国土交通省の船による給水は生活用水のことがあり、海上保安庁の巡視船による給水は飲用のことがあります。<b>同じ「船からの給水」でも中身が違います。</b>現地の表示か、市町村の発表で必ず確かめてください。</div>
+  <h2 id="s5">茶色い水・濁った水は飲まないでください</h2>
+  <div class="card">水道から茶色い水や白く濁った水が出るときは、<b>飲用に使わないでください。</b>トイレや掃除には使えます。<br>断水が復旧した直後は、配管にたまった錆やにごりが出ます。<b>濁りが取れるまで水を出し続けてから使ってください。</b>白い濁りが下から消えていくなら空気なので問題ありませんが、上から澄んでいく濁りや色のついた水は違います。</div>
+  <h2 id="s6">トイレの水が正常に流れないときは、流さないでください</h2>
+  <div class="card">断水が解消したあと、<b>トイレの水が正常に流れない場合は、使用を控えてください。</b>宅内の下水道に異常がある可能性があり、無理に流すと逆流することがあります。地震で下水管が壊れている、あるいはずれていることがあります。市町村の上下水道の窓口に相談してください。</div>
+  <h2 id="s7">断水が解消しても、水が出ないことがあります（減圧給水）</h2>
+  <div class="card">「断水解消」の発表があっても、しばらくは<b>水圧を下げて配る（減圧給水）</b>ことがあります。配水池の水位を守るためで、<b>対象地域でも高台や3階以上では水が出ないことがあります。</b><br>配水池の水位が下がると、<b>夜間（21時ごろから翌朝6時ごろ）だけ配水量をさらに絞る</b>市町村もあります。夜に水が細くなるのはこのためです。使用量が急に増えると配れなくなるので、解消後もしばらくは節水が要ります。</div>
+  <h2 id="s8">家の中だけ水が出ないときは、まず元栓を見てください</h2>
+  <div class="card">近所は出ているのに自分の家だけ出ない——このときは、<b>屋外のメーターボックスの中にある元栓（止水栓）が閉まっていないか確かめてください。</b>地震の直後に自分で閉めた、あるいは工事で閉められたままのことがあります。<br>元栓が開いているのに出ないときは、水道の窓口へ連絡してください。<b>敷地の中で漏れているときは市町村が指定した給水装置工事事業者、道路で漏れているときは市町村の上下水道の担当</b>と、連絡先が分かれます。</div>
+  <h2 id="s9">漏水を見つけたら通報してください。復旧が早くなります</h2>
+  <div class="card">地震のあとは、水道管が広い範囲で壊れます。<b>浄水場が動いていても、途中で漏れていれば末端まで届きません。</b>市町村が「水道管の破損で漏水が発生しているため、皆さまのご自宅に十分な水が届けられない状況です」と説明しているのはこの意味です。<br><b>漏れている場所が分からないと直せません。</b>道路が濡れている、水が湧いている、といった通報が、そのまま復旧の速さにつながります。見つけたら市町村へ連絡してください。</div>
+  <h2 id="s10">ペットボトルの配布は、給水車とは別です</h2>
+  <div class="card">支援で届いた飲料水（ペットボトル）を、避難所や支所で配ることがあります。<b>給水車の給水とは、場所も時間も別です。</b>「毎日17時30分から」のように時間が決まっていたり、受け取り場所が建物の別の入口になっていたりします。<br><b>在庫がなくなれば、その日のうちに終わります。</b>数日で終了して、また再開することもあります。10リットルの容器を持って行っても、配っているのがペットボトルなら意味がありません。どちらなのか確かめてから出かけてください。</div>
+  <h2 id="s11">断水中のトイレ</h2>
+  <div class="card">浴槽に残っている水、給水で受け取った水をバケツにためて流します。ただし前述のとおり、<b>下水道が壊れている可能性があるときは流さないでください。</b>簡易トイレ（凝固剤と袋）が避難所などで配られます。断水が長引くと分かった時点で、早めに確保しておくと安心です。</div>
+
+  <h2 id="faq">よくある質問</h2>
+  <dl class="faq">
+    <dt>給水は有料ですか。</dt>
+    <dd>無料です。市町村や自衛隊、海上保安庁が行う応急給水で、お金はかかりません。給水に来た人から料金を求められることはありません。</dd>
+    <dt>1回にどれくらいもらえますか。</dt>
+    <dd>1回あたり5リットルから10リットル程度が目安です。市町村によって違い、水の確保が進むにつれて上限が引き上げられることがあります。当日の発表で確かめてください。</dd>
+    <dt>容器がありません。どうすればいいですか。</dt>
+    <dd>給水袋を配っている市町村がありますが、数に限りがあります。空のペットボトル、ふた付きのバケツ、クーラーボックスでも代用できます。清潔なものを使ってください。</dd>
+    <dt>断水が解消したら、すぐ飲めますか。</dt>
+    <dd>市町村が水質検査を行い、水道法の基準に適合したと発表するまでは、案内に従ってください。解消直後は濁りが出るので、濁りが取れるまで流してから使います。「沸かしてから飲んでください」と案内されることもあります。</dd>
+    <dt>隣の市町村の給水所を使ってもいいですか。</dt>
+    <dd>「市外の被災された方も利用できます」と明記している場合は使えます。明記がないときは、まず自分の市町村の発表を確認してください。</dd>
+    <dt>井戸の水や手押しポンプの水は飲めますか。</dt>
+    <dd>断りがなければ飲用ではないと考えてください。地震のあとは地下水の水質が変わることがあります。トイレや掃除など、生活用水として使ってください。</dd>
+  </dl>
 
   <a class="cta" href="/#life">最新の情報を見る（ライフライン）
-    <span>このページには、変わらないことだけを書いています</span></a>
+    <span>給水所の当日の場所と時間は、本体サイトのライフラインのタブにあります</span></a>
 
-  <nav class="other"><a href="/risai/">り災証明書の申請と、写真の撮り方</a><a href="/sagi/">災害に便乗した詐欺・悪質業者への注意</a><a href="/volunteer/">熊本地震の災害ボランティア</a><a href="/furo/">熊本地震の入浴支援・お風呂に入れる場所</a><a href="/shien/">熊本地震で使える支援制度の一覧</a><a href="/yasashii/">やさしい にほんごの ページ</a><a href="/checklist/">熊本地震のあとに、やること（時系列のチェックリスト）</a></nav>
+  <nav class="other">
+    <h2>ほかのページ</h2>
+    <ul>
+      <li><a href="/risai/">り災証明書<small>写真の撮り方、被害認定調査、判定に納得できないとき</small></a></li>
+      <li><a href="/sagi/">詐欺・悪質商法<small>屋根の訪問販売、保険金請求代行、クーリング・オフ</small></a></li>
+      <li><a href="/volunteer/">ボランティア<small>申し込み、保険、募集範囲、持ち物</small></a></li>
+      <li><a href="/furo/">お風呂・入浴支援<small>4つの種類、持ち物、市外の方も使えること</small></a></li>
+      <li><a href="/shien/">使える支援制度<small>支援金、応急修理、税と医療費、被災ローン減免</small></a></li>
+      <li><a href="/checklist/">やることリスト<small>今日じゅうに・3日以内に・2週間以内に</small></a></li>
+      <li><a href="/yasashii/">やさしい にほんご<small>かんたんな 日本語の ページ</small></a></li>
+    </ul>
+  </nav>
 
   <footer>
-    <p><b>このページには、日ごとに変わる情報を載せていません。</b>
-      給水所の場所と時間、避難所の開設状況、ボランティアの受入状況は毎日変わるため、
-      本体サイトの該当タブでご確認ください。古い数字が検索結果に残らないようにするためです。</p>
+    <p><b>このページには、日ごとに変わる数字を載せていません。</b>
+      給水所の場所と時間、避難所の開設状況、仮置場の待ち時間、ボランティアの受入状況は毎日変わるため、
+      本体サイトの該当タブでご確認ください。古い数字が検索結果に残って、
+      読んだ方を誤らせないようにするためです。</p>
     <p>令和8年熊本地震 情報まとめ（非公式）／
       <a href="/">kumamotojishin.jp</a>　運営とお問い合わせ：info@kumamotojishin.jp</p>
   </footer>
