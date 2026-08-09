@@ -76,6 +76,74 @@
   .notice.red{border-color:var(--urgent);background:var(--urgent-soft);color:#7a1913}
   /* いつまでも効いているが急ぎではない注意（余震など）。色で場所を取らせない。 */
   .notice.quiet{border-color:var(--ink-3);background:#eef0f3;color:var(--ink-2)}
+
+  /* ── 避難所39か所を1枚で見わたす図 ────────────────────────────────
+     数字を39行ぶん並べても頭に入らない。知りたいのは「どこが空いているか」と
+     「どこで水が使えるか」の2つなので、それを面で出す。
+
+     色は3段階（使える／一部／使えない）で、順序のある状態なので
+     カテゴリ配色ではなく発散配色にした。緑↔灰↔赤。中間を灰色にすると、
+     赤と橙が並んだときの見分けにくさ（P型・D型色覚で特に）が起きない。
+     #0f6b5c / #8b8f98 / #a01b12 で、隣り合う色の差は
+     通常視 ΔE 19.4、色覚シミュレーションでも 15.2 以上（検証スクリプトで確認）。
+     そのうえで ○ △ × の記号と項目名を必ず添えて、色だけに意味を持たせない。 */
+  .shov{background:var(--surface);border:1px solid var(--line);border-radius:12px;
+    padding:12px 12px 6px;margin:0 0 12px}
+  .shov h5{margin:0 0 2px;font-size:.92rem}
+  .shov .shov-t{font-size:.74rem;color:var(--ink-3);margin:0 0 10px}
+  .mtr{margin:0 0 10px}
+  .mtr-r{display:grid;grid-template-columns:5.6em 1fr 3.4em;align-items:center;
+    gap:8px;font-size:.78rem;margin:0 0 4px;color:var(--ink-2)}
+  .mtr-r i{display:block;height:8px;background:#e4e7ec;border-radius:4px;overflow:hidden}
+  .mtr-r i u{display:block;height:100%;background:var(--accent);border-radius:4px;text-decoration:none}
+  .mtr-r b{text-align:right;font-size:.76rem;color:var(--ink);font-variant-numeric:tabular-nums}
+  .mtr-x{font-size:.76rem;color:var(--ink-2);margin:6px 0 0}
+  .shov-s{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px}
+  .shov-s button{font-size:.75rem;border:1px solid var(--line);background:#fff;color:var(--ink-2);
+    border-radius:999px;padding:4px 11px;cursor:pointer}
+  .shov-s button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+  .shmx{font-size:.72rem}
+  .shmx-h,.shmx-r{display:grid;
+    grid-template-columns:minmax(0,1fr) 60px 26px 32px 46px 46px;
+    gap:3px;align-items:center}
+  .shmx-h{color:var(--ink-3);font-size:.66rem;padding:0 0 4px;border-bottom:1px solid var(--line);text-align:center}
+  .shmx-h span:first-child{text-align:left}
+  .shmx-r{padding:5px 0;border-bottom:1px solid #f0f2f5;cursor:pointer}
+  .shmx-r:last-child{border-bottom:0}
+  .shmx-n{font-size:.74rem;line-height:1.35;color:var(--ink);min-width:0;
+    overflow-wrap:anywhere;text-align:left}
+  .shmx-n em{display:block;font-style:normal;font-size:.64rem;color:var(--ink-3)}
+  .shmx-b{position:relative;height:14px;background:#e9ecf0;border-radius:3px;overflow:hidden}
+  .shmx-b i{display:block;height:100%;background:var(--accent)}
+  .shmx-b.hi i{background:#c0761c}
+  .shmx-b.full i{background:var(--urgent)}
+  .shmx-b span{position:absolute;inset:0;display:grid;place-items:center;
+    font-size:.63rem;color:var(--ink);font-variant-numeric:tabular-nums;text-shadow:0 0 3px #fff,0 0 3px #fff}
+  .cel{display:grid;place-items:center;height:20px;border-radius:4px;font-size:.72rem;font-weight:700;
+    border:1px solid transparent}
+  .cel.o{background:#e6f2ef;color:#0f6b5c;border-color:#c4e0d7}
+  .cel.t{background:#eef0f3;color:#5c626c;border-color:#dfe3e8}
+  .cel.x{background:#fbeceb;color:#a01b12;border-color:#f3cdc9}
+  .shmx-r.mark{background:#fff8e1}
+  .place.mark{background:#fff8e1;border-radius:8px;box-shadow:0 0 0 6px #fff8e1}
+  .shov-l{font-size:.68rem;color:var(--ink-3);margin:8px 0 6px;line-height:1.7}
+
+  /* 避難所の「いま何人いるか」。数字を並べるより棒で見せたほうが、
+     107人/130人（ほぼ満員）と350人/3000人（まだ入れる）の差が一目で分かる。 */
+  .shst{margin:6px 0 0}
+  .shn{font-size:.84rem;color:var(--ink-3);line-height:1.5}
+  .shn b{font-size:1.12rem;color:var(--ink);font-weight:700}
+  .shn em{font-style:normal;color:var(--ink-2)}
+  .shbar{height:7px;background:#e4e7ec;border-radius:4px;overflow:hidden;margin:5px 0 0;max-width:240px}
+  .shbar i{display:block;height:100%;background:var(--accent);border-radius:4px}
+  .shbar.hi i{background:#c0761c}
+  .shbar.full i{background:var(--urgent)}
+  .shb{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+  .sb{font-size:.72rem;line-height:1.6;border-radius:5px;padding:1px 7px;
+    background:#eef0f3;color:var(--ink-2);border:1px solid var(--line);white-space:nowrap}
+  .sb.o{background:var(--accent-soft);color:#0b5341;border-color:#c3e0d6}
+  .sb.t{background:var(--warn-soft);color:#7c5200;border-color:#ecd8a8}
+  .sb.x{background:var(--urgent-soft);color:#8c1d18;border-color:#f2c4c0}
   .notice b{color:inherit}
 
   /* リンクリスト */
@@ -2158,53 +2226,46 @@ const CITIES = [
       {t:"八代生活環境事務組合（千丁町・鏡町・東陽町・泉町の水道）", u:"https://seikatsu.yatsushiro.jp/", d:"<b>この4地域の水道は市の水道局ではなく、八代生活環境事務組合が担当しています。</b>試験通水と漏水調査のお願いも市とは別に出ます。問合せ 0965-62-2049。"},
       {t:"介護サービス・医療機関を受診される皆さまへ（保険証がなくても受診できます）", u:"https://www.city.yatsushiro.lg.jp/bousai/kiji00326750/index.html", d:"<b>介護保険証・マイナ保険証・資格確認書・受給者証などをなくした、または自宅に残したまま避難している方も、氏名・生年月日・電話番号・住所を申し立てれば受診できます。</b>介護サービス事業所や医療機関の窓口でその旨を伝えてください。問合せは国保ねんきん課 0965-33-4113、介護保険課 0965-33-4145。"}
     ],
-    shelter:{title:"開設中の避難所（8月9日12:00時点・38か所／避難者2,007人）", note:"<b>8月9日12時00分現在、開設中は38か所・避難者2,007人（880世帯）です。</b><b>水が使えるのは38か所のうち18か所。仮設シャワー等があるのは21か所です。</b><b>簡易トイレ152基、トイレカー17台。</b>電気とエアコンは38か所すべてで使えます（8/9 14:04 市LINE）。<b>避難者は8月2日12時の3,506人、8月5日18時の2,483人から減ってきましたが、8日18時の2,056人から9日6時は2,060人と、ほぼ横ばいです。</b><b>夜に行くときは注意してください。終日 避難者が0人だったコミュニティセンターは、夜間（17:15〜翌8:30）のあいだ一時閉鎖されます。8月5日は金剛コミュニティセンターと坂本コミュニティセンターが対象でした。</b>どこが閉まるかは日によって変わるので、夜間に向かう場合は市の一覧か電話で確かめてください。<b>それでもまだ2,000人以上の方が避難所にいます。</b>下の一覧と各避難所の人数は8月1日6時時点のもので、その後の整理で閉鎖された施設が含まれます。最新は市の一覧でご確認ください。以下は8月1日6時00分現在の内容です（7月31日の再編後）。<b>住所が公表されたので、46か所すべてを地図のピンにしました。</b>避難者は3,806人（1,401世帯）。<b>水道が使えるのは46か所のうち16か所だけです。</b>どこで使えるかは当サイトでは1か所ずつ確認できなかったため個別には書いていません。市の一覧でご確認ください。電気とエアコンは46か所すべてで使えます（7月31日は鏡小学校が停電していましたが解消しました）。再編で17か所が近くの避難所に統合されています。", items:[
-      {n:"代陽コミュニティセンター", a:"熊本県八代市西松江城町2-18", note:"代陽地区／避難者100人"},
-      {n:"代陽小学校", a:"熊本県八代市北の丸町1-7", note:"代陽地区／避難者12人"},
-      {n:"第一中学校", a:"熊本県八代市北の丸町1-29", note:"代陽地区／避難者59人"},
-      {n:"八代コミュニティセンター", a:"熊本県八代市新地町6-3", note:"八代地区／避難者36人"},
-      {n:"八代小学校", a:"熊本県八代市新地町4-1", note:"八代地区／避難者63人"},
-      {n:"八代トヨオカ地建アリーナ（総合体育館）", a:"熊本県八代市緑町11-1", note:"太田郷地区／避難者800人"},
-      {n:"太田郷コミュニティセンター", a:"熊本県八代市井上町601-1", note:"太田郷地区／避難者120人"},
-      {n:"第二中学校", a:"熊本県八代市上日置町2248-1", note:"太田郷地区／避難者686人"},
-      {n:"植柳コミュニティセンター", a:"熊本県八代市植柳下町4251-2", note:"植柳地区／避難者48人"},
-      {n:"植柳小学校", a:"熊本県八代市植柳元町449", note:"植柳地区／避難者75人"},
-      {n:"麦島コミュニティセンター", a:"熊本県八代市古城町2259", note:"麦島地区／避難者120人"},
-      {n:"麦島小学校", a:"熊本県八代市迎町1丁目16-1-1", note:"麦島地区／避難者11人"},
-      {n:"松高コミュニティセンター", a:"熊本県八代市永碇町754-2", note:"松高地区／避難者50人"},
-      {n:"松高小学校", a:"熊本県八代市永碇町828-1", note:"松高地区／避難者76人"},
-      {n:"第四中学校", a:"熊本県八代市古閑上町182-2", note:"八千把地区／避難者313人"},
-      {n:"八千把コミュニティセンター", a:"熊本県八代市上野町1193-1", note:"八千把地区／避難者75人"},
-      {n:"高田コミュニティセンター", a:"熊本県八代市本野町505", note:"高田地区／避難者92人"},
-      {n:"高田小学校", a:"熊本県八代市豊原中町317", note:"高田地区／避難者4人"},
-      {n:"第五中学校", a:"熊本県八代市豊原下町3807", note:"高田地区／避難者203人"},
-      {n:"八代市保健センター", a:"熊本県八代市高下西町1726-5", note:"高田地区／避難者20人"},
-      {n:"金剛コミュニティセンター", a:"熊本県八代市高熊本町800-2", note:"金剛地区／避難者1人"},
-      {n:"金剛小学校", a:"熊本県八代市高熊本町1207", note:"金剛地区／避難者5人"},
-      {n:"第六中学校", a:"熊本県八代市水島町2065-4", note:"金剛地区／避難者17人"},
-      {n:"郡築コミュニティセンター", a:"熊本県八代市郡築六番町61-2", note:"郡築地区／避難者14人"},
-      {n:"第七中学校", a:"熊本県八代市郡築七番町41-2", note:"郡築地区／避難者32人"},
-      {n:"昭和コミュニティセンター", a:"熊本県八代市昭和明徴町730-1", note:"昭和地区／避難者6人"},
-      {n:"昭和小学校", a:"熊本県八代市昭和明徴町731-2", note:"昭和地区／避難者7人"},
-      {n:"宮地コミュニティセンター", a:"熊本県八代市宮地町383", note:"宮地地区／避難者8人"},
-      {n:"宮地小学校", a:"熊本県八代市宮地町1826", note:"宮地地区／避難者4人"},
-      {n:"宮地東コミュニティセンター", a:"熊本県八代市東町5497-1", note:"宮地地区／避難者1人"},
-      {n:"第八中学校", a:"熊本県八代市宮地町611-1", note:"宮地地区／避難者34人"},
-      {n:"龍峯コミュニティセンター", a:"熊本県八代市興善寺町1952", note:"龍峯地区／避難者29人"},
-      {n:"日奈久コミュニティセンター", a:"熊本県八代市日奈久塩南町甲13", note:"日奈久地区／避難者68人"},
-      {n:"日奈久小学校", a:"熊本県八代市日奈久竹之内町4277-1", note:"日奈久地区／避難者104人"},
-      {n:"二見コミュニティセンター", a:"熊本県八代市二見下大野町2432-1", note:"二見地区／避難者20人"},
-      {n:"今泉地区公民館", a:"熊本県八代市坂本町西部ろ129番地", note:"坂本地区／避難者3人"},
-      {n:"坂本コミュニティセンター", a:"熊本県八代市坂本町坂本4161-1", note:"坂本地区／避難者1人"},
-      {n:"千丁コミュニティセンター", a:"熊本県八代市千丁町新牟田1434", note:"千丁地区／避難者56人"},
-      {n:"鏡コミュニティセンター", a:"熊本県八代市鏡町内田1339-1", note:"鏡地区／避難者170人"},
-      {n:"鏡わかあゆ高等支援学校", a:"熊本県八代市鏡町鏡村937", note:"鏡地区／避難者47人"},
-      {n:"鏡小学校", a:"熊本県八代市鏡町鏡609-1", note:"鏡地区／避難者84人"},
-      {n:"文政小学校", a:"熊本県八代市鏡町両出1371-1", note:"鏡地区／避難者23人"},
-      {n:"有佐小学校", a:"熊本県八代市鏡町中島1360-1", note:"鏡地区／避難者23人"},
-      {n:"東陽コミュニティセンター及び東陽スポーツセンター", a:"熊本県八代市東陽町南1285", note:"東陽地区／避難者59人"},
-      {n:"旧泉第一小学校", a:"熊本県八代市泉町下岳1960", note:"泉地区／避難者3人"},
-      {n:"八代支援学校", a:"熊本県八代市高島町1-6", note:"松高地区／避難者24人"}
+    shelter:{title:"開設中の避難所（施設ごとの人数は8月8日18時時点・39か所）", note:"<b>最新の合計は、8月9日12時00分現在で38か所・避難者2,007人（880世帯）です</b>（8/9 14:04 市LINE）。<b>下の施設ごとの人数は、市が公表しているPDF「避難所開設状況一覧」の8月8日18時00分時点のものです</b>（39か所・2,056人・876世帯）。ページ下の市のリンクから最新のPDFを確認できます。<b>「最大○人」は詰めて入ったときの定員です。実際にはこれよりずっと手前でいっぱいになるので、棒グラフは空きの目安としてご覧ください。</b><b>「水」は施設で水道が使えるかどうかです。×の避難所では、飲み水も手洗いも給水に頼ることになります。</b>〇＝使える、△＝一部使える、×＝使えない。<b>終日 避難者が0人だったコミュニティセンターは、夜間（17:15〜翌8:30）のあいだ一時閉鎖されます。</b>どこが閉まるかは日によって変わるので、夜間に向かう場合は市の一覧か電話で確かめてください。<b>避難者は8月2日12時の3,506人、8月5日18時の2,483人から減ってきましたが、それでもまだ2,000人以上の方が避難所にいます。</b><b>すべての避難所でペットの同行避難ができます。</b>", items:[
+      {n:"代陽コミュニティセンター", a:"熊本県八代市西松江城町2-18", note:"代陽地区", cap:200, hh:54, pp:61, el:"〇", ac:"〇", w:"×", sh:"〇", pt:5, tc:1},
+      {n:"第一中学校", a:"熊本県八代市北の丸町1-29", note:"代陽地区", cap:1300, hh:29, pp:42, el:"〇", ac:"〇", w:"×", pt:5, tc:1},
+      {n:"八代コミュニティセンター", a:"熊本県八代市新地町6-3", note:"八代地区", cap:200, hh:20, pp:22, el:"〇", ac:"〇", w:"×", sh:"〇", pt:5, tc:1},
+      {n:"八代小学校", a:"熊本県八代市新地町4-1", note:"八代地区", cap:1120, hh:30, pp:61, el:"〇", ac:"〇", w:"△", pt:5},
+      {n:"八代トヨオカ地建アリーナ（総合体育館）", a:"熊本県八代市緑町11-1", note:"太田郷地区", cap:3000, hh:0, pp:350, el:"〇", ac:"〇", w:"〇", pt:5},
+      {n:"太田郷コミュニティセンター", a:"熊本県八代市井上町601-1", note:"太田郷地区", cap:130, hh:0, pp:107, el:"〇", ac:"〇", w:"△", sh:"〇", pt:5, tc:1},
+      {n:"第二中学校", a:"熊本県八代市上日置町2248-1", note:"太田郷地区", cap:1400, hh:120, pp:250, el:"〇", ac:"〇", w:"△", sh:"〇", pt:12, tc:1},
+      {n:"植柳コミュニティセンター", a:"熊本県八代市植柳下町4251-2", note:"植柳地区", cap:200, hh:16, pp:20, el:"〇", ac:"〇", w:"〇", sh:"〇"},
+      {n:"植柳小学校", a:"熊本県八代市植柳元町449", note:"植柳地区", cap:1160, hh:25, pp:51, el:"〇", ac:"〇", w:"△", pt:5, tc:2},
+      {n:"麦島コミュニティセンター", a:"熊本県八代市古城町2259", note:"麦島地区", cap:500, hh:56, pp:82, el:"〇", ac:"〇", w:"〇", sh:"〇"},
+      {n:"麦島小学校", a:"熊本県八代市迎町1丁目16-1-1", note:"麦島地区", cap:1500, hh:8, pp:12, el:"〇", ac:"〇", w:"〇"},
+      {n:"松高コミュニティセンター", a:"熊本県八代市永碇町754-2", note:"松高地区", cap:200, hh:24, pp:29, el:"〇", ac:"〇", w:"×", sh:"〇", pt:5, tc:1},
+      {n:"松高小学校", a:"熊本県八代市永碇町828-1", note:"松高地区", cap:964, hh:28, pp:55, el:"〇", ac:"〇", w:"〇", pt:5},
+      {n:"第四中学校", a:"熊本県八代市古閑上町182-2", note:"八千把地区", cap:740, hh:51, pp:133, el:"〇", ac:"〇", w:"〇", sh:"〇", pt:10},
+      {n:"八千把コミュニティセンター", a:"熊本県八代市上野町1193-1", note:"八千把地区", cap:200, hh:0, pp:64, el:"〇", ac:"〇", w:"×", sh:"〇", pt:5},
+      {n:"高田コミュニティセンター", a:"熊本県八代市本野町505", note:"高田地区", cap:200, hh:25, pp:33, el:"〇", ac:"〇", w:"〇"},
+      {n:"第五中学校", a:"熊本県八代市豊原下町3807", note:"高田地区", cap:580, hh:50, pp:95, el:"〇", ac:"〇", w:"〇", sh:"〇"},
+      {n:"八代市保健センター", a:"熊本県八代市高下西町1726-5", note:"高田地区", cap:672, hh:20, pp:33, el:"〇", ac:"〇", w:"〇"},
+      {n:"金剛コミュニティセンター", a:"熊本県八代市高熊本町800-2", note:"金剛地区", cap:200, hh:0, pp:0, el:"〇", ac:"〇", w:"×", pt:5},
+      {n:"金剛小学校", a:"熊本県八代市高熊本町1207", note:"金剛地区", cap:800, hh:0, pp:0, el:"〇", ac:"〇", w:"〇"},
+      {n:"第六中学校", a:"熊本県八代市水島町2065-4", note:"金剛地区", cap:680, hh:7, pp:8, el:"〇", ac:"〇", w:"〇", pt:5},
+      {n:"郡築コミュニティセンター", a:"熊本県八代市郡築六番町61-2", note:"郡築地区", cap:200, hh:5, pp:6, el:"〇", ac:"〇", w:"〇"},
+      {n:"昭和コミュニティセンター", a:"熊本県八代市昭和明徴町730-1", note:"昭和地区", cap:200, hh:4, pp:7, el:"〇", ac:"〇", w:"×", sh:"〇", tc:1},
+      {n:"宮地コミュニティセンター", a:"熊本県八代市宮地町383", note:"宮地地区", cap:200, hh:7, pp:9, el:"〇", ac:"〇", w:"〇", pt:2},
+      {n:"宮地東コミュニティセンター", a:"熊本県八代市東町5497-1", note:"宮地地区", cap:43, hh:1, pp:1, el:"〇", ac:"〇", w:"〇"},
+      {n:"第八中学校", a:"熊本県八代市宮地町611-1", note:"宮地地区", cap:460, hh:35, pp:67, el:"〇", ac:"〇", w:"×", sh:"調整中", pt:6},
+      {n:"龍峯コミュニティセンター", a:"熊本県八代市興善寺町1952", note:"龍峯地区", cap:230, hh:11, pp:12, el:"〇", ac:"〇", w:"×"},
+      {n:"日奈久コミュニティセンター", a:"熊本県八代市日奈久塩南町甲13", note:"日奈久地区", cap:100, hh:32, pp:39, el:"〇", ac:"〇", w:"〇", sh:"〇", pt:5, tc:1},
+      {n:"日奈久小学校", a:"熊本県八代市日奈久竹之内町4277-1", note:"日奈久地区", cap:980, hh:32, pp:74, el:"〇", ac:"〇", w:"〇", sh:"〇", pt:7},
+      {n:"二見コミュニティセンター", a:"熊本県八代市二見下大野町2432-1", note:"二見地区", cap:200, hh:2, pp:3, el:"〇", ac:"〇", w:"×", pt:5},
+      {n:"坂本コミュニティセンター", a:"熊本県八代市坂本町坂本4161-1", note:"坂本地区", cap:248, hh:0, pp:0, el:"〇", ac:"〇", w:"〇"},
+      {n:"千丁コミュニティセンター", a:"熊本県八代市千丁町新牟田1434", note:"千丁地区", cap:100, hh:25, pp:42, el:"〇", ac:"〇", w:"×", sh:"〇", pt:8, tc:2},
+      {n:"鏡コミュニティセンター", a:"熊本県八代市鏡町内田1339-1", note:"鏡地区", cap:250, hh:56, pp:93, el:"〇", ac:"〇", w:"×", sh:"〇", pt:10, tc:1},
+      {n:"鏡小学校", a:"熊本県八代市鏡町鏡609-1", note:"鏡地区", cap:360, hh:32, pp:61, el:"〇", ac:"〇", w:"×", sh:"〇", pt:5},
+      {n:"鏡中学校", q:"八代市立鏡中学校", note:"鏡地区", cap:370, hh:34, pp:55, el:"〇", ac:"〇", w:"×", sh:"〇", pt:5, tc:2},
+      {n:"文政小学校", a:"熊本県八代市鏡町両出1371-1", note:"鏡地区", cap:350, hh:8, pp:21, el:"〇", ac:"〇", w:"×", sh:"〇", pt:5, tc:3},
+      {n:"有佐小学校", a:"熊本県八代市鏡町中島1360-1", note:"鏡地区", cap:280, hh:4, pp:4, el:"〇", ac:"〇", w:"×", pt:5, tc:1},
+      {n:"東陽コミュニティセンター及び東陽スポーツセンター", a:"熊本県八代市東陽町南1285", note:"東陽地区", cap:850, hh:17, pp:34, el:"〇", ac:"〇", w:"〇", sh:"〇", pt:5},
+      {n:"八代支援学校", a:"熊本県八代市高島町1-6", note:"松高地区", cap:56, hh:8, pp:20, el:"〇", ac:"〇", w:"〇", pt:2}
     ]},
     water:{title:"応急給水所（8月9日・28か所＋八代港 ／ 1回10L・容器持参）", note:"<b>【終了】千丁支所で行っていたペットボトルの無料配布は、8月8日で終わりました</b>（8/8 20:18 市LINE。再開するときは市のホームページで知らせるとのことです）。<b>行っても受け取れません。</b>以下は給水車・給水タンクによる応急給水で、8月9日（日）の八代市および八代生活環境事務組合の発表です（8/8 19:58 市LINE）。<b>8月9日は、大半が8:30〜19:00です。7:00から開くのは下の8か所だけなので、早い時間に行く方はご注意ください。</b><b>8月8日にあった金剛小学校は9日の一覧に入っておらず、代わりに鏡町北新地多目的センターが加わっています。</b><b>1回あたりの配布量は10リットル程度です。</b>清潔な給水容器（ポリタンクやペットボトルなど）をご持参ください。給水タンク、または給水車から受け取ります。給水車が水の補給で一時的に不在になることがあります。<b>8月8日から、鏡町野崎公民館が加わって28か所になりました。</b><b>八代配水池の水位が下がっているため、8月7日から夜間（21時〜6時）は配水量を制限しています</b>（対象は旧八代市のうち日奈久校区を除く上水道区域）。<b>夜に水が出にくくなることがあります。</b>住所は市が公表した避難所一覧のものを使っています。<b>市は民間の地図「くまもと被災者支援ナビ 支援場所マップ」も案内しています</b>（公式サイトではありません）。", items:[
       {n:"第二中学校", a:"熊本県八代市上日置町2248-1", note:"7:00〜19:00"},
@@ -2981,6 +3042,127 @@ function linkList(arr){
   return arr.map(l=>`<li><a href="${l.u}" target="_blank" rel="noopener">
     <span class="t">${esc(l.t)}</span>${l.d?`<span class="d">${rich(l.d)}</span>`:""}</a></li>`).join("");
 }
+/* 施設ごとの避難者数。いまのところ八代市だけが施設単位で公表しているので、
+   pp（避難者数）を持っている施設にだけ出す。持っていない市町村は今までどおり。
+   最大収容人数は「詰めて入ったとき」の数なので、割合は空きの目安にとどめる。 */
+/* 39か所ぶんの設備と混み具合を1枚にまとめた図。
+   「電気」と「エアコン」は今のところ全施設で使えるので、行ごとに見ても差が出ない。
+   それでも列から外さないのは、停電した施設が出たときにこの図が気づける形で
+   ないと意味がないから。上の帯（19/39 のような比）で全体像を先に見せて、
+   下の表で施設ごとを追える、という二段構えにしている。 */
+const SH_MARK = v => (v === "〇" || v === "○") ? "o" : (v === "×" ? "x" : "t");
+const SH_WORD = v => (v === "〇" || v === "○") ? "使える" : (v === "×" ? "使えない" : (v || "なし"));
+const SH_COLS = [{k:"w",l:"水"},{k:"el",l:"電気"},{k:"ac",l:"エアコン"},{k:"sh",l:"シャワー"}];
+let SH_SORT = {};
+
+function shRows(items, mode){
+  const a = items.map((it, i) => ({it, i}));
+  const r = x => x.it.cap ? x.it.pp / x.it.cap : 0;
+  const wv = x => ({"〇":0,"○":0,"△":1}[x.it.w] === undefined ? 2 : {"〇":0,"○":0,"△":1}[x.it.w]);
+  if(mode === "crowd") a.sort((x,y) => r(y) - r(x));
+  if(mode === "water") a.sort((x,y) => wv(x) - wv(y) || r(x) - r(y));
+  return a.map(({it, i}) => {
+    const rr = it.cap ? Math.min(1, it.pp / it.cap) : 0;
+    const cls = rr >= .8 ? " full" : (rr >= .5 ? " hi" : "");
+    /* 名前が長いと3行になって図が縦に伸びるので、表示だけ略す。凡例で断る。 */
+    const nm = it.n.replace("コミュニティセンター", "コミセン")
+                   .replace("及び東陽スポーツセンター", "ほか")
+                   .replace("（総合体育館）", "");
+    const cells = SH_COLS.map(c => {
+      const v = it[c.k];
+      return '<span class="cel ' + SH_MARK(v) + '" role="img" aria-label="' +
+        c.l + " " + SH_WORD(v) + '">' + (v ? esc(v) : "－") + '</span>';
+    }).join("");
+    return '<div class="shmx-r" data-shi="' + i + '">' +
+      '<span class="shmx-n">' + esc(nm) + '<em>' + esc(it.note || "") + '</em></span>' +
+      '<span class="shmx-b' + cls + '"><i style="width:' + (it.pp ? Math.max(3, Math.round(rr*100)) : 0) + '%"></i>' +
+        '<span>' + it.pp + '人</span></span>' + cells + '</div>';
+  }).join("");
+}
+
+function shOverview(c, ci){
+  const items = (c.shelter && c.shelter.items) || [];
+  if(!items.some(it => it.pp !== undefined)) return "";
+  const n = items.length;
+  const cnt = k => items.filter(it => it.w !== undefined && (it[k] === "〇" || it[k] === "○")).length;
+  const sum = k => items.reduce((a, it) => a + (it[k] || 0), 0);
+  const adj = items.filter(it => it.sh && it.sh !== "〇" && it.sh !== "○").length;
+  const meter = (l, v) => '<div class="mtr-r"><span>' + l + '</span>' +
+    '<i><u style="width:' + Math.round(v / n * 100) + '%"></u></i><b>' + v + '/' + n + '</b></div>';
+  const mode = SH_SORT[ci] || "area";
+  const btn = (k, l) => '<button type="button" data-shsort="' + k + '" data-shci="' + ci +
+    '" aria-pressed="' + (mode === k) + '">' + l + '</button>';
+  return '<div class="shov" data-shov="' + ci + '">' +
+    '<h5>39か所の設備と混み具合を、1枚で</h5>' +
+    '<p class="shov-t">八代市が公表している「避難所開設状況一覧」（8月8日18時00分時点）から。</p>' +
+    '<div class="mtr">' + meter("水が使える", cnt("w")) + meter("電気", cnt("el")) +
+      meter("エアコン", cnt("ac")) + meter("シャワー等", cnt("sh")) +
+      '<div class="mtr-x">仮設トイレ <b>' + sum("pt") + '基</b>　トイレカー <b>' + sum("tc") + '台</b>' +
+        /* 市の合計表はシャワー等を20か所としているが、うち1か所は「調整中」。
+           使えるかどうかで数えると19か所なので、差が出る理由をここに書いておく。 */
+        (adj ? '<br><span style="font-size:.72rem">シャワー等は、ほかに' + adj +
+          'か所が「調整中」です（市の合計表ではこれを含めて' + (cnt("sh") + adj) + 'か所）。</span>' : '') +
+      '</div>' +
+    '</div>' +
+    '<div class="shov-s">' + btn("area","地区順") + btn("crowd","混んでいる順") + btn("water","水が使える順") + '</div>' +
+    '<div class="shmx"><div class="shmx-h"><span>避難所</span><span>混み具合</span>' +
+      SH_COLS.map(c2 => '<span>' + c2.l + '</span>').join("") + '</div>' +
+      '<div class="shmx-b0">' + shRows(items, mode) + '</div></div>' +
+    '<p class="shov-l"><b>○</b>＝使える　<b>△</b>＝一部使える　<b>×</b>＝使えない　<b>－</b>＝設備なし。' +
+    '棒は最大収容人数に対する避難者数です。<b>最大収容人数は詰めて入ったときの定員なので、実際はもっと手前でいっぱいになります。</b>' +
+    'コミセン＝コミュニティセンター。押すと下の一覧の同じ避難所に移動します。</p></div>';
+}
+
+/* 並べ替えと、押した行へのジャンプ */
+document.addEventListener("click", e => {
+  const sb = e.target.closest("[data-shsort]");
+  if(sb){
+    const ci = +sb.dataset.shci;
+    SH_SORT[ci] = sb.dataset.shsort;
+    const box = document.querySelector('[data-shov="' + ci + '"]');
+    if(box){
+      box.querySelector(".shmx-b0").innerHTML = shRows(CITIES[ci].shelter.items, SH_SORT[ci]);
+      box.querySelectorAll("[data-shsort]").forEach(b =>
+        b.setAttribute("aria-pressed", String(b.dataset.shsort === SH_SORT[ci])));
+    }
+    return;
+  }
+  const row = e.target.closest(".shmx-r");
+  if(!row) return;
+  const box = row.closest("[data-shov]");
+  if(!box) return;
+  const body = box.parentNode;
+  const places = body.querySelectorAll(".place");
+  const t = places[+row.dataset.shi];
+  if(!t) return;
+  body.querySelectorAll(".place.mark").forEach(x => x.classList.remove("mark"));
+  t.classList.add("mark");
+  t.scrollIntoView({block:"center", behavior:"smooth"});
+});
+
+function shStats(p){
+  if(p.pp === undefined || p.pp === null) return "";
+  const cap = p.cap || 0;
+  const r = cap ? Math.min(1, p.pp / cap) : 0;
+  const cls = r >= .8 ? " full" : (r >= .5 ? " hi" : "");
+  const mk = v => (v === "〇" || v === "○") ? "o" : (v === "×" ? "x" : "t");
+  const b = [];
+  if(p.w) b.push('<span class="sb ' + mk(p.w) + '">水 ' + esc(p.w) + '</span>');
+  b.push(p.sh ? '<span class="sb ' + mk(p.sh) + '">シャワー等 ' + esc(p.sh) + '</span>'
+              : '<span class="sb">シャワー等 なし</span>');
+  if(p.pt) b.push('<span class="sb">仮設トイレ ' + p.pt + '</span>');
+  if(p.tc) b.push('<span class="sb">トイレカー ' + p.tc + '</span>');
+  if(p.pp === 0) b.push('<span class="sb t">夜間は閉まることがあります</span>');
+  return '<div class="shst">' +
+    '<div class="shn">避難者 <b>' + p.pp + '</b>人' +
+      /* 市の資料で世帯数が空欄（0）の避難所がある。「0世帯」と出すと誤解されるので伏せる。 */
+      (p.hh ? '　<em>' + p.hh + '世帯</em>' : '') +
+      (cap ? '　最大' + cap.toLocaleString() + '人' : '') + '</div>' +
+    (cap ? '<div class="shbar' + cls + '"><i style="width:' +
+      (p.pp ? Math.max(2, Math.round(r * 100)) : 0) + '%"></i></div>' : '') +
+    '<div class="shb">' + b.join("") + '</div></div>';
+}
+
 function placeList(items){
   return items.map(p=>{
     const q = p.q || (p.a ? p.a : p.n);
@@ -2988,6 +3170,7 @@ function placeList(items){
       <div class="info">
         <div class="nm">${esc(p.n)}${p.note?` <span class="badge b-grey">${rich(p.note)}</span>`:""}</div>
         ${p.a?`<div class="ad">${esc(p.a)}</div>`:`<div class="ad">住所は公式資料に記載なし（施設名で検索します）</div>`}
+        ${shStats(p)}
       </div>
       <a class="gmap" href="${G(q)}" target="_blank" rel="noopener">地図 ↗</a>
     </div>`;
@@ -3035,6 +3218,7 @@ $("#cityList").innerHTML = CITIES.map((c,i)=>`
 
     ${c.shelter?`<h4>${esc(c.shelter.title)}</h4>
       ${c.shelter.note?`<div class="stamp" style="margin:0 0 6px">${clampHTML(rich(c.shelter.note))}</div>`:""}
+      ${shOverview(c, i)}
       ${c.shelter.items.length?placeList(c.shelter.items):""}`:""}
 
     ${c.water?`<h4>${esc(c.water.title)}</h4>
@@ -3463,6 +3647,7 @@ function buildPins(){
       const g = it.a && GEO[it.a];
       if(!g) return;
       out.push({kind, ci, city:c.name, ck:cityKey(c.name), n:it.n, a:it.a, note:it.note||"", group:group||"",
+                cap:it.cap, hh:it.hh, pp:it.pp, w:it.w, sh:it.sh, pt:it.pt, tc:it.tc,
                 lat:g[0], lon:g[1], acc:g[2], tels:c.tels||[]});
     };
     if(c.water)   (c.water.items   || []).forEach(it => add("water",   it, c.water.title));
@@ -3719,6 +3904,7 @@ function mSelect(i, center){
       '<div class="pn2">' + esc(p.n) + (p.note ? ' <span class="badge b-grey">' + esc(p.note) + '</span>' : '') + '</div>' +
       (p.comp ? '<div class="stamp">' + esc(p.comp) + '</div>' : '') +
       '<div class="pa">' + esc(p.a) + '</div>' +
+      shStats(p) +
       (p.group ? '<div class="stamp" style="margin-top:6px">' + esc(p.group) + '</div>' : '') +
       (p.kind === "fuel" ? '<div class="notice" style="margin:8px 0 0;font-size:.79rem">' +
         '<b>いま営業しているとは限りません。</b>停電しても給油を続けられる設備がある店舗として国が指定しているものです。' +
