@@ -605,6 +605,17 @@
     <button type="button" class="chip" data-go="quake" style="margin-left:6px">本震と余震の詳しい情報 →</button>
   </p>
 
+  <!-- 施設ごとの避難者数を出しているのは八代市だけ。市町村タブの奥に置くと誰も見ないので、
+       ホームから1タップで開けるようにする。他の市町村が出し始めたら並べる。 -->
+  <h2 class="sec">避難所の混み具合と設備</h2>
+  <div class="card">
+    <b>八代市の避難所39か所の「混み具合」と「水・電気・エアコン・シャワー」を、1枚にまとめました。</b>
+    <p style="margin:6px 0 10px;font-size:.9rem;color:var(--ink-2)">
+      どこが空いているか、どこで水が使えるかが一目で分かります。<b>混んでいる順・水が使える順</b>に並べ替えられます。
+      <span class="muted">（八代市が公表している「避難所開設状況一覧」から。施設ごとの人数を公表しているのは八代市だけです）</span></p>
+    <button type="button" class="chip" onclick="openShov()">避難所39か所の一覧図をひらく →</button>
+  </div>
+
   <h2 class="sec">給水所・避難所の地図</h2>
   <p class="lead">公式に発表された給水所・避難所・役所と、停電しても給油できる<b>住民拠点SS</b>です。ピンを押すと住所と電話が出ます。
     <span class="muted">給油所はいま営業しているとは限りません。</span></p>
@@ -3213,12 +3224,13 @@ $("#cityList").innerHTML = CITIES.map((c,i)=>`
     ${c.status?`<div class="notice info" style="margin-top:0">${clampHTML(rich(c.status))}</div>`:""}
     ${c.warn?`<div class="notice">${clampHTML(rich(c.warn))}</div>`:""}
 
+    ${shOverview(c, i)}
+
     <h4>公式ページ</h4>
     <ul class="links">${linkList(c.links)}</ul>
 
     ${c.shelter?`<h4>${esc(c.shelter.title)}</h4>
       ${c.shelter.note?`<div class="stamp" style="margin:0 0 6px">${clampHTML(rich(c.shelter.note))}</div>`:""}
-      ${shOverview(c, i)}
       ${c.shelter.items.length?placeList(c.shelter.items):""}`:""}
 
     ${c.water?`<h4>${esc(c.water.title)}</h4>
@@ -5253,6 +5265,25 @@ setInterval(renderQuakeElapsed, 60000);
 
 /* タブ */
 const PAGES=["home","live","quake","map","city","life","guide","vol","sns","easy"];
+/* ホームの案内から、図まで一気に連れて行く。
+   タブを切り替えるだけだと、八代市のアコーディオンが閉じたままで結局たどり着けない。 */
+function openShov(){
+  go("city");
+  /* 市町村の一覧は描き直されることがあるので、要素は毎回引き直す。
+     つかんだままの参照を使うと、DOMから外れた要素の座標（0）に飛んでしまう。 */
+  const step = () => {
+    const box = document.querySelector("[data-shov]");
+    if(!box) return;
+    const acc = box.closest("details.acc");
+    if(acc && !acc.open) acc.open = true;
+    /* 5000px近くを滑らかに送ると迷子になるので、smooth は使わず一気に飛ばす。 */
+    const y = box.getBoundingClientRect().top + window.scrollY - 8;
+    if(y > 0) window.scrollTo(0, y);
+  };
+  step();
+  setTimeout(step, 80);
+}
+
 function go(tab){
   PAGES.forEach(p=>$("#p-"+p).classList.toggle("hidden",p!==tab));
   document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===tab));
