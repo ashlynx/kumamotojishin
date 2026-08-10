@@ -132,9 +132,16 @@
      円の面積が避難者数、色が水の可否。地図タブの本体とは別に、
      動かない小さな地図をその場で描いている（操作させないぶん軽く、迷子にならない）。 */
   .shmap-w{margin:10px 0 0}
-  .shmap{position:relative;width:100%;height:260px;overflow:hidden;border-radius:10px;
-    border:1px solid var(--line);background:#eef1f4}
-  .shmap img.t{position:absolute;left:0;top:0;image-rendering:auto;pointer-events:none;user-select:none}
+  /* 縦横比を固定するのが肝。これがあるから、位置も大きさも％で決め打てる。
+     aspect-ratio が使えない古い環境のために padding-top での作り方も残す。 */
+  /* 幅を絞っているのは、3:2のまま画面いっぱいに広げると
+     パソコンで高さ600px超の帯になり、下の表が押し出されるため。 */
+  .shmap{position:relative;width:100%;max-width:560px;aspect-ratio:3/2;overflow:hidden;
+    border-radius:10px;border:1px solid var(--line);background:#eef1f4}
+  @supports not (aspect-ratio:3/2){
+    .shmap{height:0;padding-top:66.667%}
+  }
+  .shmap img.t{position:absolute;image-rendering:auto;pointer-events:none;user-select:none}
   .shmap .dots{position:absolute;inset:0}
   .shdot{position:absolute;border-radius:50%;border:2px solid #fff;padding:0;cursor:pointer;
     box-shadow:0 1px 3px rgba(0,0,0,.35);transform:translate(-50%,-50%)}
@@ -148,8 +155,11 @@
     background:rgba(255,255,255,.8);border-radius:3px;padding:0 4px}
   .shmap-l{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:7px 0 0;
     font-size:.7rem;color:var(--ink-3)}
-  .shmap-l i{display:inline-block;border-radius:50%;border:2px solid #fff;
+  .shmap-l i.lg{display:inline-block;width:9px;height:9px;border-radius:50%;border:2px solid #fff;
     box-shadow:0 1px 2px rgba(0,0,0,.3);vertical-align:middle;margin-right:3px}
+  .shmap-l i.lg.o{background:rgba(15,107,92,.85)}
+  .shmap-l i.lg.t{background:rgba(139,143,152,.85)}
+  .shmap-l i.lg.x{background:rgba(160,27,18,.85)}
 
   /* 避難所の「いま何人いるか」。数字を並べるより棒で見せたほうが、
      107人/130人（ほぼ満員）と350人/3000人（まだ入れる）の差が一目で分かる。 */
@@ -3120,93 +3130,92 @@ function shRows(items, mode){
   }).join("");
 }
 
-/* ---- 避難所の分布地図（静止・その場描画） -------------------------------
-   本体の地図（#mapBox）は1つしかなく、タブ間で move して使い回している。
-   ここへ持ち込むと他のタブから消えるので、独立した小さな地図をその場で描く。
-   操作はさせない。「どこに何人いるか」を一目で見せるだけの図なので、
-   動かせるとかえって迷う。詳しく見たい人は地図タブへ送る。            */
-function shMapDraw(host){
-  if(!host) return;
-  const w = host.clientWidth, h = host.clientHeight;
-  if(!w || !h) return;                       // 折りたたまれている間は描かない
-  const ci = +host.dataset.shmap;
-  const c = CITIES[ci];
-  const items = ((c.shelter && c.shelter.items) || [])
-    .map((it, i) => ({it, i, g: it.a && GEO[it.a]}))
-    .filter(x => x.g && x.it.pp !== undefined);
-  if(!items.length) return;
-  if(host.dataset.w === String(w)) return;   // 同じ幅で描き直さない
-  host.dataset.w = String(w);
+/* タイルのURL。地図まわり（ずっと下）ではなくここで宣言しているのは、
+   下の分布地図が市町村一覧を組み立てる時点で使うため。
+   下で const のままだと「初期化前に参照した」で止まる（実際に一度止めた）。 */
+const GSI_TILE = "https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png";
 
-  const lats = items.map(x => x.g[0]), lons = items.map(x => x.g[1]);
-  const pad = 34;                            // 円と文字がはみ出さないための余白
-  let z = 9, sc = 1;
-  for(let t = 15; t >= 8; t--){
-    const a = mProj(Math.max(...lats), Math.min(...lons), t);
-    const b = mProj(Math.min(...lats), Math.max(...lons), t);
-    const bw = b.x - a.x, bh = b.y - a.y;
-    if(bw <= w - pad*2 && bh <= h - pad*2){ z = t; sc = Math.min((w-pad*2)/Math.max(bw,1), (h-pad*2)/Math.max(bh,1), 1.8); break; }
+/* ---- 避難所の分布地図 -------------------------------------------------
+   本体の地図（#mapBox）は1つしかなく、タブ間で move して使い回しているので、
+   ここへ持ち込むと他のタブから消える。だから別に描く。
+
+   最初は「表示された時点で幅を測って描く」方式にしていたが、
+   折りたたみの中にある都合で、開き方や環境によっては一度も描かれず
+   灰色の箱のまま残ることがあった。測るのをやめて、
+   **箱の縦横比を3:2に固定し、位置と大きさをすべて％で決め打つ**方式に変えた。
+   HTMLを組み立てる時点で全部決まるので、JSの実行タイミングに左右されない。
+   タイルが読めなくても、丸（＝どこに何人いるか）は必ず出る。          */
+const SHMAP_A = 3/2;      // 箱の縦横比。CSSの aspect-ratio と合わせること
+const SHMAP_PAD = 0.13;   // 丸と文字がはみ出さないよう、左右上下に取る余白の割合
+
+function shMapHTML(items){
+  const pts = items.map((it, i) => ({it, i, g: it.a && GEO[it.a]}))
+                   .filter(x => x.g && x.it.pp !== undefined);
+  if(pts.length < 2) return "";
+
+  /* タイル1枚が箱の中で大きすぎず小さすぎない縮尺を選ぶ */
+  let z = 8, view = null;
+  for(let t = 14; t >= 8; t--){
+    const P = pts.map(x => mProj(x.g[0], x.g[1], t));
+    const xs = P.map(o => o.x), ys = P.map(o => o.y);
+    const bw = Math.max(...xs) - Math.min(...xs), bh = Math.max(...ys) - Math.min(...ys);
+    const Wu = Math.max(bw/(1 - 2*SHMAP_PAD), (bh/(1 - 2*SHMAP_PAD))*SHMAP_A);
+    if(Wu <= 900){ z = t; view = {Wu, Hu:Wu/SHMAP_A,
+      cx:(Math.max(...xs)+Math.min(...xs))/2, cy:(Math.max(...ys)+Math.min(...ys))/2}; break; }
   }
-  const a = mProj(Math.max(...lats), Math.min(...lons), z);
-  const b = mProj(Math.min(...lats), Math.max(...lons), z);
-  const cx = (a.x + b.x)/2, cy = (a.y + b.y)/2;
-  const ox = cx - (w/2)/sc, oy = cy - (h/2)/sc;
-  const toXY = g => { const q = mProj(g[0], g[1], z); return {x:(q.x-ox)*sc, y:(q.y-oy)*sc}; };
+  if(!view) return "";
+  const x0 = view.cx - view.Wu/2, y0 = view.cy - view.Hu/2;
+  const fx = px => (px - x0)/view.Wu*100;      // 箱の幅に対する％
+  const fy = py => (py - y0)/view.Hu*100;      // 箱の高さに対する％
 
-  // タイル
-  const ts = 256*sc, out = [];
-  const x0 = Math.floor(ox/256) - 1, x1 = Math.floor((ox + w/sc)/256) + 1;
-  const y0 = Math.floor(oy/256) - 1, y1 = Math.floor((oy + h/sc)/256) + 1;
-  const max = Math.pow(2, z);
-  for(let tx = x0; tx <= x1; tx++) for(let ty = y0; ty <= y1; ty++){
-    if(ty < 0 || ty >= max) continue;
-    const wx = ((tx % max) + max) % max;
-    /* lazy にすると、折りたたみの中で描いた時に読み込まれず、地図が虫食いになる */
-    out.push('<img class="t" alt="" width="' + Math.ceil(ts+1) + '" height="' + Math.ceil(ts+1) +
-      '" style="transform:translate(' + Math.round(tx*256*sc - ox*sc) + 'px,' + Math.round(ty*256*sc - oy*sc) + 'px)" src="' +
-      GSI_TILE.replace("{z}", z).replace("{x}", wx).replace("{y}", ty) + '">');
-  }
+  /* タイル。％で置くので、箱がどんな幅でも比率が崩れない */
+  const tw = 256/view.Wu*100, th = 256/view.Hu*100;
+  const nmax = Math.pow(2, z), tiles = [];
+  for(let tx = Math.floor(x0/256); tx <= Math.floor((x0 + view.Wu)/256); tx++)
+    for(let ty = Math.floor(y0/256); ty <= Math.floor((y0 + view.Hu)/256); ty++){
+      if(ty < 0 || ty >= nmax) continue;
+      const wx = ((tx % nmax) + nmax) % nmax;
+      tiles.push('<img class="t" alt="" src="' +
+        GSI_TILE.replace("{z}", z).replace("{x}", wx).replace("{y}", ty) +
+        '" style="left:' + fx(tx*256).toFixed(3) + '%;top:' + fy(ty*256).toFixed(3) +
+        '%;width:' + tw.toFixed(3) + '%;height:' + th.toFixed(3) + '%">');
+    }
 
-  // 円。面積が人数に比例するよう半径は平方根で伸ばす。
-  const mx = Math.max(...items.map(x => x.it.pp), 1);
+  /* 丸。面積が人数に比例するよう半径は平方根で伸ばす。大きさだけはpxで固定する */
+  const mx = Math.max(...pts.map(x => x.it.pp), 1);
   const mk = v => (v === "〇" || v === "○") ? "o" : (v === "×" ? "x" : "t");
-  const dots = [], labs = [];
-  items.forEach(x => {
-    const s2 = toXY(x.g);
-    const r = 4 + 13*Math.sqrt(x.it.pp/mx);
-    dots.push('<button type="button" class="shdot ' + mk(x.it.w) + '" data-shi="' + x.i + '"' +
-      ' style="left:' + Math.round(s2.x) + 'px;top:' + Math.round(s2.y) + 'px;width:' +
+  const dots = [], labs = [], put = [];
+  pts.forEach(x => {
+    const q = mProj(x.g[0], x.g[1], z), r = 4 + 13*Math.sqrt(x.it.pp/mx);
+    dots.push('<button type="button" class="shdot ' + mk(x.it.w) + '" data-shi="' + x.i +
+      '" style="left:' + fx(q.x).toFixed(3) + '%;top:' + fy(q.y).toFixed(3) + '%;width:' +
       Math.round(r*2) + 'px;height:' + Math.round(r*2) + 'px" title="' +
-      esc(x.it.n) + '　避難者' + x.it.pp + '人　水' + esc(x.it.w || "") + '"' +
-      ' aria-label="' + esc(x.it.n) + ' 避難者' + x.it.pp + '人"></button>');
+      esc(x.it.n) + '　避難者' + x.it.pp + '人　水' + esc(x.it.w || "") + '" aria-label="' +
+      esc(x.it.n) + ' 避難者' + x.it.pp + '人"></button>');
   });
-  /* 人数のふきだしは、多い順に置けるところだけ置く。
-     中心部は施設が密集していて、全部に付けると重なって全部読めなくなる。 */
-  const put = [];
-  items.slice().sort((p, q) => q.it.pp - p.it.pp).forEach(x => {
+  /* 人数のふきだしは多い順に、重ならない場所だけ。密集地で全部出すと全部読めなくなる */
+  pts.slice().sort((a, b) => b.it.pp - a.it.pp).forEach(x => {
     if(put.length >= 4 || !x.it.pp) return;
-    const s2 = toXY(x.g), r = 4 + 13*Math.sqrt(x.it.pp/mx);
-    const lx = s2.x, ly = s2.y + r + 2, lw = 42, lh = 15;
-    if(ly + lh > h - 2 || lx - lw/2 < 0 || lx + lw/2 > w) return;
-    if(put.some(q => Math.abs(q.x - lx) < lw && Math.abs(q.y - ly) < lh)) return;
+    const q = mProj(x.g[0], x.g[1], z), lx = fx(q.x), ly = fy(q.y);
+    if(lx < 8 || lx > 92 || ly > 88) return;
+    if(put.some(o => Math.abs(o.x - lx) < 13 && Math.abs(o.y - ly) < 11)) return;
     put.push({x:lx, y:ly});
-    labs.push('<span class="shlab" style="left:' + Math.round(lx) + 'px;top:' +
-      Math.round(ly) + 'px">' + x.it.pp + '人</span>');
+    labs.push('<span class="shlab" style="left:' + lx.toFixed(3) + '%;top:calc(' +
+      ly.toFixed(3) + '% + ' + Math.round(4 + 13*Math.sqrt(x.it.pp/mx) + 3) + 'px)">' +
+      x.it.pp + '人</span>');
   });
 
-  host.innerHTML = out.join("") + '<div class="dots">' + dots.join("") + labs.join("") + '</div>' +
-    '<span class="shmap-c">国土地理院タイル</span>';
+  return '<div class="shmap-w"><div class="shmap">' + tiles.join("") +
+    '<div class="dots">' + dots.join("") + labs.join("") + '</div>' +
+    '<span class="shmap-c">国土地理院タイル</span></div>' +
+    '<div class="shmap-l">' +
+      '<span><i class="lg o"></i>水が使える</span>' +
+      '<span><i class="lg t"></i>一部使える</span>' +
+      '<span><i class="lg x"></i>使えない</span>' +
+      '<span>丸の大きさ＝避難者数</span>' +
+      '<span>丸を押すと下の一覧に移動します</span>' +
+    '</div></div>';
 }
-
-/* 折りたたみが開いた時と画面幅が変わった時に描く */
-function shMapAll(){ document.querySelectorAll("[data-shmap]").forEach(shMapDraw); }
-document.addEventListener("toggle", e => {
-  if(e.target && e.target.matches && e.target.matches("details.acc")) setTimeout(shMapAll, 0);
-}, true);
-let shRz;
-window.addEventListener("resize", () => { clearTimeout(shRz); shRz = setTimeout(() => {
-  document.querySelectorAll("[data-shmap]").forEach(el => { el.dataset.w = ""; }); shMapAll();
-}, 200); });
 
 function shOverview(c, ci){
   const items = (c.shelter && c.shelter.items) || [];
@@ -3232,14 +3241,7 @@ function shOverview(c, ci){
           'か所が「調整中」です（市の合計表ではこれを含めて' + (cnt("sh") + adj) + 'か所）。</span>' : '') +
       '</div>' +
     '</div>' +
-    '<div class="shmap-w"><div class="shmap" data-shmap="' + ci + '"></div>' +
-      '<div class="shmap-l">' +
-        '<span><i class="shdot o" style="position:static;transform:none;width:9px;height:9px"></i>水が使える</span>' +
-        '<span><i class="shdot t" style="position:static;transform:none;width:9px;height:9px"></i>一部使える</span>' +
-        '<span><i class="shdot x" style="position:static;transform:none;width:9px;height:9px"></i>使えない</span>' +
-        '<span>丸の大きさ＝避難者数</span>' +
-        '<span>丸を押すと下の一覧に移動します</span>' +
-      '</div></div>' +
+    shMapHTML(items) +
     '<div class="shov-s">' + btn("area","地区順") + btn("crowd","混んでいる順") + btn("water","水が使える順") + '</div>' +
     '<div class="shmx"><div class="shmx-h"><span>避難所</span><span>混み具合</span>' +
       SH_COLS.map(c2 => '<span>' + c2.l + '</span>').join("") + '</div>' +
@@ -3764,7 +3766,6 @@ function locate(cb){
    拡大縮小は整数ズームに限らず連続値で持ち、タイルは round(z) を使って
    差分を CSS の拡大率で吸収する。こうするとピンチ操作が滑らかに追従する。
    ========================================================= */
-const GSI_TILE = "https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png";
 const KIND = {
   water:  {l:"給水所", g:"水"},
   shelter:{l:"避難所", g:"避"},
@@ -5402,7 +5403,6 @@ function openShov(){
     const acc = box.closest("details.acc");
     if(acc && !acc.open) acc.open = true;
     /* 5000px近くを滑らかに送ると迷子になるので、smooth は使わず一気に飛ばす。 */
-    shMapDraw(box.querySelector("[data-shmap]"));
     const y = box.getBoundingClientRect().top + window.scrollY - 8;
     if(y > 0) window.scrollTo(0, y);
   };
