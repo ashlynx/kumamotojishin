@@ -80,11 +80,19 @@ HYPO_KEEP = 3000
 # 都市ガスの供給停止戸数は、内閣府「令和8年熊本地震に係る被害状況等について」から取る。
 # 経済産業省の情報が本文に文章で書かれており、日ごとに更新される。PDFに文字情報が入って
 # いるので機械で読める（消防庁の被害報は画像のみで読めない）。
-CAO_INDEX = "https://www.bousai.go.jp/updates/r8kumamoto_jishin/index.html"
+# 8月12日に内閣府がページを組み替え、PDFの一覧が index.html から
+# status/index.html へ移った。旧URLを見続けていたため8月5日版で止まっていた
+# （8月12日に気づくまで7日間、古い戸数を出し続けた）。
+# 一覧の置き場所はまた動きうるので、候補を順に見て最初に見つかったものを使う。
+CAO_INDEXES = [
+    "https://www.bousai.go.jp/updates/r8kumamoto_jishin/status/index.html",
+    "https://www.bousai.go.jp/updates/r8kumamoto_jishin/index.html",
+]
+CAO_INDEX = CAO_INDEXES[0]
 CAO_PDF = "https://www.bousai.go.jp/updates/r8kumamoto_jishin/pdf/r8kumamoto_jishin_%s.pdf"
 # パーサーを直したら必ず増やすこと。前回の結果をそのまま使い回して、
 # 直したはずの誤りが残り続けるのを防ぐための番号。
-CAO_PARSER = 3
+CAO_PARSER = 5
 
 HERE = os.path.dirname(os.path.abspath(__file__)) or "."
 OUT_DIR = os.path.join(HERE, "out")
@@ -1425,14 +1433,22 @@ def fetch_cao_gas(prev, verbose=False):
     import io
     import pdfplumber
 
-    _st, raw, _ = fetch(CAO_INDEX, {})
-    if not raw:
-        raise ValueError("内閣府のページを取得できませんでした")
-    idx = decode(raw)
-    days = sorted(set(re.findall(r"pdf/r8kumamoto_jishin_(\d{8})\.pdf", idx)))
-    if not days:
-        raise ValueError("内閣府のPDFが見つかりませんでした")
-    day = days[-1]
+    # 一覧ページの候補を順に見る。PDFへのリンクが1本でも見つかった時点で打ち切る。
+    hrefs, index_url = [], None
+    for cand in CAO_INDEXES:
+        _st, raw, _ = fetch(cand, {})
+        if not raw:
+            continue
+        idx = decode(raw)
+        # 「-1400」のような時刻つきの版もあるので、日付のうしろは緩く受ける。
+        hrefs = re.findall(r"([\w./-]*r8kumamoto_jishin_(\d{8})(?:-\d{3,4})?\.pdf)", idx)
+        if hrefs:
+            index_url = cand
+            break
+    if not hrefs:
+        raise ValueError("内閣府のPDFが見つかりませんでした（一覧ページの場所が変わった可能性）")
+    day = max(d for _h, d in hrefs)
+    href = sorted(h for h, d in hrefs if d == day)[-1]
 
     old = prev.get("gas") or {}
     reusable = (old.get("pdf_day") == day
@@ -1443,13 +1459,13 @@ def fetch_cao_gas(prev, verbose=False):
             print(f"    内閣府PDF {day} は取得済み（{old.get('current'):,}戸）")
         return old
 
-    pdf_url = CAO_PDF % day
+    pdf_url = urllib.parse.urljoin(index_url, href)
     body = fetch_bytes(pdf_url)
     with pdfplumber.open(io.BytesIO(body)) as pdf:
         txt = "\n".join((pg.extract_text() or "") for pg in pdf.pages[:8])
 
     out = {"pdf_day": day, "parser": CAO_PARSER, "source_url": pdf_url,
-           "source_page": CAO_INDEX, "label": "内閣府（経済産業省情報）"}
+           "source_page": index_url, "label": "内閣府（経済産業省情報）"}
 
     tight = re.sub(r"\s+", "", txt)   # 空白も改行も詰める。PDFは行の途中で折り返すため。
     m = re.search(r"令和８年(\d{1,2})月(\d{1,2})日(\d{1,2})時(\d{1,2})分現在", tight)
@@ -1466,12 +1482,29 @@ def fetch_cao_gas(prev, verbose=False):
 
     # 「約8,892戸供給停止」「8,892戸供給停止」どちらの書き方もある（7/31に書式が変わった）
     stops = re.findall(r"約?([\d,]+)戸供給停止", seg)
+    # 8/7からまた書式が変わり、箇条書きで直接3つの数が並ぶようになった。
+    #   「最大供給停止：8,892戸 現時点の供給：6,538戸 停止中：2,329戸」
+    # 停止中がそのまま書いてあるので、引き算しない（derived を立てない）。
+    m_now  = re.search(r"停止中[：:]\s*約?([\d,]+)\s*戸", seg)
+    m_max  = re.search(r"最大供給停止[：:]\s*約?([\d,]+)\s*戸", seg)
+    m_back = re.search(r"現時点の供給[：:]\s*約?([\d,]+)\s*戸", seg)
+    if m_now:
+        out["current"] = int(m_now.group(1).replace(",", ""))
+        out["derived"] = False
+        if m_max:
+            out["stopped"] = int(m_max.group(1).replace(",", ""))
+        if m_back:
+            out["resumed"] = int(m_back.group(1).replace(",", ""))
+        # 「※家屋倒壊の25戸を除く」——この戸数は停止中に数えられていない。
+        m_ex = re.search(r"家屋倒壊の([\d,]+)戸を除く", seg)
+        if m_ex:
+            out["excluded"] = int(m_ex.group(1).replace(",", ""))
     # 8/3から書き方がまた変わり、いま止まっている戸数を直接書かなくなった。
     #   「8,892戸の供給を停止したが、現在867戸で供給再開。」
     # 止めた戸数から再開した戸数を引くしかないので、引き算したことを derived に残して
     # サイト側でも「8,892戸のうち867戸再開」と根拠を並べて出す。
     resumed = re.search(r"約?([\d,]+)戸の供給を停止した[^。]*?現在\s*約?([\d,]+)\s*戸で供給再開", seg)
-    if resumed:
+    if resumed and out.get("current") is None:   # 上の箇条書きで読めていたらそちらを優先
         a = int(resumed.group(1).replace(",", ""))
         b = int(resumed.group(2).replace(",", ""))
         if 0 <= b <= a:
@@ -1497,6 +1530,17 @@ def fetch_cao_gas(prev, verbose=False):
     m2 = re.search(r"(\d{1,2})月(\d{1,2})日に全戸再開予定", seg)
     if m2:
         out["restore"] = f"{int(m2.group(1))}月{int(m2.group(2))}日に全戸再開予定"
+    else:
+        # 8/8以降は日付を切らず「今週中に概ね復旧する見通し」といった書き方になった。
+        # サイト側は restore が無いと復旧見通しの行そのものを出さないので、拾っておく。
+        # 文の途中から切ると意味が通らないので、「。」で割って丸ごと1文を取る。
+        # 本文には「4/98」のようなページ番号が混ざることがあるので落とす。
+        for frag in reversed(seg.split("。")):
+            if re.search(r"復旧する見通し|復旧予定|再開予定", frag):
+                t = re.sub(r"\d{1,3}/\d{1,3}", "", frag).lstrip("・● ")
+                if t:
+                    out["restore"] = t[:120] + "。"
+                break
     if verbose:
         cur = out["current"]
         print(f"    都市ガス {('%s戸' % f'{cur:,}') if cur is not None else '読み取れず'}"
