@@ -20,3 +20,14 @@ old/
 # 個別のやりとりの下書き。相手方の宛先や担当者名が入るため、
 # このリポジトリは公開なので追跡しない（告知.md 側にも個人情報は書かない）
 返信_*.md
+
+# 秘密情報。2026-08-14に、SSHのログイン情報・X APIのキー・Telegramのトークンを
+# 書いたメモ（untitled text.txt / untitled text 2.txt）と、楽天のセッションCookie
+# （rakuten_session.json）を、このリポジトリへ誤って公開した。
+# 拡張子のない下書きメモが混ざりやすいので、名前で丸ごと弾く。
+untitled*
+*.env
+.env*
+rakuten_session.json
+*session*.json
+*_secrets.*

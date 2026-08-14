@@ -14,7 +14,13 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-MSG="${1:-サイトを更新}"
+MSG="サイトを更新"
+for a in "$@"; do
+  case "$a" in
+    --allow-new) ;;                 # フラグはメッセージにしない
+    *) MSG="$a"; break ;;
+  esac
+done
 
 # site/ に本体以外のHTMLが紛れていないか確認する。
 # ダウンロードしたファイルが混ざると、そのまま公開されて
@@ -39,6 +45,32 @@ fi
 if git diff --quiet && git diff --cached --quiet && [ -z "$(git status --porcelain)" ]; then
   echo "変更がありません。"
   exit 0
+fi
+
+# 見覚えのない新規ファイルが混ざっていないか確認する。
+#
+# 2026年8月14日、この行がなかったせいで事故を起こした。
+# エディタの「名称未設定」メモ2つ（untitled text.txt / untitled text 2.txt）が
+# このフォルダに保存されていて、下の git add -A がまとめて拾い、
+# VPSのroot SSHログイン・X APIのキー・Telegramのトークンが公開リポジトリに出た。
+# 楽天のセッションCookie（rakuten_session.json）も、同じ経路で8月7日から1週間出ていた。
+#
+# 通常の更新で新しいファイルが増えることはめったにない。増えたときは必ず目で見る。
+# 意図して追加するときだけ、--allow-new を付けて実行する。
+ALLOW_NEW=0
+for a in "$@"; do [ "$a" = "--allow-new" ] && ALLOW_NEW=1; done
+
+UNTRACKED=$(git ls-files --others --exclude-standard)
+if [ -n "$UNTRACKED" ] && [ "$ALLOW_NEW" -eq 0 ]; then
+  echo "追跡されていないファイルがあります。公開リポジトリなので、中身を確かめてください。"
+  echo
+  echo "$UNTRACKED" | sed 's/^/  /'
+  echo
+  echo "秘密情報（パスワード・APIキー・トークン・セッション）が入っていないか見てから、"
+  echo "問題なければ次のどちらかにしてください。"
+  echo "  ・公開してよいファイル   →  ./publish.sh \"$MSG\" --allow-new"
+  echo "  ・公開したくないファイル →  リポジトリの外へ移動するか .gitignore に追記"
+  exit 1
 fi
 
 git add -A

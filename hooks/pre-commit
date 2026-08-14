@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+# コミットの直前に、秘密情報らしき文字列が混ざっていないか見る。
+#
+# なぜ手元に置くのか:
+#   GitHub の secret scanning / push protection は、パブリックリポジトリでは無料だが、
+#   個人のプライベートリポジトリでは使えない（GitHub Secret Protection が必要）。
+#   つまり非公開にしているあいだ、GitHub側の見張りはいない。ここが最後の砦になる。
+#
+# 入れ方（リポジトリの中で1回だけ）:
+#   git config core.hooksPath hooks
+#
+# どうしても通したいとき（中身を確認したうえで）:
+#   git commit --no-verify
+set -uo pipefail
+
+# ステージされた「テキストファイル」だけを見る。画像やPDFは対象外。
+FILES=$(git diff --cached --name-only --diff-filter=ACM)
+[ -z "$FILES" ] && exit 0
+
+HIT=0
+report() {   # $1=ファイル $2=行番号 $3=説明
+  [ "$HIT" -eq 0 ] && {
+    echo "───────────────────────────────────────────────"
+    echo " 秘密情報らしき文字列が見つかりました。コミットを止めます。"
+    echo "───────────────────────────────────────────────"
+  }
+  HIT=1
+  echo "  $1:$2  … $3"
+}
+
+while IFS= read -r f; do
+  [ -f "$f" ] || continue
+  # バイナリは飛ばす
+  git diff --cached --numstat -- "$f" | grep -q '^-' && continue
+
+  # 値そのものは表示しない。何行目に何があったかだけ出す。
+  while IFS=: read -r n _; do [ -n "$n" ] && report "$f" "$n" "Telegram の bot token"; done \
+    < <(grep -nE '[0-9]{6,12}:AA[A-Za-z0-9_-]{30,}' "$f" || true)
+  while IFS=: read -r n _; do [ -n "$n" ] && report "$f" "$n" "X / Twitter の bearer token"; done \
+    < <(grep -nE 'AAAAAAAAAAAAAAAAAAAAA[A-Za-z0-9%._-]{40,}' "$f" || true)
+  while IFS=: read -r n _; do [ -n "$n" ] && report "$f" "$n" "AWS のアクセスキー"; done \
+    < <(grep -nE '\b(AKIA|ASIA)[A-Z0-9]{16}\b' "$f" || true)
+  while IFS=: read -r n _; do [ -n "$n" ] && report "$f" "$n" "秘密鍵（PEM）"; done \
+    < <(grep -nE 'BEGIN (RSA|OPENSSH|EC|DSA|PGP)? ?PRIVATE KEY' "$f" || true)
+  while IFS=: read -r n _; do [ -n "$n" ] && report "$f" "$n" "SECRET / TOKEN / PASSWORD への代入"; done \
+    < <(grep -nEi '(client_secret|api_key|apikey|access_token|bearer_token|password|passwd|secret_key)[[:space:]]*[=:][[:space:]]*["'"'"']?[A-Za-z0-9/_+.%-]{16,}' "$f" || true)
+  while IFS=: read -r n _; do [ -n "$n" ] && report "$f" "$n" "ブラウザのセッションCookie"; done \
+    < <(grep -nE '"(name|value)"[[:space:]]*:.*"(sessionid|JSESSIONID|LJIDSESS|SID|_session)"' "$f" || true)
+done <<< "$FILES"
+
+# 拡張子のない下書きメモ。2026-08-14 の流出はこれが原因だった。
+STRAY=$(echo "$FILES" | grep -iE '(^|/)(untitled|名称未設定|無題)' || true)
+if [ -n "$STRAY" ]; then
+  while IFS= read -r f; do report "$f" 0 "下書きメモらしい名前。中身を確認してください"; done <<< "$STRAY"
+fi
+
+if [ "$HIT" -eq 1 ]; then
+  echo
+  echo " 対処:"
+  echo "   ・本当に秘密なら   → リポジトリの外へ移し、.gitignore に追記してからやり直す"
+  echo "   ・誤検知なら       → git commit --no-verify で通す"
+  echo
+  echo " すでに push 済みの場合、消すだけでは足りません。必ず失効・入れ替えを。"
+  exit 1
+fi
+
+exit 0
