@@ -31,3 +31,9 @@ untitled*
 rakuten_session.json
 *session*.json
 *_secrets.*
+
+# 流出への対応で作った手元の道具。サイトの動作には関係しない。
+# コメントに事故の経緯（何が漏れたか）を具体的に書いてあるため、
+# 公開リポジトリには置かない。手元には残してある。
+purge-secrets.sh
+scan-history.sh
