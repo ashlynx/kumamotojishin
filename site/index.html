@@ -15,14 +15,14 @@
 <meta property="og:url" content="https://kumamotojishin.jp/">
 <meta property="og:site_name" content="令和8年熊本地震 情報まとめ（非公式）">
 <meta property="og:title" content="令和8年熊本地震 情報まとめ｜給水所・避難所・断水・罹災証明">
-<meta property="og:description" content="給水所と避難所の地図、断水・停電・給油所・道路、罹災証明と支援制度、ボランティアと寄付。国・県・市町村の公式発表を1時間おきに巡回して集めています。有志による非公式サイトです。">
+<meta property="og:description" content="給水所と避難所の地図、断水・停電・給油所・道路、罹災証明と支援制度、ボランティアと寄付。国・県・市町村の公式発表を10分おきに巡回して集めています。有志による非公式サイトです。">
 <meta property="og:image" content="https://kumamotojishin.jp/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:locale" content="ja_JP">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="令和8年熊本地震 情報まとめ｜給水所・避難所・断水・罹災証明">
-<meta name="twitter:description" content="給水所と避難所の地図、断水・停電・給油所・道路、罹災証明と支援制度。公式発表を1時間おきに巡回。有志による非公式サイトです。">
+<meta name="twitter:description" content="給水所と避難所の地図、断水・停電・給油所・道路、罹災証明と支援制度。公式発表を10分おきに巡回。有志による非公式サイトです。">
 <meta name="twitter:image" content="https://kumamotojishin.jp/og.png">
 <style>
   :root{
@@ -656,7 +656,7 @@
     <button class="home-card" data-go="live">
       <div class="k">さいしん</div>
       <h3>最新情報</h3>
-      <p>各自治体・官公庁の発表を1時間おきに巡回して集めています。いま何が更新されたか。「暮らしに直結するものだけ」に絞れます。</p>
+      <p>各自治体・官公庁の発表を10分おきに巡回して集めています。いま何が更新されたか。「暮らしに直結するものだけ」に絞れます。</p>
       <div class="prev" id="prev-live"></div>
     </button>
     <button class="home-card" data-go="quake">
@@ -1659,7 +1659,7 @@
 
     <div class="about-card">
       <h3>情報の集め方</h3>
-      <p>検索エンジンは使わず、<b>気象庁・熊本県・各市町村・消防庁・内閣府の発表を1時間おきに直接巡回</b>して掲載しています。</p>
+      <p>検索エンジンは使わず、<b>気象庁・熊本県・各市町村・消防庁・内閣府の発表を10分おきに直接巡回</b>して掲載しています。</p>
       <p>数値や場所の転記は最小限にとどめ、原則としてすべて<b>公式ページへのリンク</b>としています。各項目に発信元と取得時刻を表示しています。</p>
       <p class="note">地震情報は気象庁から直接取得しています。震度・マグニチュード・震央地名は発表内容をそのまま表示し、加工していません。<br>
         出典：<a href="https://www.jma.go.jp/bosai/quake/" target="_blank" rel="noopener">気象庁ホームページ</a></p>
@@ -1697,11 +1697,8 @@
 
     <div class="about-card">
       <h3>ソースコード</h3>
-      <p>このサイトの中身と巡回の仕組みは、GitHubで公開してきました。
-      <b>2026年8月14日から、事情により一時的に非公開にしています。</b>整理ができしだい、また公開します。
-      いまリンクを開いても見られません。</p>
-      <p>公開している内容と、どこから取得しているかは、このページの「情報の集め方」に書いています。
-      確かめたいことがあれば <a href="mailto:info@kumamotojishin.jp">info@kumamotojishin.jp</a> へお知らせください。</p>
+      <p>巡回の仕組みと掲載内容はすべて公開しています。何をどこから取得しているかを誰でも確認できます。</p>
+      <p><a href="https://github.com/ashlynx/kumamotojishin" target="_blank" rel="noopener">github.com/ashlynx/kumamotojishin ↗</a></p>
     </div>
   </div>
 </div></section>
@@ -5279,7 +5276,7 @@ renderLive();
 /* =========================================================
    地震情報のリアルタイム取得
 
-   巡回（1時間おき）を待たずに、閲覧者のブラウザから気象庁のデータを直接読む。
+   巡回（10分おき）を待たずに、閲覧者のブラウザから気象庁のデータを直接読む。
    地震だけは巡回の間隔に左右されない。ここは60秒ごと。
    気象庁のこのファイルは Access-Control-Allow-Origin: * が付いており、
    Cache-Control も max-age=60 なので、60秒間隔のポーリングが妥当。
@@ -5407,8 +5404,8 @@ async function refresh(){
   // どこからも取れなければ、埋め込み済みのデータのまま表示を続ける
 }
 refresh();
-/* 巡回は1時間おき。90秒ごとに見に行くのは多いようだが、R2はエグレス無料で
-   304も返るため負荷にならず、巡回直後の差し替えが最大90秒で届く利点をとる。
+/* 巡回は10分おきなので、90秒ごとに見に行けば取りこぼしません。R2はエグレス無料で
+   304も返るため、この頻度でも負荷になりません。
    再生中に差し替えると見ている途中で絵が変わるので、そのときは見送ります。 */
 setInterval(() => { if(!hyPlay && !document.hidden) refresh(); }, 90000);
 document.addEventListener("visibilitychange", () => { if(!document.hidden && !hyPlay) refresh(); });
