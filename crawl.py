@@ -92,7 +92,7 @@ CAO_INDEX = CAO_INDEXES[0]
 CAO_PDF = "https://www.bousai.go.jp/updates/r8kumamoto_jishin/pdf/r8kumamoto_jishin_%s.pdf"
 # パーサーを直したら必ず増やすこと。前回の結果をそのまま使い回して、
 # 直したはずの誤りが残り続けるのを防ぐための番号。
-CAO_PARSER = 5
+CAO_PARSER = 6
 
 HERE = os.path.dirname(os.path.abspath(__file__)) or "."
 OUT_DIR = os.path.join(HERE, "out")
@@ -1482,10 +1482,26 @@ def fetch_cao_gas(prev, verbose=False):
 
     # 「約8,892戸供給停止」「8,892戸供給停止」どちらの書き方もある（7/31に書式が変わった）
     stops = re.findall(r"約?([\d,]+)戸供給停止", seg)
+    # 8/15に全戸復旧し、書き方がまた変わった。
+    #   「倒壊した家屋（65戸）を除き、全戸（8,827戸）で供給再開済み。」
+    # 「停止中：」の行そのものが消えるので、これを先に見ないと読み取り失敗になる
+    #  （実際に8月16日、タイルが「確認中」のまま止まった）。
+    # ここで current=0 を返すと、サイト側は「供給停止は解消しました」に切り替わる。
+    m_all = re.search(r"全戸(?:（|\()([\d,]+)戸(?:）|\))?で供給再開済み|全戸で供給再開済み", seg)
+    if m_all:
+        out["current"] = 0
+        out["derived"] = False
+        if m_all.group(1):
+            out["stopped"] = out["resumed"] = int(m_all.group(1).replace(",", ""))
+        # 倒壊した家屋は「復旧済み」に数えられていない。家が建て直るまで戻らない。
+        m_ex2 = re.search(r"倒壊した家屋(?:（|\()([\d,]+)戸(?:）|\))を除き", seg)
+        if m_ex2:
+            out["excluded"] = int(m_ex2.group(1).replace(",", ""))
+
     # 8/7からまた書式が変わり、箇条書きで直接3つの数が並ぶようになった。
     #   「最大供給停止：8,892戸 現時点の供給：6,538戸 停止中：2,329戸」
     # 停止中がそのまま書いてあるので、引き算しない（derived を立てない）。
-    m_now  = re.search(r"停止中[：:]\s*約?([\d,]+)\s*戸", seg)
+    m_now  = re.search(r"停止中[：:]\s*約?([\d,]+)\s*戸", seg) if out.get("current") is None else None
     m_max  = re.search(r"最大供給停止[：:]\s*約?([\d,]+)\s*戸", seg)
     m_back = re.search(r"現時点の供給[：:]\s*約?([\d,]+)\s*戸", seg)
     if m_now:
