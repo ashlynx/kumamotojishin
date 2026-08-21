@@ -74,6 +74,26 @@
   .notice{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 12px;border-radius:0 8px 8px 0;font-size:.83rem;color:#6b4700;margin:10px 0}
   .notice.info{border-color:var(--info);background:var(--info-soft);color:#123a66}
   .notice.red{border-color:var(--urgent);background:var(--urgent-soft);color:#7a1913}
+
+  /* 期限の一覧。片づけの局面が終わり、申請と期限の局面に入った（2026年8月下旬）。
+     水がどこでもらえるかより、いつまでに何をしないと権利を失うかのほうが効くようになった。
+     日付は DEADLINES に1行足すだけ。過ぎたものは自動で消える。 */
+  .dl{list-style:none;margin:0;padding:0}
+  .dl li{display:flex;gap:10px;align-items:baseline;padding:9px 0;border-top:1px solid var(--line)}
+  .dl li:first-child{border-top:0}
+  .dl .rem{flex:0 0 5.6em;font-weight:800;font-size:.92rem;text-align:right;font-variant-numeric:tabular-nums}
+  .dl .rem.r0{color:var(--urgent)}
+  .dl .rem.r1{color:var(--warn)}
+  .dl .rem.r2{color:var(--ink-2)}
+  .dl .bd{flex:1 1 auto;min-width:0}
+  .dl .ttl{font-weight:700;font-size:.94rem;line-height:1.55}
+  .dl .mt{display:block;font-size:.84rem;color:var(--ink-2);line-height:1.6;margin-top:2px}
+  .dl .cy{display:inline-block;font-size:.76rem;color:var(--ink-3);border:1px solid var(--line);
+    border-radius:5px;padding:0 5px;margin-right:5px;vertical-align:1px;white-space:nowrap}
+  @media (max-width:430px){
+    .dl li{flex-wrap:wrap;gap:0 8px}
+    .dl .rem{flex:0 0 auto;text-align:left}
+  }
   /* いつまでも効いているが急ぎではない注意（余震など）。色で場所を取らせない。 */
   .notice.quiet{border-color:var(--ink-3);background:#eef0f3;color:var(--ink-2)}
 
@@ -602,6 +622,15 @@
     <b>八代市と氷川町で、住家の被害認定調査が始まっています</b>（8月6日から。御船町は8月17日から）。<b>立ち会いは不要で、留守でも外観を調べます。</b>
     <b>ここでの判定が、使える支援制度の範囲をそのまま決めます。</b>
     <a href="#guide" onclick="go('guide');return false;">立ち会いと写真の準備 →</a>
+  </div>
+
+  <h2 class="sec">期限のあるもの</h2>
+  <div class="card" id="dlCard">
+    <p class="stamp" style="margin:0 0 8px">
+      <b>申請しないと受けられない支援があります。</b>期限が近い順に並べています。過ぎたものは自動で消えます。
+      <b>ここに出ていない制度もあります。</b>お住まいの市町村の欄と「手続き・支援制度」タブもあわせてご覧ください。
+    </p>
+    <ul class="dl" id="dlList"></ul>
   </div>
 
   <h2 class="sec">いまの状況</h2>
@@ -4551,6 +4580,66 @@ function renderGas(){
     <a href="https://www.kyugas.co.jp/r8_kumamoto_info/" target="_blank" rel="noopener" style="margin-left:8px">九州ガスの関連情報 ↗</a></p>`;
 }
 
+/* 期限のあるもの。日付は「その日まで有効」。翌日0時に消える。
+   増えたら1行足す。消すときは行ごと消す（過ぎたぶんは勝手に消えるので放置でよい）。
+   city は市町村カードを開くボタンにする名前。空なら県全体など。 */
+const DEADLINES = [
+  {d:"2026-08-23", city:"宇土市", t:"給水車による給水が終わります",
+   m:"宇土市民プール前・10:00〜17:00。まだ水道が戻っていない家は、それまでに確保を。"},
+  {d:"2026-08-26", city:"氷川町", t:"町職員採用試験（第2回）の受付",
+   m:"地震の影響で延長。試験会場も熊本県市町村自治会館別館に変わっています。"},
+  {d:"2026-08-28", city:"上天草市", t:"市内の温泉施設11か所での無料入浴",
+   m:"7月31日から。身分証またはり災証明書等で利用できます。"},
+  {d:"2026-08-31", city:"八代市", t:"ブルーシート・土のう袋・ロープの配布",
+   m:"17時まで。各支所とコミュニティセンター。1世帯ブルーシート3枚まで。資材だけ先に受け取っておく手もあります。"},
+  {d:"2026-08-31", city:"宇土市", t:"公民館・老人福祉センターの勉強場所開放",
+   m:"小中高生。9時〜17時、冷房完備・無料。場所により正午まで。"},
+  {d:"2026-08-31", city:"宇城市", t:"三角B&Gグラウンドの仮置場（ここだけ8月末まで）",
+   m:"豊川・稲川・旧豊野小の3か所は9月30日まで。三角の方は日程にご注意ください。"},
+  {d:"2026-09-07", city:"宇土市", t:"市営住宅の一時提供の募集",
+   m:"「半壊」以上のり災証明書をお持ちの方。8月24日から受付。"},
+  {d:"2026-09-27", city:"八代市", t:"緊急修理（ブルーシート展張等）の完了報告",
+   m:"上限56,400円を市が業者へ直接支払い。すでに支払い済みの修理・自分で張ったものは対象外。着工前に必ず相談を。"},
+  {d:"2026-09-30", city:"宇土市", t:"災害ごみの搬出",
+   m:"三菱ケミカル駐車場。入場券による先着順です。"},
+  {d:"2026-09-30", city:"宇城市", t:"災害ごみの仮置場（三角B&Gを除く3か所）",
+   m:"豊川・稲川・旧豊野小。日ごとに1か所ずつ休みがあります。"},
+  {d:"2026-09-30", city:"八代市", t:"児童扶養手当の「現況届」の提出",
+   m:"ひとり親家庭など。特定非常災害の認定で延長されました。出さないと11月分以降の手当が止まります。"},
+  {d:"2026-10-30", city:"上天草市", t:"災害見舞金の申請",
+   m:"罹災証明書の写しと、世帯主名義の口座が分かるものを持って窓口へ。"},
+  {d:"2026-12-25", city:"", t:"無料で車を借りられる制度（日本カーシェアリング協会）",
+   m:"お住まいがどこでも利用できます。事前の申込・予約が必要です。"},
+  {d:"2026-12-31", city:"八代市", t:"災害ごみの仮置場3か所",
+   m:"水処理センター西側（木曜休）、鏡支所（水・土休）、北新地グラウンド（8月29日から・月曜休）。"}
+];
+
+function renderDeadlines(){
+  const box = $("#dlCard"), ul = $("#dlList");
+  if(!ul) return;
+  /* 日本時間の「今日」で数える。海外から見ている家族と日付がずれないように、
+     端末のタイムゾーンではなく Asia/Tokyo に固定する。 */
+  const today = new Intl.DateTimeFormat("en-CA", {timeZone:"Asia/Tokyo"}).format(new Date());
+  const day = 86400000;
+  const rows = DEADLINES
+    .map(x => {
+      const left = Math.round((new Date(x.d + "T00:00:00+09:00") - new Date(today + "T00:00:00+09:00")) / day);
+      return Object.assign({left}, x);
+    })
+    .filter(x => x.left >= 0)
+    .sort((a, b) => a.left - b.left || a.city.localeCompare(b.city));
+  if(!rows.length){ if(box) box.classList.add("hidden"); return; }
+  const md = iso => { const [, m, d] = iso.split("-"); return +m + "月" + (+d) + "日"; };
+  ul.innerHTML = rows.map(x => {
+    const cls = x.left <= 3 ? "r0" : (x.left <= 10 ? "r1" : "r2");
+    const rem = x.left === 0 ? "本日まで" : (x.left === 1 ? "あす まで" : "あと" + x.left + "日");
+    return '<li><span class="rem ' + cls + '">' + rem + '</span><span class="bd">' +
+      '<span class="ttl">' + (x.city ? '<span class="cy">' + esc(x.city) + '</span>' : "") +
+      esc(x.t) + '<span style="color:var(--ink-3);font-weight:400">（' + md(x.d) + '）</span></span>' +
+      '<span class="mt">' + esc(x.m) + '</span></span></li>';
+  }).join("");
+}
+
 function renderCounts(){
   let w = 0, sh = 0;
   CITIES.forEach(c => {
@@ -4562,6 +4651,7 @@ function renderCounts(){
   put("statShelter", sh);
 }
 renderCounts();
+renderDeadlines();
 renderHouse();
 renderWater();
 renderPower();
