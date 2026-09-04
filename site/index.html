@@ -4549,14 +4549,7 @@ function renderGas(){
   /* 内閣府のPDF一覧の置き場所が変わり、8月5日版のまま7日間ぶん止まっていたことがある。
      止まっても数字は「もっともらしく」出てしまうので、時点から日数を測って赤字で出す。
      as_of は「8月11日 16:00」という和文なので、年をこちらで補って日付に直す。 */
-  const gasHrs = (() => {
-    const m = /(\d{1,2})月(\d{1,2})日\s*(\d{1,2}):(\d{2})/.exec(g.as_of || "");
-    if(!m) return 0;
-    const t = new Date(2026, +m[1] - 1, +m[2], +m[3], +m[4]).getTime();
-    return (Date.now() - t) / 3600000;
-  })();
-  const gasOld = gasHrs > 42
-    ? `<br><b style="color:var(--urgent)">この数値は${Math.floor(gasHrs / 24)}日前のものです</b>` : "";
+  const gasOld = staleNote(g.as_of, 42);
   if(g.current === 0){
     tile.classList.add("hidden");
     /* 「全戸で供給再開済み」でも、倒壊した家屋は数のうちに入っていない。
@@ -4798,12 +4791,27 @@ function renderPower(){
 /* 断水戸数。国土交通省の被害状況PDFから巡回で取得している。
    取れなかったときは数字を出さず、公式ページへ誘導する。
    古い数字をそのまま出し続けるより、無いと言うほうが安全なため。 */
+/* 「8月27日 7:30」のような和文の時点から、何時間前かを出す。
+   巡回が黙って止まっても数字はもっともらしく出てしまうので、古くなったら赤字で言う。
+   ガスは内閣府のPDFの書式が変わって7日間止まり、断水は復旧して読めなくなって
+   4日間 古い戸数を出し続けた（2026年8月・9月）。どちらも「壊れて見えない」壊れ方だった。 */
+function staleNote(asOf, limitHours){
+  const m = /(\d{1,2})月(\d{1,2})日\s*(\d{1,2}):(\d{2})/.exec(asOf || "");
+  if(!m) return "";
+  const t = new Date(2026, +m[1] - 1, +m[2], +m[3], +m[4]).getTime();
+  const hrs = (Date.now() - t) / 3600000;
+  return hrs > limitHours
+    ? `<br><b style="color:var(--urgent)">この数値は${Math.floor(hrs / 24)}日前のものです</b>` : "";
+}
+
 function renderWater(){
   const w = C && C.stats && C.stats.mlit_water;
   const tile = $("#waterStat"), box = $("#waterDetail");
   if(!tile || !box) return;
 
-  if(!w || !w.current){
+  /* current === 0 は「解消した」。!w.current で見ると 0 が
+     「取得できなかった」に化ける（実際に化けた）。null と 0 を分けて見る。 */
+  if(!w || w.current === undefined || w.current === null){
     tile.innerHTML = `<div class="v" style="font-size:1rem">確認中</div><div class="l">断水</div>`;
     box.innerHTML = `<div class="notice info" style="margin-top:8px">
       断水戸数を取得できませんでした。
@@ -4812,9 +4820,21 @@ function renderWater(){
     return;
   }
 
+  if(w.current === 0){
+    tile.classList.add("hidden");
+    box.innerHTML = `<p class="stamp" style="margin:0">
+      <b>水道本管の断水は解消しました</b>（${esc(w.as_of || "")}時点・国土交通省 第${esc(w.report_no || "?")}報）。
+      ${w.peak ? `ピーク時は約${w.peak.toLocaleString("ja-JP")}戸が断水していました。` : ""}
+      <b>ただし、宅地内の配管が傷んでいて水が出ない家は残ります。</b>
+      本管が直っても、家の敷地の中の修理はご自身での手配になります。まずはメーターボックス内の元栓を確かめ、
+      それでも出ないときは、お住まいの市町村の水道担当へご相談ください。</p>`;
+    return;
+  }
+  tile.classList.remove("hidden");
+
   const n = v => v.toLocaleString("ja-JP");
   tile.innerHTML = `<div class="v">約${n(w.current)}戸</div>
-    <div class="l">断水（${esc(w.as_of || "")}時点）</div>`;
+    <div class="l">断水（${esc(w.as_of || "")}時点）${staleNote(w.as_of, 96)}</div>`;
 
   // ホームは全体像を掴む場所なので、内訳は既定で畳んでおく。
   // 見たい人だけ開けばよく、給水所を探している人の邪魔をしない。

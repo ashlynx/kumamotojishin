@@ -999,7 +999,7 @@ def parse_pref_house(html, src, state_entry, verbose=False):
     }
 
 
-WATER_PARSER = 3
+WATER_PARSER = 4
 
 
 def parse_mlit_water(html, src, state_entry, verbose=False):
@@ -1047,7 +1047,9 @@ def parse_mlit_water(html, src, state_entry, verbose=False):
     # ピーク値だけ取れても、サイトの数字は現在戸数なので出せるものがない。
     # 以前ここを peak との or 条件にしていたため、第22報で文面が変わって
     # current だけ落ちたのに成功扱いになり、タイルが「確認中」のまま固まった。
-    if not stat.get("current"):
+    # is None で見ること。0 を not で判定すると、断水が解消した報を
+    # 「読み取れなかった」として弾いてしまう（2026年9月4日、実際にそうなった）。
+    if stat.get("current") is None:
         raise ValueError(f"第{no}報のPDFから現在の断水戸数を抽出できませんでした")
 
     stat["parser"] = WATER_PARSER
@@ -1089,6 +1091,9 @@ def extract_water_from_pdf(pdf_bytes):
     # ただし日付は詰めると「8/1 09:30」が「8/109:30」になって 8/10 と読めてしまうため、
     # 時点の取り出しだけは詰める前の spaced を使う。
     joined = re.sub(r"(?<=[0-9])\s+(?=[0-9,])", "", spaced)
+    # PDFは語の途中でも折り返す（「最大断水戸\n数」）。行をつないだ joined でも
+    # 語の途中に空白が残るので、要約文を探すときは空白を全部落としたものも見る。
+    tight = re.sub(r"\s+", "", spaced)
 
     out = {}
     m = re.search(r"■\s*水道\s*（\s*(\d{1,2})\s*/\s*(\d{1,2})\s+(\d{1,2}):(\d{2})\s*時点\s*）", spaced)
@@ -1116,7 +1121,19 @@ def extract_water_from_pdf(pdf_bytes):
         if m:
             out["current"] = int(m.group(3).replace(",", ""))
             out["current_pref_name"], out["current_muni"] = m.group(1), int(m.group(2))
-    m = re.search(r"最大断水戸数\s*約?\s*([\d,]+)\s*戸", joined)
+    # 断水がすべて解消すると「◯戸が断水中」の一文そのものが消え、代わりに
+    # 「現在は復旧済み。」と書かれるようになる（第51報・2026年8月31日から）。
+    # 復旧して読めなくなる、という壊れ方。ガスでも同じことが起きた（8月15日）。
+    # ここを足さないと、直前の報の戸数が「いまの断水」として出続ける。
+    if "current" not in out:
+        seg_start = tight.find("■水道")
+        seg = tight[seg_start:seg_start + 900] if seg_start >= 0 else tight
+        if re.search(r"現在は復旧済み|すべての水道本管の応急復旧が完了|全ての水道本管の応急復旧が完了", seg):
+            out["current"] = 0
+            out["restored"] = True
+
+    m = (re.search(r"最大断水戸数\s*約?\s*([\d,]+)\s*戸", joined)
+         or re.search(r"最大断水戸数約?([\d,]+)戸", tight))
     if m:
         out["peak"] = int(m.group(1).replace(",", ""))
     m = re.search(r"(\d+)\s*県\s*（\s*(\d+)\s*自治体\s*）\s*において断水", joined)
