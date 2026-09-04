@@ -74,30 +74,88 @@ jobs:
             out
           key: crawl-state-${{ github.run_id }}
 
+      # 壊れた data.json を配ってしまうと、サイト側は generated_at で弾いた末に
+      # 「確認中」を出し続ける。上げる前にここで一度だけ形を確かめる。
+      - name: Check data.json
+        run: |
+          test -s out/data.json
+          python3 -c "import json,sys; d=json.load(open('out/data.json')); \
+            assert d.get('generated_at'), 'generated_at がない'; \
+            assert d.get('sources'), 'sources が空'; \
+            print('data.json OK', d['generated_at'], len(d['sources']), 'sources')"
+
       # data.json を R2 に配置。サイト側は data.kumamotojishin.jp/data.json を読みます。
+      #
+      # 【2026-09-04】ここは以前 npx wrangler r2 object put を使っていて、失敗した。
+      #   巡回そのものは165秒で成功していたのに、npx が毎回 wrangler（約20MB）を
+      #   取り直す作りで、その取得が固まって timeout-minutes: 4 に当たった。
+      #   ログの最後は「Terminate orphan process: pid (2290) (npm exec wrangl)」。
+      #   結果、その日の data.json は 08:29 のまま止まった。
+      #
+      #   wrangler が中でやっているのは、下とまったく同じ1本のリクエストです
+      #   （wrangler 4.115.0 の putRemoteObject を読んで確かめました）。
+      #     PUT https://api.cloudflare.com/client/v4
+      #         /accounts/{account_id}/r2/buckets/{bucket}/objects/{key}
+      #     Authorization: Bearer <APIトークン>
+      #     cache-control / content-type などをそのままヘッダに載せる
+      #   つまり npm は必要ありません。curl は ubuntu-latest に最初から入っています。
+      #   トークンも今までと同じものでそのまま通ります（wrangler と同じ経路・同じ権限）。
       - name: Upload data.json to R2
-        timeout-minutes: 4
+        timeout-minutes: 3
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          npx --yes wrangler@4.115.0 r2 object put \
-            kumamotojishin-data/data.json \
-            --file out/data.json \
-            --content-type "application/json; charset=utf-8" \
-            --cache-control "public, max-age=60, s-maxage=120" \
-            --remote
+          set -euo pipefail
+          # --max-time で1回あたりを縛る。固まったら殺して次を試す、を3回まで。
+          # 前回はこれがなくて、固まったまま4分すぎて落ちた。
+          code=$(curl -sS -X PUT \
+            --max-time 45 --retry 3 --retry-delay 5 --retry-all-errors \
+            -o /tmp/r2.json -w '%{http_code}' \
+            "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/r2/buckets/kumamotojishin-data/objects/data.json" \
+            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            -H "Content-Type: application/json; charset=utf-8" \
+            -H "Cache-Control: public, max-age=60, s-maxage=120" \
+            --data-binary @out/data.json)
+          # 応答本文にはトークンは出ませんが、念のため中身は success の判定にだけ使い、
+          # 失敗したときだけ表示します。
+          if [ "$code" != "200" ]; then
+            echo "R2へのアップロードが HTTP $code で失敗しました"
+            cat /tmp/r2.json || true
+            exit 1
+          fi
+          python3 -c "import json; d=json.load(open('/tmp/r2.json')); \
+            print('R2 OK') if d.get('success') else (_ for _ in ()).throw(SystemExit('R2が success=false を返しました: '+json.dumps(d.get('errors'), ensure_ascii=False)))"
 
       # 埋め込み済みHTMLの更新は、Pagesのビルド枠を使い切らないよう手動/push時のみ。
+      #
+      # 【2026-09-04】!cancelled() を足した理由。
+      #   R2へのアップロードが失敗すると、その手前で止まってここまで来ませんでした。
+      #   そのせいで、断水の修正を push しても R2 が詰まっているというだけの理由で
+      #   サイト本体が7時間ほど古いままになりました（実際に起きました）。
+      #   データの配信とサイトの配信は別のものなので、片方が転んでも
+      #   もう片方は出す。ジョブ全体の成否は変わりません。
       - name: Deploy site
-        if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
+        if: ${{ !cancelled() && (github.event_name == 'workflow_dispatch' || github.event_name == 'push') }}
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          npx --yes wrangler@4.115.0 pages deploy site \
-            --project-name kumamotojishin \
-            --commit-dirty=true
+          set -euo pipefail
+          # ここは push と手動実行のときだけ走ります。npx の取得が固まる事故が
+          # 2026年9月4日に R2 の方で起きたので、こちらも1回はやり直すようにしました。
+          # Pages のデプロイは複数ファイルのアップロードで curl では書きにくいため、
+          # wrangler のまま残しています。
+          for i in 1 2; do
+            if timeout 300 npx --yes wrangler@4.115.0 pages deploy site \
+                 --project-name kumamotojishin \
+                 --commit-dirty=true; then
+              exit 0
+            fi
+            echo "デプロイに失敗しました（$i回目）。30秒待ってやり直します。"
+            sleep 30
+          done
+          exit 1
 
       # 失敗に気づけないと、更新が止まったまま放置される。
       # GitHubからのメール通知に加えて、サマリの先頭にも明示する。
