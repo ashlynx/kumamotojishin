@@ -37,3 +37,11 @@ rakuten_session.json
 # 公開リポジトリには置かない。手元には残してある。
 purge-secrets.sh
 scan-history.sh
+
+# 出典リンクの確認記録（実行のたびに変わるので追跡しない）
+links.json
+
+# 私（Claude）がこのフォルダに置いた作業用のファイル。
+# サイトの動作には関係しないので追跡しない。2026-09-04、刈り込みの記録を
+# ここに置いたら publish.sh の未追跡チェックに引っかかった（正しい動作）。
+Claude outputs/

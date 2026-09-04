@@ -2007,12 +2007,243 @@ def inject(html_path, data):
     return True
 
 
+
+# ─────────────────────────────────────────────────────────────
+# 出典ページの見張り
+#
+# 2026年9月4日に足した。きっかけは宇城市の仮置場で、豊川グラウンドが8月30日に
+# 終わっていたのに、当サイトは「開いている3か所」として案内し続けていた。
+# 市のページは終了時に更新されていたので、そこを見ていれば当日に分かった。
+#
+# サイトには外部リンクが277本、92ドメインある。人が定期的に見て回れる数ではない。
+# ここでやるのは2つだけ。「404になった」と「中身が変わった」を挙げること。
+# 中身の判断はしない（できない）。挙がったものを人が見に行くための入口です。
+#
+# 1回の実行では LINK_BATCH 本だけ、最後に見てから古い順に見る。
+# 10分おきの巡回なので、277本でも1〜2時間で一周する。相手のサイトに負担をかけない。
+# ─────────────────────────────────────────────────────────────
+LINK_BATCH = 30             # 1回の実行で見に行く本数
+LINK_BUDGET = 150           # 確認全体の上限（秒）。超えたら残りは次回にまわす。
+LINK_RECHECK_HOURS = 20     # 同じURLを見に行く間隔（時間）
+LINK_TIMEOUT = 6            # 1本あたりの待ち時間（秒）
+LINK_INTERVAL = 0.7         # 連続アクセスの間隔（秒）
+LINK_CHURN_LIMIT = 3        # 毎回変わるページは、これ以上続いたら報告をやめる
+OWN_HOSTS = ("kumamotojishin.jp",)
+# 巡回本体の state.json とは別のファイルにする。別プロセスで走らせるので、
+# 同じファイルを両方が読み書きすると、あとから書いたほうが相手の更新を消す。
+LINKS_PATH = os.path.join(HERE, "links.json")
+
+
+def load_links():
+    if os.path.exists(LINKS_PATH):
+        try:
+            with open(LINKS_PATH, encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {}
+
+
+def save_links(links):
+    with open(LINKS_PATH, "w", encoding="utf-8") as f:
+        json.dump(links, f, ensure_ascii=False)
+
+
+def extract_links(html_path):
+    """index.html から出典URLを重複なく取り出す。自分のサイトは除く。"""
+    with open(html_path, encoding="utf-8") as f:
+        html = f.read()
+    seen, out = set(), []
+    for u in re.findall(r'u:"(https?://[^"]+)"', html):
+        u = u.rstrip("、。")
+        host = urllib.parse.urlsplit(u).hostname or ""
+        if any(host.endswith(h) for h in OWN_HOSTS):
+            continue
+        if u not in seen:
+            seen.add(u)
+            out.append(u)
+    return out
+
+
+def link_fingerprint(raw):
+    """本文だけの指紋。スクリプト・スタイル・タグ・空白を落としてから取る。
+
+    生のバイト列で比べると、アクセスカウンタや広告の乱数だけで「変わった」と出る。
+    それが続くと人は見なくなるので、本文に寄せてから比べる。
+    """
+    try:
+        text = decode(raw)
+    except Exception:
+        return hashlib.sha256(raw).hexdigest()
+    text = re.sub(r"(?is)<(script|style|noscript)[^>]*>.*?</\1>", " ", text)
+    text = re.sub(r"(?s)<[^>]+>", " ", text)
+    text = re.sub(r"\s+", "", text)
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def check_links(html_path, verbose=False):
+    """出典ページを少しずつ見に行き、リンク切れと内容変更を挙げる。"""
+    links = load_links()
+    now = dt.datetime.now(JST)
+    urls = extract_links(html_path)
+    known = set(urls)
+
+    # サイトから消えたURLの記録は捨てる（links.json が太り続けないように）
+    for dead in [u for u in links if u not in known]:
+        del links[dead]
+
+    def last_seen(u):
+        v = links.get(u, {}).get("checked_at")
+        return v or ""
+    # まだ一度も見ていないものが先、次に古い順
+    due = sorted(urls, key=last_seen)
+    picked, hosts = [], {}
+    for u in due:
+        e = links.get(u, {})
+        if e.get("checked_at"):
+            try:
+                age = (now - dt.datetime.fromisoformat(e["checked_at"])).total_seconds() / 3600
+            except ValueError:
+                age = 999
+            if age < LINK_RECHECK_HOURS:
+                continue
+        # 同じサイトに一度の実行で集中させない
+        h = urllib.parse.urlsplit(u).hostname or ""
+        if hosts.get(h, 0) >= 4:
+            continue
+        hosts[h] = hosts.get(h, 0) + 1
+        picked.append(u)
+        if len(picked) >= LINK_BATCH:
+            break
+
+    gone, changed, unknown, ok = [], [], [], 0
+    started = time.time()
+    done = 0
+    for n, u in enumerate(picked):
+        # 応答の遅いサイトが続くと、ここだけで何分もかかる。
+        # 途中で切り上げても、残りは次の実行で古い順に拾われるので取りこぼしはない。
+        if time.time() - started > LINK_BUDGET:
+            break
+        if n:
+            time.sleep(LINK_INTERVAL)
+        done += 1
+        e = dict(links.get(u, {}))
+        try:
+            req = urllib.request.Request(u, headers={
+                "User-Agent": UA, "Accept-Encoding": "gzip", "Accept": "*/*"})
+            if e.get("etag"):
+                req.add_header("If-None-Match", e["etag"])
+            if e.get("last_modified"):
+                req.add_header("If-Modified-Since", e["last_modified"])
+            with urllib.request.urlopen(req, timeout=LINK_TIMEOUT) as res:
+                raw = res.read()
+                if res.headers.get("Content-Encoding") == "gzip":
+                    raw = gzip.decompress(raw)
+                if res.headers.get("ETag"):
+                    e["etag"] = res.headers["ETag"]
+                if res.headers.get("Last-Modified"):
+                    e["last_modified"] = res.headers["Last-Modified"]
+                fp = link_fingerprint(raw)
+                old = e.get("fp")
+                if old and old != fp:
+                    e["churn"] = e.get("churn", 0) + 1
+                    # 毎回変わるページ（更新日時を出しているだけ等）は、報告から外す。
+                    # 出し続けると、本当の更新が埋もれて誰も見なくなる。
+                    e["fails"] = 0
+                    if e["churn"] <= LINK_CHURN_LIMIT:
+                        changed.append(u)
+                    elif verbose:
+                        print(f"    毎回変わるので報告しない: {u}")
+                else:
+                    if old == fp:
+                        e["churn"] = 0
+                    e["fails"] = 0
+                    ok += 1
+                e["fp"] = fp
+                e["status"] = 200
+        except urllib.error.HTTPError as ex:
+            if ex.code == 304:
+                e["churn"] = 0
+                e["fails"] = 0
+                ok += 1
+                e["status"] = 304
+            elif ex.code in (404, 410):
+                gone.append((u, ex.code))
+                e["status"] = ex.code
+            else:
+                # 403 は自動アクセスを弾いているだけのことが多い（宇土市など）。
+                # 人が開けば見える。「壊れている」と混ぜない。
+                e["fails"] = e.get("fails", 0) + 1
+                unknown.append((u, f"HTTP {ex.code}", e["fails"]))
+                e["status"] = ex.code
+        except Exception as ex:
+            # 熊本県・熊本市のサイトは、巡回からの接続を切ることがある
+            # （Connection reset by peer）。人が開けば見えるので、切れた理由まで書く。
+            why = f"{type(ex).__name__}: {getattr(ex, 'reason', '')}".strip(": ")
+            e["fails"] = e.get("fails", 0) + 1
+            unknown.append((u, why[:60], e["fails"]))
+            e["status"] = None
+        e["checked_at"] = now.isoformat()
+        links[u] = e
+
+    save_links(links)
+    never = sum(1 for u in urls if not links.get(u, {}).get("checked_at"))
+    return {"total": len(urls), "checked": done, "ok": ok,
+            "gone": gone, "changed": changed, "unknown": unknown,
+            "never": never, "at": now.isoformat()}
+
+
+def link_report_md(r):
+    """GitHub Actions のサマリに貼る用の短い報告。"""
+    L = [f"### 出典ページの確認（{r['total']}本のうち {r['checked']}本）"]
+    if r["gone"]:
+        L.append("")
+        L.append(f"**リンク切れ {len(r['gone'])}件** — サイトから直すか外してください。")
+        for u, code in r["gone"]:
+            L.append(f"- {code} {u}")
+    if r["changed"]:
+        L.append("")
+        L.append(f"**内容が変わったページ {len(r['changed'])}件** — 開いて、サイトの記述と食い違っていないか確かめてください。")
+        for u in r["changed"]:
+            L.append(f"- {u}")
+    if r["unknown"]:
+        L.append("")
+        chronic = sum(1 for x in r["unknown"] if x[2] >= 3)
+        head = f"確認できなかった {len(r['unknown'])}件（403や接続拒否。人が開けば見えることが多い）"
+        if chronic:
+            head += f"／うち {chronic}件は3回以上続いています"
+        L.append(f"<details><summary>{head}</summary>")
+        L.append("")
+        for u, why, fails in r["unknown"]:
+            L.append(f"- {why} {u}" + (f"（{fails}回連続）" if fails >= 3 else ""))
+        L.append("")
+        L.append("</details>")
+    if not (r["gone"] or r["changed"]):
+        L.append("")
+        L.append(f"変わったものはありませんでした（未確認 {r['never']}本）。")
+    return "\n".join(L) + "\n"
+
+
 def main():
     ap = argparse.ArgumentParser(description="令和8年熊本地震 一次情報巡回クローラー")
     ap.add_argument("--inject", metavar="HTML", help="巡回結果を指定HTMLに埋め込む")
     ap.add_argument("--verbose", "-v", action="store_true")
     ap.add_argument("--once", action="store_true", help="（既定）1回だけ実行")
+    ap.add_argument("--check-links", metavar="HTML",
+                    help="HTML内の出典URLを少しずつ見に行き、リンク切れと内容変更を挙げる")
+    ap.add_argument("--report", metavar="MD", help="--check-links の報告の書き出し先")
     args = ap.parse_args()
+
+    # 巡回とは別に走らせる。片方が転んでも、もう片方は動く。
+    if args.check_links:
+        r = check_links(args.check_links, verbose=args.verbose)
+        md = link_report_md(r)
+        print(md)
+        if args.report:
+            os.makedirs(os.path.dirname(args.report) or ".", exist_ok=True)
+            with open(args.report, "w", encoding="utf-8") as f:
+                f.write(md)
+        return
 
     t0 = time.time()
     data = crawl(verbose=args.verbose)

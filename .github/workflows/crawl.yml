@@ -57,6 +57,13 @@ jobs:
           key: crawl-state-${{ github.run_id }}
           restore-keys: crawl-state-
 
+      - name: Restore link state
+        uses: actions/cache/restore@v4
+        with:
+          path: links.json
+          key: link-state-${{ github.run_id }}
+          restore-keys: link-state-
+
       # 断水戸数の抽出だけPDF解析が必要。他のソースは標準ライブラリのみで動きます。
       - name: Install PDF parser
         run: pip install --quiet pdfplumber
@@ -156,6 +163,39 @@ jobs:
             sleep 30
           done
           exit 1
+
+      # 出典ページの見張り。
+      #
+      # 【2026-09-04】宇城市の仮置場で、豊川グラウンドが8月30日に終わっていたのに
+      #   当サイトは「開いている3か所」として案内し続けた。市のページは終了時に
+      #   更新されていたので、そこを見ていればその日に分かった。
+      #   サイトには出典リンクが277本、92ドメインある。人が見て回れる数ではない。
+      #   ここで挙げるのは「404になった」と「中身が変わった」の2つだけで、
+      #   中身の判断はしない。人が見に行くための入口です。
+      #
+      #   1回30本ずつ、最後に見てから古い順に。10分おきの巡回なので1〜2時間で一周する。
+      #   continue-on-error にしてあるのは、見張りが転んでも巡回まで落とさないため。
+      - name: Check source links
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        timeout-minutes: 5
+        run: python3 crawl.py --check-links site/index.html --report out/links.md
+
+      # 見張りの結果は links.json に持ち回る。巡回本体の state.json とは別のキャッシュ。
+      # 同じキーで2回保存すると衝突するので、分けてあります。
+      - name: Save link state
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        uses: actions/cache/save@v4
+        with:
+          path: links.json
+          key: link-state-${{ github.run_id }}
+
+      - name: Report links
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        run: |
+          if [ -f out/links.md ]; then cat out/links.md >> $GITHUB_STEP_SUMMARY; fi
 
       # 失敗に気づけないと、更新が止まったまま放置される。
       # GitHubからのメール通知に加えて、サマリの先頭にも明示する。
