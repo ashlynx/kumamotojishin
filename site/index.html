@@ -88,6 +88,7 @@
   .dl .bd{flex:1 1 auto;min-width:0}
   .dl .ttl{font-weight:700;font-size:.94rem;line-height:1.55}
   .dl .mt{display:block;font-size:.84rem;color:var(--ink-2);line-height:1.6;margin-top:2px}
+  .dl .lk{display:inline-block;margin-top:3px;font-size:.84rem;line-height:1.6}
   .dl .cy{display:inline-block;font-size:.76rem;color:var(--ink-3);border:1px solid var(--line);
     border-radius:5px;padding:0 5px;margin-right:5px;vertical-align:1px;white-space:nowrap}
   @media (max-width:430px){
@@ -4648,21 +4649,34 @@ const DEADLINES = [
   {d:"2026-08-31", city:"宇城市", t:"三角B&Gグラウンドの仮置場（ここだけ8月末まで）",
    m:"豊川・稲川・旧豊野小の3か所は9月30日まで。三角の方は日程にご注意ください。"},
   {d:"2026-09-07", city:"宇土市", t:"市営住宅の一時提供の募集",
-   m:"「半壊」以上のり災証明書をお持ちの方。8月24日から受付。"},
+   m:"「半壊」以上のり災証明書をお持ちの方。8月24日から受付。",
+   /* この募集そのものの記事URLは確認できなかったので、市の防災情報の一覧へ。 */
+   u:"https://www.city.uto.lg.jp/category/list/1301.html", ut:"宇土市の防災情報（一覧）"},
   {d:"2026-09-27", city:"八代市", t:"緊急修理（ブルーシート展張等）の完了報告",
-   m:"上限56,400円を市が業者へ直接支払い。すでに支払い済みの修理・自分で張ったものは対象外。着工前に必ず相談を。"},
+   m:"上限56,400円を市が業者へ直接支払い。すでに支払い済みの修理・自分で張ったものは対象外。着工前に必ず相談を。",
+   u:"https://www.city.yatsushiro.lg.jp/kiji00326859/index.html", ut:"八代市｜住宅の緊急修理（ブルーシート展張等）"},
   {d:"2026-09-30", city:"宇土市", t:"災害ごみの搬出",
-   m:"三菱ケミカル駐車場。入場券による先着順です。"},
-  {d:"2026-09-30", city:"宇城市", t:"災害ごみの仮置場（三角B&Gを除く3か所）",
-   m:"豊川・稲川・旧豊野小。日ごとに1か所ずつ休みがあります。"},
+   m:"三菱ケミカル駐車場。入場券による先着順です。",
+   u:"https://www.city.uto.lg.jp/article/view/1303/16352.html", ut:"宇土市｜災害ごみの搬入について"},
+  {d:"2026-09-30", city:"宇城市", t:"災害ごみの仮置場（稲川・旧豊野小の2か所）",
+   /* 2026年9月4日にリンクを付けるとき、市のページを読み直して気づいた。
+      三角B&Gは8月31日、豊川グラウンドは8月30日で終了していて、
+      当サイトは「3か所」のまま出していた。開いている場所を間違えると往復が無駄になる。 */
+   m:"三角B&Gは8月31日、豊川グラウンドは8月30日で終わりました。いま開いているのは稲川グラウンドと旧豊野小学校跡地の2か所です。受付は9時〜11時と13時〜15時。日ごとに休みがあるので、市のカレンダーで確認してから出かけてください。",
+   u:"https://www.city.uki.kumamoto.jp/kurashi/kankyo/gomi/2607719", ut:"宇城市｜各家庭から発生した災害ごみの搬入について"},
   {d:"2026-09-30", city:"八代市", t:"児童扶養手当の「現況届」の提出",
-   m:"ひとり親家庭など。特定非常災害の認定で延長されました。出さないと11月分以降の手当が止まります。"},
+   m:"ひとり親家庭など。特定非常災害の認定で延長されました。出さないと11月分以降の手当が止まります。",
+   u:"https://www.city.yatsushiro.lg.jp/kiji00326814/index.html", ut:"八代市｜児童扶養手当・ひとり親家庭等医療費助成 現況届の臨時的対応"},
   {d:"2026-10-30", city:"上天草市", t:"災害見舞金の申請",
-   m:"罹災証明書の写しと、世帯主名義の口座が分かるものを持って窓口へ。"},
+   m:"罹災証明書の写しと、世帯主名義の口座が分かるものを持って窓口へ。",
+   /* 見舞金の記事は文字化けで中身を確認できなかったため、市の特設ページへ。 */
+   u:"https://www.city.kamiamakusa.kumamoto.jp/q/list/542.html", ut:"上天草市｜令和8年熊本地震（特設ページ）"},
   {d:"2026-12-25", city:"", t:"無料で車を借りられる制度（日本カーシェアリング協会）",
-   m:"お住まいがどこでも利用できます。事前の申込・予約が必要です。"},
+   m:"お住まいがどこでも利用できます。事前の申込・予約が必要です。電話は 050-5799-4740（10時〜16時／水・日・祝は休み）。",
+   u:"https://www.japan-csa.org/blog/202607disaster3", ut:"日本カーシェアリング協会｜災害サポート・レンタカーの申込"},
   {d:"2026-12-31", city:"八代市", t:"災害ごみの仮置場3か所",
-   m:"水処理センター西側（木曜休）、鏡支所（水・土休）、北新地グラウンド（8月29日から・月曜休）。"}
+   m:"水処理センター西側（木曜休）、鏡支所（水・土休）、北新地グラウンド（8月29日から・月曜休）。",
+   u:"https://www.city.yatsushiro.lg.jp/kiji00324627/index.html", ut:"八代市｜災害廃棄物仮置場の設置について"}
 ];
 
 function renderDeadlines(){
@@ -4687,7 +4701,12 @@ function renderDeadlines(){
     return '<li><span class="rem ' + cls + '">' + rem + '</span><span class="bd">' +
       '<span class="ttl">' + (x.city ? '<span class="cy">' + esc(x.city) + '</span>' : "") +
       esc(x.t) + '<span style="color:var(--ink-3);font-weight:400">（' + md(x.d) + '）</span></span>' +
-      '<span class="mt">' + esc(x.m) + '</span></span></li>';
+      '<span class="mt">' + esc(x.m) +
+      /* 期限だけ書かれても、その先へ行けなければ申請にたどり着けない。
+         u があれば発表元へ直接飛ばす。ut はリンクの文言（どこへ行くのかを先に言う）。 */
+      (x.u ? '<a class="lk" href="' + esc(x.u) + '" target="_blank" rel="noopener">' +
+             esc(x.ut || "発表元を見る") + ' →</a>' : "") +
+      '</span></span></li>';
   }).join("");
 }
 
