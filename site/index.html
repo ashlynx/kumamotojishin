@@ -604,6 +604,12 @@
     <b>余震は続いています。倒れかけた建物や塀には近づかないでください。</b>本震で傷んだ家は、同じ震度でも次にもちません。
   </div>
 
+  <!-- 巡回そのものが止まったときだけ出る。ふだんは出ない。
+       2026年9月4日、R2へのアップロードが約7時間止まり、その間サイトは
+       「約300戸（8月27日時点）」をいまの断水として出し続けた。
+       止まったことが読む人に見えないのが、いちばん困る壊れ方だった。 -->
+  <div class="notice red hidden" style="margin-top:10px" id="staleCard"></div>
+
   <!-- 2026年8月11日〜16日の大潮の枠は、8月17日にここから外した。
        地震で八代市沿岸の地盤が約20cm沈んだところへ、8/13の新月をはさむ大潮が重なるという
        気象庁・国土交通省・国土地理院の合同発表（8月10日）にもとづくものだった。
@@ -4454,6 +4460,38 @@ function siClass(v){
   return "si";
 }
 
+/* データの更新そのものが止まったときに、それを読む人に見せる。
+   ガスと断水には個別の鮮度表示（staleNote）があるが、巡回ごと止まると
+   すべての数字が同じだけ古くなる。そのときは上に1か所だけ出す。
+
+   2026年9月4日、R2へのアップロードが約7時間止まった。サイトは何ごともない顔で
+   8月27日時点の断水戸数を出し続けた。気づいたのはGitHubからの失敗メールで、
+   読んでいる人には知りようがなかった。
+
+   var なのは意図。renderLive() がこの行より先に走ることがあり、
+   let だと参照時エラーになる。var なら undefined（=まだ出さない）で済む。
+   埋め込み済みデータは配信時点のものなので、最初の取得が終わるまでは出さない。 */
+var staleReady = false;
+function renderStale(){
+  const box = $("#staleCard");
+  if(!box) return;
+  const hide = () => box.classList.add("hidden");
+  if(!staleReady || !C || !C.generated_at) return hide();
+  const t = new Date(C.generated_at).getTime();
+  if(isNaN(t)) return hide();
+  const hrs = (Date.now() - t) / 3600000;
+  /* 巡回は10分おき。3時間空いていれば18回ぶん落ちている。 */
+  if(hrs < 3) return hide();
+  const n = hrs < 24 ? Math.floor(hrs) + "時間" : Math.floor(hrs / 24) + "日";
+  box.classList.remove("hidden");
+  box.innerHTML = `<b>このページのデータは${n}以上前のものです。</b>
+    自動の巡回が止まっています。断水・停電・避難所・給水の数字は
+    <b>いまの状況ではありません</b>（最終巡回 ${esc(fmtDT(C.generated_at))}）。
+    お急ぎのときは、お住まいの市町村の発表を直接ご確認ください。
+    <a href="#city" onclick="go('city');return false;">市町村の連絡先 →</a>`;
+}
+
+
 function renderLive(){
 if(!C){
   $("#crawlStatus").innerHTML =
@@ -4665,6 +4703,7 @@ function renderCounts(){
 }
 renderCounts();
 renderDeadlines();
+renderStale();
 renderHouse();
 renderWater();
 renderPower();
@@ -5557,7 +5596,13 @@ async function refresh(){
   }
   // どこからも取れなければ、埋め込み済みのデータのまま表示を続ける
 }
-refresh();
+/* 最初の1回が終わってから鮮度を見る。埋め込み済みデータは配信時点のもので、
+   取得が終わる前に見ると必ず「古い」と出てしまう。
+   取得に失敗したときも有効にする。取れないこと自体が、止まっているということなので。 */
+refresh().finally(() => { staleReady = true; renderStale(); });
+/* 巡回が完全に止まると refresh() の中の renderLive() も走らなくなるので、
+   経過時間の表示だけは別に進める。 */
+setInterval(renderStale, 60000);
 /* 巡回は10分おきなので、90秒ごとに見に行けば取りこぼしません。R2はエグレス無料で
    304も返るため、この頻度でも負荷になりません。
    再生中に差し替えると見ている途中で絵が変わるので、そのときは見送ります。 */

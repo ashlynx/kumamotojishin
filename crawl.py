@@ -381,7 +381,7 @@ SOURCES = [
         "id": "mlit_water",
         "label": "国土交通省 被害状況（断水）",
         "kind": "mlit_water",
-        "parser_ver": 3,   # WATER_PARSER と合わせる。上げると条件付きGETのキャッシュも捨てる
+        "parser_ver": 4,   # WATER_PARSER と合わせる。上げると条件付きGETのキャッシュも捨てる
         "url": "https://www.mlit.go.jp/saigai/saigai_260728.html",
         "group": "stat",
         "note": "断水戸数はPDFでしか公表されないため、最新報のPDFを取得して数値を抜き出す。"
@@ -1621,6 +1621,23 @@ def merge_quake_hours(prev, quakes):
     for k in sorted(hours)[:-QUAKE_HOURS_KEEP]:
         del hours[k]
     return hours, max_eid, added
+
+
+# パーサー版と SOURCES 側の parser_ver がずれていると、パーサーを直しても
+# 条件付きGETが304を返し、前回の解析結果がそのまま生き残る。直したはずの数値が出ない。
+#
+# 2026年9月4日、実際にこれをやった。断水のパーサーを 3→4 に上げたのに SOURCES 側の
+# parser_ver を 3 のまま置いたため、国交省のページは「変更なし」で素通りし、
+# 修正は一日まるごと効かなかった。サイトは第50報の300戸を出し続けた。
+# 「合わせること」とコメントに書いてあっても、人は忘れる。ここで落とす。
+_PARSER_PAIRS = {"mlit_water": WATER_PARSER, "pref_house": PREF_HOUSE_PARSER}
+for _s in SOURCES:
+    _want = _PARSER_PAIRS.get(_s["id"])
+    if _want is not None and _s.get("parser_ver") != _want:
+        raise SystemExit(
+            f"crawl.py: {_s['id']} の parser_ver={_s.get('parser_ver')} が "
+            f"パーサー版 {_want} と一致していません。SOURCES 側の parser_ver も上げてください。"
+            "（ずれたままだと304でキャッシュが生き残り、修正が効きません）")
 
 
 def crawl(verbose=False):
