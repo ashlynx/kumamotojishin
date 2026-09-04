@@ -49,7 +49,15 @@ import html as html_mod
 # 連絡先を必ず自分のものに書き換えてください。
 # 迷惑をかけた際に相手から連絡が来る余地を残すのが礼儀であり、遮断の回避にもなります。
 CONTACT = "https://kumamotojishin.jp/ (info@kumamotojishin.jp)"
-UA = f"KumamotoQuakeInfoBot/1.0 (+{CONTACT})"
+# 先頭の "Mozilla/5.0 (compatible; ...)" は、行儀のよい巡回の慣習的な書き方です。
+# ブラウザのふりをしているのではなく、名前と連絡先はそのまま入っています。
+# 2026年9月4日、宇土市のサイト（nginx）がこの形でないUAを一律で403にしていることが
+# 分かったため、この形に直しました。同じ形なら200が返ります。
+UA = f"Mozilla/5.0 (compatible; KumamotoQuakeInfoBot/1.0; +{CONTACT})"
+
+# 403を返してきた相手には、しばらく行かない。
+# 叩き続けると遮断が長引くうえ、相手のサーバにも迷惑をかける。
+BLOCK_BACKOFF_HOURS = 3
 
 REQUEST_INTERVAL = 3.0      # 各リクエストの間隔（秒）
 TIMEOUT = 20
@@ -1683,12 +1691,27 @@ def crawl(verbose=False):
                                    "status": "時間切れ（前回値）", "checked_at": now.isoformat()})
             continue
 
+        # 直前に403で断られた相手には、しばらく行かない（BLOCK_BACKOFF_HOURS）。
+        # 10分おきに叩き続けると、相手のWAFから見れば攻撃と変わらない。
+        bu = entry.get("blocked_until")
+        if bu and now.isoformat() < bu:
+            updates.extend(entry.get("items", []))
+            if src["group"] == "quake" and entry.get("quakes"):
+                quakes = entry["quakes"]
+            if src["group"] == "stat" and entry.get("stat"):
+                stats[sid] = entry["stat"]
+            sources_status.append({"id": sid, "label": src["label"],
+                                   "status": "先方が接続を拒否（前回値）", "checked_at": now.isoformat()})
+            continue
+
         if i:
             time.sleep(REQUEST_INTERVAL)
         if verbose:
             print(f"[{sid}] {src['url']}")
         try:
             status, raw, new_entry = fetch(src["url"], entry, verbose)
+            if entry.get("blocked_until"):
+                new_entry.pop("blocked_until", None)
             if status == 304:
                 sources_status.append({"id": sid, "label": src["label"],
                                        "status": "変更なし", "checked_at": now.isoformat()})
@@ -1827,6 +1850,15 @@ def crawl(verbose=False):
 
         except Exception as e:
             msg = f"{type(e).__name__}: {e}"
+            # 403（先方が自動アクセスを断っている）は、しばらく行かない。
+            # 10分おきに叩き続けても通らないし、遮断を長引かせるだけです。
+            if isinstance(e, urllib.error.HTTPError) and e.code in (403, 429):
+                ent = dict(state.get(sid, entry))
+                ent["blocked_until"] = (now + dt.timedelta(hours=BLOCK_BACKOFF_HOURS)).isoformat()
+                ent.setdefault("items", entry.get("items", []))
+                state[sid] = ent
+                if verbose:
+                    print(f"    {e.code} 断られたので {BLOCK_BACKOFF_HOURS}時間あけます")
             errors.append({"id": sid, "label": src["label"], "error": msg,
                            "at": now.isoformat()})
             sources_status.append({"id": sid, "label": src["label"],
@@ -2026,7 +2058,8 @@ LINK_BATCH = 30             # 1回の実行で見に行く本数
 LINK_BUDGET = 150           # 確認全体の上限（秒）。超えたら残りは次回にまわす。
 LINK_RECHECK_HOURS = 20     # 同じURLを見に行く間隔（時間）
 LINK_TIMEOUT = 6            # 1本あたりの待ち時間（秒）
-LINK_INTERVAL = 0.7         # 連続アクセスの間隔（秒）
+LINK_INTERVAL = 1.0         # 連続アクセスの間隔（秒）
+LINK_BLOCK_HOURS = 72       # 403で断られた相手は、これだけあけてから次を試す
 LINK_CHURN_LIMIT = 3        # 毎回変わるページは、これ以上続いたら報告をやめる
 OWN_HOSTS = ("kumamotojishin.jp",)
 # 巡回本体の state.json とは別のファイルにする。別プロセスで走らせるので、
@@ -2105,11 +2138,14 @@ def check_links(html_path, verbose=False):
                 age = (now - dt.datetime.fromisoformat(e["checked_at"])).total_seconds() / 3600
             except ValueError:
                 age = 999
-            if age < LINK_RECHECK_HOURS:
+            # 403で断られた相手を20時間おきに叩き直しても通らない。
+            # 相手のWAFから見れば繰り返しの不審なアクセスなので、うんとあける。
+            wait = LINK_BLOCK_HOURS if e.get("status") in (403, 429) else LINK_RECHECK_HOURS
+            if age < wait:
                 continue
         # 同じサイトに一度の実行で集中させない
         h = urllib.parse.urlsplit(u).hostname or ""
-        if hosts.get(h, 0) >= 4:
+        if hosts.get(h, 0) >= 2:
             continue
         hosts[h] = hosts.get(h, 0) + 1
         picked.append(u)
