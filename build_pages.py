@@ -45,7 +45,7 @@ SITE_NAME = "令和8年熊本地震 情報まとめ（非公式）"
 # 空のまま公開しても、いままでと同じHTMLが出ます。承認が下りてから入れてください。
 ADSENSE_CLIENT = ""     # 例: "ca-pub-0000000000000000"
 ADSENSE_SLOT   = ""     # 広告ユニットのスロットID（数字）
-AMAZON_TAG     = ""     # 例: "xxxxxxxx-22"
+AMAZON_TAG     = "twentyfive-22"   # AmazonアソシエイトのトラッキングID
 
 # Amazonの物販リンクを置かないページ。
 #   この3つは「申請より先に自分で買って払うと、公費の対象外になります」と
