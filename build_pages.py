@@ -32,12 +32,48 @@ import os
 import sys
 import json
 import datetime as dt
+import urllib.parse
 
 from pages_content import PAGES
 
 JST = dt.timezone(dt.timedelta(hours=9))
 SITE = "https://kumamotojishin.jp"
 SITE_NAME = "令和8年熊本地震 情報まとめ（非公式）"
+
+# ── 広告（2026年9月30日に追加）────────────────────────────────
+# ID が空のあいだは、広告のコードを1行も出しません。
+# 空のまま公開しても、いままでと同じHTMLが出ます。承認が下りてから入れてください。
+ADSENSE_CLIENT = ""     # 例: "ca-pub-0000000000000000"
+ADSENSE_SLOT   = ""     # 広告ユニットのスロットID（数字）
+AMAZON_TAG     = ""     # 例: "xxxxxxxx-22"
+
+# Amazonの物販リンクを置かないページ。
+#   この3つは「申請より先に自分で買って払うと、公費の対象外になります」と
+#   書いているページです。そこに買わせるリンクを並べると、自分たちの警告に反する
+#   ことをさせて報酬を得る形になり、読んだ人が実際に金銭的に損をします。
+#   広告を入れるかどうかとは別の、利益相反の問題として外しています。
+AMAZON_DENY = {"mizu", "risai", "checklist"}
+
+# 物販リンクを置くページと、その中身。
+#   どちらも本文に「持ち物は自分で用意してください」と書いてあるページで、
+#   公的に配られるものではありません。ここだけは、リンクがあると助かります。
+#   個別の商品ではなく検索結果へ送ります。特定の商品を当サイトが推している形に
+#   したくないためです。
+AMAZON_ITEMS = {
+    "volunteer": ("ボランティアの持ち物", [
+        ("厚手のゴム手袋", "災害ボランティア 手袋"),
+        ("防じんマスク（DS2以上）", "防じんマスク DS2"),
+        ("踏み抜き防止インソール", "踏み抜き防止 インソール"),
+        ("安全靴・長靴", "安全長靴 踏み抜き防止"),
+        ("保護メガネ", "保護メガネ 作業"),
+    ]),
+    "furo": ("入浴支援に持って行くもの", [
+        ("タオル・バスタオル", "タオル まとめ買い"),
+        ("シャンプー・ボディソープの小分け", "シャンプー 詰め替え 携帯"),
+        ("ドライシャンプー", "ドライシャンプー 水がいらない"),
+        ("からだ拭きシート", "からだふきシート 大判"),
+    ]),
+}
 
 TAB_LABEL = {
     "life": "ライフライン", "guide": "手続き・支援制度", "vol": "支援したい方へ",
@@ -54,6 +90,8 @@ NAV_NOTE = {
     "shien":     ("使える支援制度", "支援金、応急修理、税と医療費、被災ローン減免"),
     "checklist": ("やることリスト", "今日じゅうに・3日以内に・2週間以内に"),
     "yasashii":  ("やさしい にほんご", "かんたんな 日本語の ページ"),
+    "privacy":   ("プライバシーポリシー", "Cookie、広告、アクセス情報、お問い合わせの扱い"),
+    "about":     ("このサイトについて", "運営、作った理由、情報の集め方と確かめ方"),
 }
 
 
@@ -76,7 +114,7 @@ TMPL = """<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>{title}｜令和8年熊本地震 情報まとめ</title>
+<title>{titletag}</title>
 <meta name="description" content="{desc}">
 <link rel="canonical" href="{site}/{slug}/">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -137,12 +175,23 @@ TMPL = """<!doctype html>
     font-size:.78rem;color:var(--ink-3)}}
   footer a{{color:var(--ink-3)}}
   b{{color:var(--ink)}}
+  /* 広告と物販リンク。本文と見分けがつくように、囲いと小さな見出しを必ず付ける。
+     「広告」と書かずに本文と同じ見た目で置くのは、読む人をだますことになる。 */
+  .ad{{margin:26px 0 0;padding:10px 0 0;border-top:1px dashed var(--line)}}
+  .ad>.lbl{{display:block;font-size:.72rem;color:var(--ink-3);letter-spacing:.06em;margin-bottom:6px}}
+  .shop{{background:var(--surface);border:1px solid var(--line);border-radius:12px;
+    padding:12px 16px;margin:26px 0 0;font-size:.9rem}}
+  .shop>.lbl{{display:block;font-size:.72rem;color:var(--ink-3);letter-spacing:.06em}}
+  .shop h3{{margin:4px 0 6px;font-size:.96rem}}
+  .shop ul{{margin:0;padding-left:1.2em;color:var(--ink-2)}}
+  .shop li{{margin:4px 0}}
+  .shop .note{{margin:8px 0 0;font-size:.79rem;color:var(--ink-3)}}
 </style>
 <script type="application/ld+json">{jsonld}</script>
-</head>
+{adhead}</head>
 <body>
 <div class="warn"><div class="in">
-  <b>有志が運営する非公式サイトです。</b>公的機関ではありません。数字や場所は必ずリンク先の公式ページでご確認ください。
+  <b>熊本電力合同会社が運営する非公式サイトです。</b>公的機関ではありません。数字や場所は必ずリンク先の公式ページでご確認ください。
 </div></div>
 <header class="hd"><div class="in">
   <a class="home" href="/">← 令和8年熊本地震 情報まとめ</a>
@@ -169,9 +218,11 @@ TMPL = """<!doctype html>
 {faqhtml}
   </dl>
 
+{amazon}
   <a class="cta" href="/#{tab}">最新の情報を見る（{tablabel}）
     <span>{ctanote}</span></a>
 
+{adunit}
   <nav class="other">
     <h2>ほかのページ</h2>
     <ul>
@@ -184,8 +235,9 @@ TMPL = """<!doctype html>
       給水所の場所と時間、避難所の開設状況、仮置場の待ち時間、ボランティアの受入状況は毎日変わるため、
       本体サイトの該当タブでご確認ください。古い数字が検索結果に残って、
       読んだ方を誤らせないようにするためです。</p>
-    <p>{sitename}／
-      <a href="/">kumamotojishin.jp</a>　運営とお問い合わせ：info@kumamotojishin.jp</p>
+    <p>{sitename}／運営：熊本電力合同会社（熊本県菊陽町）／
+      <a href="/">kumamotojishin.jp</a>　お問い合わせ：info@kumamotojishin.jp</p>
+    <p><a href="/about/">このサイトについて</a>　<a href="/privacy/">プライバシーポリシー</a></p>
   </footer>
 </main>
 </body>
@@ -238,13 +290,51 @@ def build(out_dir):
                  for q, a in faqs]},
         ]
 
+        # ── 広告 ─────────────────────────────────────────
+        # ID が空なら、コードも枠も一切出さない（いままでと同じHTMLになる）。
+        adhead = adunit = amazon = ""
+        if ADSENSE_CLIENT:
+            adhead = ('<script async src="https://pagead2.googlesyndication.com/pagead/js/'
+                      f'adsbygoogle.js?client={ADSENSE_CLIENT}" crossorigin="anonymous"></script>\n')
+            if ADSENSE_SLOT:
+                adunit = ('  <div class="ad"><span class="lbl">広告</span>\n'
+                          '    <ins class="adsbygoogle" style="display:block"\n'
+                          f'      data-ad-client="{ADSENSE_CLIENT}" data-ad-slot="{ADSENSE_SLOT}"\n'
+                          '      data-ad-format="auto" data-full-width-responsive="true"></ins>\n'
+                          '    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>\n'
+                          '  </div>\n')
+        if AMAZON_TAG and slug not in AMAZON_DENY and slug in AMAZON_ITEMS:
+            head_, items = AMAZON_ITEMS[slug]
+            lis = "".join(
+                '      <li><a href="https://www.amazon.co.jp/s?k={q}&tag={tag}"'
+                ' target="_blank" rel="noopener sponsored nofollow">{n}</a></li>\n'.format(
+                    q=urllib.parse.quote(q), tag=AMAZON_TAG, n=n)
+                for n, q in items)
+            amazon = ('  <div class="shop"><span class="lbl">広告（Amazonアソシエイト）</span>\n'
+                      f'    <h3>{head_}</h3>\n'
+                      '    <ul>\n' + lis + '    </ul>\n'
+                      '    <p class="note">当サイトはAmazonアソシエイト・プログラムに参加しており、'
+                      'ここからの購入で紹介料を受け取ることがあります。'
+                      '<b>特定の商品を推奨するものではありません。</b>'
+                      'お住まいの市町村やボランティアセンターで貸し出し・配布がある場合は、'
+                      'そちらを先にご確認ください。</p>\n'
+                      '  </div>\n')
+
+        # 検索結果で切られるのを避ける。全角30字あたりが目安で、
+        # 「｜令和8年熊本地震 情報まとめ」は14字もある。タイトルにすでに
+        # 「熊本地震」か「じしん」が入っているなら、後ろに付け足さない。
+        titletag = title if ("熊本地震" in title or "じしん" in title) \
+            else f"{title}｜令和8年熊本地震 情報まとめ"
+
         html = TMPL.format(
             site=SITE, sitename=SITE_NAME, slug=slug, title=title, desc=desc,
+            titletag=titletag,
             h1=h1, lead=lead, ctanote=ctanote, today=today,
             tab=tab, tablabel=TAB_LABEL.get(tab, "本体サイト"),
             toc="\n".join(toc_parts), body="\n".join(body_parts),
             faqhtml="\n".join(faq_parts), others="\n".join(others),
             jsonld=json.dumps(jsonld, ensure_ascii=False, separators=(",", ":")),
+            adhead=adhead, adunit=adunit, amazon=amazon,
         )
 
         d = os.path.join(out_dir, slug)
